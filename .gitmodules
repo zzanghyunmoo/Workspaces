@@ -10,3 +10,6 @@
 [submodule "projects/getting-started-rust"]
 	path = projects/getting-started-rust
 	url = https://github.com/zzanghyunmoo/getting-started-rust.git
+[submodule "oh-my-pi"]
+	path = projects/oh-my-pi
+	url = https://github.com/zzanghyunmoo/oh-my-pi.git
