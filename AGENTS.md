@@ -8,8 +8,8 @@
 
 | 스킬 | 저장 위치 | 파일명 패턴 |
 |---|---|---|
-| `01-brainstorm` | `docs/brainstorms/` | `<YYYY-MM-DD>-<topic>-requirements.md` |
-| `02-plan` | `docs/plans/` | `<YYYY-MM-DD>-<topic>-plan.md` |
+| `ce-brainstorm` | `docs/brainstorms/` | `<YYYY-MM-DD>-<topic>-requirements.md` |
+| `ce-plan` | `docs/plans/` | `<YYYY-MM-DD>-<topic>-plan.md` |
 | 그 외 (solution 등) | `docs/solutions/<category>/` | 해당 스킬 규약 따름 |
 
 ## 작업 디렉터리 규칙
