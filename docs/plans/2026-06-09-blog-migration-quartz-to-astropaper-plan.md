@@ -63,7 +63,7 @@
    ```
 2. `.git` 제외하고 `blogs/`로 복사:
    ```bash
-   rsync -av --exclude='.git' --exclude='.github' /tmp/astropaper-src/ /Users/gurumee92/Workspaces/zWorkspaces/blogs/
+   rsync -av --exclude='.git' --exclude='.github' /tmp/astropaper-src/ "$WORKSPACE/blogs/"
    ```
    > `.github/` 제외 — 기존 Pages workflow는 Unit D에서 직접 교체.
 3. `cd blogs && npm install`
@@ -186,7 +186,7 @@
 4. PR 생성 → `v4`로 머지 → Action 통과 → `https://zzanghyunmoo.github.io` 갱신 확인
 5. 부모 워크스페이스로 돌아와서:
    ```bash
-   cd /Users/gurumee92/Workspaces/zWorkspaces
+   cd "$WORKSPACE"
    git add blogs
    git commit -m "chore: bump blogs submodule to AstroPaper migration"
    ```
