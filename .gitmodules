@@ -13,3 +13,6 @@
 [submodule "oh-my-pi"]
 	path = projects/oh-my-pi
 	url = https://github.com/zzanghyunmoo/oh-my-pi.git
+[submodule "projects/money-pipeline"]
+	path = projects/money-pipeline
+	url = https://github.com/zzanghyunmoo/money-pipeline.git
