@@ -23,7 +23,7 @@
 
 - `blogs/` — 기술 블로그 (`zzanghyunmoo.github.io`). 디렉터리 자체는 유지, 내용물 교체는 허용.
 - `projects/` — 개별 프로젝트 작업 공간.
-- `projects/money-pipeline/` — 지속 가능한 사이드 인컴 파이프라인 프로젝트. 작업 전 하위 `AGENTS.md`, `CONCEPTS.md`, `docs/solutions/`를 확인한다.
+- `projects/money-pipeline/` — 지속 가능한 사이드 인컴 파이프라인 프로젝트. 작업 전 하위 `AGENTS.md`, `CONCEPTS.md`, `docs/solutions/`를 확인한다. 금융 콘텐츠, 제휴/협찬, AI 보조, CTA, 재가공 작업은 하위 금융 콘텐츠 가드레일을 따른다.
 - `projects/random-tower-defense/` — Unity 6 LTS 계열 랜덤 타워 디펜스 프로젝트. 작업 전 하위 `AGENTS.md`를 확인하고 Unity/C# 가드레일을 따른다.
 - `runbooks/` — 운영/실행 절차 문서.
 - `docs/` — 워크스페이스 레벨 문서 (`brainstorms/`, `plans/`, `solutions/`).
