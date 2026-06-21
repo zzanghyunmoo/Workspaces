@@ -1,18 +1,24 @@
 [submodule "projects/settings"]
 	path = projects/settings
 	url = https://github.com/zzanghyunmoo/settings.git
+	branch = main
 [submodule "blogs"]
 	path = blogs
 	url = https://github.com/zzanghyunmoo/zzanghyunmoo.github.io.git
+	branch = v4
 [submodule "projects/blog-automation"]
 	path = projects/blog-automation
 	url = https://github.com/zzanghyunmoo/blog-automation.git
+	branch = master
 [submodule "projects/getting-started-rust"]
 	path = projects/getting-started-rust
 	url = https://github.com/zzanghyunmoo/getting-started-rust.git
+	branch = main
 [submodule "oh-my-pi"]
 	path = projects/oh-my-pi
 	url = https://github.com/zzanghyunmoo/oh-my-pi.git
+	branch = main
 [submodule "projects/money-pipeline"]
 	path = projects/money-pipeline
 	url = https://github.com/zzanghyunmoo/money-pipeline.git
+	branch = main
