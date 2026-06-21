@@ -22,3 +22,7 @@
 	path = projects/money-pipeline
 	url = https://github.com/zzanghyunmoo/money-pipeline.git
 	branch = main
+[submodule "projects/random-tower-defense"]
+	path = projects/random-tower-defense
+	url = https://github.com/zzanghyunmoo/random-tower-defense.git
+	branch = main
