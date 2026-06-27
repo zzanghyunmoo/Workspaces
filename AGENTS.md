@@ -28,6 +28,12 @@
 - `runbooks/` — 운영/실행 절차 문서.
 - `docs/` — 워크스페이스 레벨 문서 (`brainstorms/`, `plans/`, `solutions/`).
 
+## PR/MR 작성 규칙
+
+- GitHub PR 또는 GitLab MR 본문은 기본적으로 한국어로 작성한다 (사용자가 영어를 명시하면 영어).
+- PR/MR 본문은 `docs/solutions/conventions/pr-description-template.md`의 4섹션 구조(문제·변경·테스트·데모)를 따른다.
+- 자동 생성한 안내 문구, 예시용 blockquote, 민감 정보(API key/token/내부 호스트/개인 경로)는 본문에 남기지 않는다.
+
 ## 일반 원칙
 
 - 한국어로 응답한다 (사용자가 영어로 물으면 영어).
