@@ -1,0 +1,820 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SRE 경험을 중심에 둔 AI · .NET · 콘텐츠 플라이휠 아이디에이션</title>
+    <style>
+      :root {
+        --bg: #f6f7fb;
+        --paper: #ffffff;
+        --ink: #182033;
+        --muted: #5f6b7a;
+        --line: #dfe5ef;
+        --soft: #f1f5f9;
+        --accent: #2563eb;
+        --accent-soft: #e8f0ff;
+        --green: #0f766e;
+        --green-soft: #e5f7f5;
+        --orange: #b45309;
+        --orange-soft: #fff4e6;
+        --purple: #6d28d9;
+        --purple-soft: #f1eaff;
+        --shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: linear-gradient(180deg, #edf4ff 0, var(--bg) 280px);
+        color: var(--ink);
+        font:
+          16px/1.72 -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          system-ui,
+          sans-serif;
+        word-break: keep-all;
+      }
+
+      a {
+        color: var(--accent);
+      }
+      code {
+        font-family:
+          ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        background: #eef2f7;
+        border: 1px solid #d8e0ec;
+        border-radius: 6px;
+        padding: 0.08rem 0.32rem;
+        word-break: break-all;
+      }
+
+      .page {
+        max-width: 1040px;
+        margin: 0 auto;
+        padding: 42px 22px 70px;
+      }
+
+      .hero,
+      .section {
+        background: rgba(255, 255, 255, 0.94);
+        border: 1px solid var(--line);
+        border-radius: 28px;
+        box-shadow: var(--shadow);
+      }
+
+      .hero {
+        padding: 34px;
+      }
+      .section {
+        padding: 28px;
+        margin-top: 24px;
+      }
+
+      .eyebrow {
+        margin: 0 0 8px;
+        color: var(--accent);
+        font-size: 0.76rem;
+        font-weight: 800;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      h1 {
+        margin: 0 0 16px;
+        font-size: clamp(2rem, 4vw, 3.35rem);
+        line-height: 1.08;
+        letter-spacing: -0.045em;
+      }
+
+      h2 {
+        margin: 0 0 16px;
+        font-size: 1.72rem;
+        line-height: 1.24;
+        letter-spacing: -0.025em;
+      }
+
+      h3 {
+        margin: 0 0 10px;
+        font-size: 1.2rem;
+        line-height: 1.32;
+        letter-spacing: -0.015em;
+      }
+
+      p,
+      li {
+        max-width: 78ch;
+      }
+      blockquote {
+        margin: 18px 0;
+        padding: 16px 18px;
+        border-radius: 18px;
+        background: var(--accent-soft);
+        border: 1px solid #c7d7fe;
+        color: #1e3a8a;
+      }
+
+      .lead {
+        color: var(--muted);
+        font-size: 1.08rem;
+      }
+      .meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 22px;
+      }
+      .chip {
+        display: inline-flex;
+        align-items: center;
+        border: 1px solid var(--line);
+        background: #f8fafc;
+        border-radius: 999px;
+        padding: 6px 11px;
+        color: #334155;
+        font-size: 0.86rem;
+        font-weight: 650;
+      }
+
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 12px;
+        margin-top: 24px;
+      }
+
+      .stat {
+        border: 1px solid var(--line);
+        background: #fff;
+        border-radius: 18px;
+        padding: 14px;
+      }
+
+      .stat b {
+        display: block;
+        font-size: 1.45rem;
+      }
+      .stat span {
+        color: var(--muted);
+        font-size: 0.86rem;
+      }
+
+      .toc {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+        gap: 10px;
+        padding: 0;
+        list-style: none;
+        margin: 16px 0 0;
+      }
+
+      .toc a {
+        display: block;
+        padding: 12px 14px;
+        border-radius: 14px;
+        border: 1px solid var(--line);
+        background: #f8fafc;
+        color: var(--ink);
+        font-weight: 750;
+        text-decoration: none;
+      }
+
+      .toc a:hover {
+        border-color: #bcd0ff;
+        background: var(--accent-soft);
+      }
+
+      .criteria,
+      .cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+        gap: 12px;
+        padding: 0;
+        list-style: none;
+      }
+
+      .criteria li,
+      .mini-card {
+        border: 1px solid var(--line);
+        background: #f8fafc;
+        border-radius: 16px;
+        padding: 14px 15px;
+      }
+
+      .idea {
+        border: 1px solid var(--line);
+        background: linear-gradient(180deg, #fff, #fbfdff);
+        border-radius: 24px;
+        padding: 24px;
+        margin: 18px 0;
+      }
+
+      .idea-head {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 14px;
+        align-items: flex-start;
+        justify-content: space-between;
+        margin-bottom: 10px;
+      }
+
+      .title-row {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+      }
+      .rank {
+        width: 36px;
+        height: 36px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 13px;
+        background: var(--accent);
+        color: #fff;
+        font-weight: 900;
+      }
+
+      .badges {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .badge {
+        border-radius: 999px;
+        padding: 5px 10px;
+        font-size: 0.8rem;
+        font-weight: 800;
+      }
+      .high {
+        background: var(--green-soft);
+        color: var(--green);
+      }
+      .mid {
+        background: var(--orange-soft);
+        color: var(--orange);
+      }
+      .low {
+        background: var(--accent-soft);
+        color: var(--accent);
+      }
+      .complex {
+        background: var(--purple-soft);
+        color: var(--purple);
+      }
+
+      .basis {
+        margin-top: 14px;
+        padding: 13px 15px;
+        border-radius: 16px;
+        border: 1px solid #c7d7fe;
+        background: var(--accent-soft);
+      }
+
+      dl {
+        display: grid;
+        grid-template-columns: 120px 1fr;
+        gap: 8px 14px;
+        margin: 14px 0 0;
+      }
+
+      dt {
+        color: var(--muted);
+        font-size: 0.78rem;
+        font-weight: 900;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+      dd {
+        margin: 0;
+      }
+
+      .callout {
+        margin: 18px 0;
+        padding: 16px 18px;
+        border-radius: 18px;
+        border: 1px solid #bae6fd;
+        background: #eff6ff;
+      }
+
+      .deferred-list {
+        padding-left: 1.2rem;
+      }
+      .deferred-list li {
+        margin: 10px 0;
+      }
+
+      pre {
+        overflow: auto;
+        padding: 16px;
+        border-radius: 16px;
+        border: 1px solid var(--line);
+        background: #0f172a;
+        color: #e2e8f0;
+        line-height: 1.55;
+      }
+
+      .composition-signal {
+        color: var(--muted);
+        font-size: 0.86rem;
+        text-align: center;
+        margin-top: 34px;
+      }
+
+      @media (max-width: 760px) {
+        body {
+          word-break: normal;
+        }
+        .page {
+          padding: 24px 14px 44px;
+        }
+        .hero,
+        .section,
+        .idea {
+          padding: 20px;
+          border-radius: 22px;
+        }
+        .stats {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        dl {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <header class="hero">
+        <p class="eyebrow">ce-ideate artifact</p>
+        <h1>SRE 경험을 중심에 둔 AI · .NET · 콘텐츠 플라이휠</h1>
+        <p class="lead">
+          7년차 SRE 경험을 버리지 않고, C#/.NET/MS 기술 학습과 AI 자동화 제품,
+          개발 콘텐츠, Unity 실험을 하나의 방향으로 묶기 위한 아이디에이션이다.
+          경제 블로그는 이 문서에서 빼고, 별도
+          <code>money-flow</code> 프로젝트에서 다룬다.
+        </p>
+        <div class="meta">
+          <span class="chip"
+            >date: <time datetime="2026-07-03">2026-07-03</time></span
+          >
+          <span class="chip">topic: sre-ai-dotnet-creator-flywheel</span>
+          <span class="chip">mode: elsewhere-software</span>
+          <span class="chip">format: html</span>
+        </div>
+        <div class="stats">
+          <div class="stat"><b>1순위</b><span>Alert Rule Clinic</span></div>
+          <div class="stat"><b>7개</b><span>선별 아이디어</span></div>
+          <div class="stat"><b>5개</b><span>관심 축</span></div>
+          <div class="stat"><b>2주</b><span>첫 실험 권장</span></div>
+        </div>
+        <ul class="toc" aria-label="문서 목차">
+          <li><a href="#summary">한 줄 결론</a></li>
+          <li><a href="#why">왜 이 방향인가</a></li>
+          <li><a href="#ideas">선별 아이디어</a></li>
+          <li><a href="#first-step">첫 번째 선택</a></li>
+          <li><a href="#experiment">2주짜리 실험</a></li>
+        </ul>
+      </header>
+
+      <section id="summary" class="section">
+        <p class="eyebrow">short answer</p>
+        <h2>한 줄 결론</h2>
+        <p>
+          지금 가장 좋은 방향은
+          <strong
+            >C#/.NET으로 AI SRE 자동화 도구를 만들고, 그 과정을 개발 콘텐츠와
+            강의로 쌓는 것</strong
+          >이다.
+        </p>
+        <p>
+          게임 개발, 개발 인플루언서, AI 자동화 플랫폼을 각각 따로 키우려고 하면
+          시간이 너무 많이 찢어진다. 반대로 하나의 중심축을 잘 잡으면 관심사를
+          꽤 자연스럽게 연결할 수 있다. 경제 블로그는 별도
+          <code>money-flow</code>
+          프로젝트로 분리한다.
+        </p>
+        <blockquote>
+          AI SRE 자동화 제품을 만든다. 그 과정을 .NET 학습 기록, 개발 강의,
+          블로그/유튜브 콘텐츠로 재가공한다. 게임 개발은 별도 본업 후보가
+          아니라, C# 연습과 SRE 개념을 설명하는 시각화 실험으로 가져간다. 경제
+          블로그는
+          <code>money-flow</code>에서 별도로 키운다.
+        </blockquote>
+      </section>
+
+      <section id="why" class="section">
+        <p class="eyebrow">positioning</p>
+        <h2>왜 이 방향이 맞아 보이는가</h2>
+        <p>현재 가진 강점은 꽤 선명하다.</p>
+        <ul>
+          <li>7년차 SRE 경험</li>
+          <li>Python, Go, Java/Spring 개발 경험</li>
+          <li>Kubernetes 운영 경험</li>
+          <li>Mimir, Loki, Tempo 기반 observability 플랫폼 구축·운영 경험</li>
+          <li>실제 운영 문제를 겪어본 감각</li>
+          <li>C#/.NET/MS 생태계를 깊게 써보고 싶은 의지</li>
+        </ul>
+        <p>
+          이 조합은 흔하지 않다. 그래서 완전히 새로운 분야로 처음부터 다시
+          시작하기보다,
+          <strong
+            >기존 SRE 경험을 레버리지로 쓰면서 C#/.NET을 새 무기로 붙이는
+            쪽</strong
+          >이 좋다.
+        </p>
+        <p>
+          AI SRE나 incident automation 시장은 이미 Datadog, PagerDuty, Rootly
+          같은 플레이어가 움직이고 있다. 그래서 “나도 AI SRE Copilot
+          만들겠다”처럼 넓게 들어가면 묻히기 쉽다. 대신 처음에는 작고 명확한
+          문제를 잡는 편이 낫다.
+        </p>
+        <p>
+          개발 콘텐츠도 마찬가지다. 그냥 “개발 강의합니다”보다,
+          <strong
+            >7년차 SRE가 .NET과 AI로 운영 자동화 도구를 직접 만들어가는
+            기록</strong
+          >이 훨씬 더 기억에 남는다.
+        </p>
+        <h3>판단 기준</h3>
+        <ul class="criteria">
+          <li>기존 SRE/o11y 경험을 얼마나 잘 살리는가</li>
+          <li>C#/.NET/MS 기술을 억지 없이 깊게 써볼 수 있는가</li>
+          <li>제품, 블로그, 유튜브, 강의로 재활용하기 쉬운가</li>
+          <li>
+            <code>money-flow</code> 프로젝트와 경계를 분명히 나눌 수 있는가
+          </li>
+          <li>게임 개발 관심사를 버리지 않되, 메인 방향을 흐리지 않는가</li>
+        </ul>
+      </section>
+
+      <section id="ideas" class="section">
+        <p class="eyebrow">ranked ideas</p>
+        <h2>선별 아이디어</h2>
+
+        <article id="idea-1" class="idea">
+          <div class="idea-head">
+            <div class="title-row">
+              <span class="rank">1</span>
+              <h3>Alert Rule Clinic</h3>
+            </div>
+            <div class="badges">
+              <span class="badge high">확신도 높음</span
+              ><span class="badge complex">복잡도 중간</span>
+            </div>
+          </div>
+          <p><strong>가장 먼저 해볼 만한 제품 아이디어.</strong></p>
+          <p>
+            Prometheus/Mimir alert rule YAML을 넣으면 noisy alert 가능성,
+            threshold가 너무 빡세거나 느슨한지, 빠진 label/annotation/runbook
+            URL, 테스트 케이스, 관련 로그/메트릭 힌트를 분석해주는 .NET 기반
+            웹앱 또는 CLI다.
+          </p>
+          <p>
+            처음부터 Mimir API와 실시간으로 붙을 필요는 없다. 첫 버전은 사용자가
+            YAML을 붙여 넣으면 정적 분석 + 휴리스틱 + LLM 리뷰로 결과를 주는
+            정도면 충분하다.
+          </p>
+          <div class="basis">
+            <strong>왜 좋은가:</strong> alert rule은 SRE라면 누구나 겪는
+            구체적인 고통이고, 네 Mimir/Loki/Tempo 경험도 바로 드러난다. “AI가
+            장애 대응을 다 해준다”보다 훨씬 작고 선명하다.
+          </div>
+          <dl>
+            <dt>콘텐츠</dt>
+            <dd>
+              좋은 Prometheus alert rule의 조건, noisy alert 줄이는 법, Mimir
+              alert rule을 AI로 리뷰해보기
+            </dd>
+            <dt>주의점</dt>
+            <dd>
+              실제 사례와 반례가 부족하면 AI 답변이 뻔해질 수 있다. 초반부터
+              예제 rule corpus를 같이 모아야 한다.
+            </dd>
+          </dl>
+        </article>
+
+        <article id="idea-2" class="idea">
+          <div class="idea-head">
+            <div class="title-row">
+              <span class="rank">2</span>
+              <h3>One Spine, Four Outputs Flywheel</h3>
+            </div>
+            <div class="badges">
+              <span class="badge high">확신도 매우 높음</span
+              ><span class="badge low">복잡도 낮음</span>
+            </div>
+          </div>
+          <p>
+            이건 제품 아이디어라기보다 운영 원칙에 가깝다. 앞으로 무언가를 만들
+            때마다 코드 저장소, 블로그 글, 유튜브 영상, 강의 자료/체크리스트로
+            쪼갠다.
+          </p>
+          <p>
+            예를 들어 Alert Rule Clinic의 첫 기능을 만들면 GitHub repo, “나쁜
+            alert rule이 장애 대응을 망치는 이유”라는 글, “AI로 Mimir alert rule
+            리뷰해보기” 영상, “Prometheus Alert Rule Review Checklist” 자료가
+            같이 나온다.
+          </p>
+          <div class="basis">
+            <strong>왜 좋은가:</strong> 제품 개발, 개발 인플루언서, 강의가 서로
+            경쟁하지 않고 하나의 작업에서 같이 나온다. 기존
+            <code>projects/blog-automation</code> 프로젝트도 장기적으로 이
+            플라이휠을 돕는 자산이 될 수 있다. 경제 블로그는 이 흐름에 억지로
+            끼우지 않는다.
+          </div>
+          <dl>
+            <dt>주의점</dt>
+            <dd>
+              템플릿 없이 하면 금방 흐트러진다. “기능 하나 = 콘텐츠 3~4개”라는
+              규칙을 정해두는 게 좋다.
+            </dd>
+          </dl>
+        </article>
+
+        <article id="idea-3" class="idea">
+          <div class="idea-head">
+            <div class="title-row">
+              <span class="rank">3</span>
+              <h3>.NET AI SRE Lab Series</h3>
+            </div>
+            <div class="badges">
+              <span class="badge high">확신도 높음</span
+              ><span class="badge complex">복잡도 중간</span>
+            </div>
+          </div>
+          <p>
+            C#/.NET/MS 기술을 배우기 위한 공개 실험실이다. ASP.NET Core,
+            Semantic Kernel 또는 Microsoft Agent Framework, Azure OpenAI, .NET
+            Aspire, local Kubernetes, 샘플 telemetry를 조합한다.
+          </p>
+          <pre><code>/sre-ai-lab
+  /src
+    AlertRuleClinic.Api
+    AlertRuleClinic.Cli
+  /samples
+    alerts/
+    incidents/
+  /docs
+    episodes/</code></pre>
+          <div class="basis">
+            <strong>왜 좋은가:</strong> “.NET 공부합니다”가 아니라, SRE가 실제로
+            쓸 만한 AI 도구를 .NET으로 만들어본다는 점이 포트폴리오가 된다.
+          </div>
+          <dl>
+            <dt>주의점</dt>
+            <dd>
+              lab 자체가 목적이 되면 안 된다. Alert Rule Clinic 같은 구체적인
+              기능을 중심에 두고 키워야 한다.
+            </dd>
+          </dl>
+        </article>
+
+        <article id="idea-4" class="idea">
+          <div class="idea-head">
+            <div class="title-row">
+              <span class="rank">4</span>
+              <h3>Incident Benchmark &amp; Demo Bank</h3>
+            </div>
+            <div class="badges">
+              <span class="badge mid">확신도 중간 이상</span
+              ><span class="badge complex">복잡도 중간</span>
+            </div>
+          </div>
+          <p>
+            synthetic incident, alert-rule smell, 나쁜 runbook,
+            logs/metrics/traces, expected analysis를 모은 데모/평가 은행이다.
+            제품 테스트, 유튜브 데모, 강의 실습, “AI SRE 도구 비교” 콘텐츠에
+            재사용한다.
+          </p>
+          <div class="basis">
+            <strong>왜 좋은가:</strong> AI SRE 시장에서 “우리도 AI로
+            분석합니다”보다 “무엇을 잘한다고 말할 수 있는 기준”이 더 강한
+            차별점이 될 수 있다.
+          </div>
+          <dl>
+            <dt>주의점</dt>
+            <dd>
+              처음부터 거대한 benchmark를 만들 필요는 없다. 5개 정도의 작은
+              incident scenario로 시작하면 된다.
+            </dd>
+          </dl>
+        </article>
+
+        <article id="idea-5" class="idea">
+          <div class="idea-head">
+            <div class="title-row">
+              <span class="rank">5</span>
+              <h3>Money-flow 분리 원칙</h3>
+            </div>
+            <div class="badges">
+              <span class="badge high">확신도 높음</span
+              ><span class="badge low">복잡도 낮음</span>
+            </div>
+          </div>
+          <p>
+            경제 블로그와 돈 관련 실험은 이 로드맵에서 빼고, 별도
+            <code>money-flow</code> 프로젝트에서 다룬다. 이 문서의 중심은 AI SRE
+            자동화 제품, .NET 학습, 개발 콘텐츠, 강의 자산이다.
+          </p>
+          <ul>
+            <li><code>money-flow</code>: 경제 블로그, 돈/흐름/수익화 실험</li>
+            <li>이 문서: Alert Rule Clinic, .NET AI SRE Lab, 개발 강의/자료</li>
+            <li>겹칠 수 있는 주제는 링크만 남기고 운영 리듬은 분리</li>
+          </ul>
+          <div class="basis">
+            <strong>왜 좋은가:</strong> 경제 블로그까지 한 문서에 넣으면 초점이
+            흐려진다. 별도 프로젝트로 빼면 SRE AI 로드맵은 더 선명해지고,
+            money-flow도 독립적으로 키울 수 있다.
+          </div>
+          <dl>
+            <dt>주의점</dt>
+            <dd>
+              cloud cost나 개발자 수익화 이야기가 떠오르더라도, 이 문서에서는
+              제품/강의의 보조 맥락으로만 다룬다. 경제 콘텐츠 기획은
+              money-flow에서 따로 한다.
+            </dd>
+          </dl>
+        </article>
+
+        <article id="idea-6" class="idea">
+          <div class="idea-head">
+            <div class="title-row">
+              <span class="rank">6</span>
+              <h3>SRE Micro-Runbook Studio</h3>
+            </div>
+            <div class="badges">
+              <span class="badge mid">확신도 중간 이상</span
+              ><span class="badge complex">복잡도 중간</span>
+            </div>
+          </div>
+          <p>
+            운영하면서 생기는 작은 지식을 runbook card로 바꾸는 아이디어다. 이미
+            정리한
+            <code>kubectl</code> request/limit watch 문서 같은 내용을 문제 상황,
+            명령어, 자주 하는 실수, 안전 주의사항, 관련 메트릭, 퀴즈, 영상
+            스크립트 초안으로 바꾼다.
+          </p>
+          <div class="basis">
+            <strong>왜 좋은가:</strong> 매일의 SRE 지식을 제품 기능과 교육
+            자산으로 동시에 바꾼다. 카드가 20개, 50개, 100개 쌓이면 검색, 분류,
+            AI 추천, 자동 실행 같은 기능이 자연스럽게 붙는다.
+          </div>
+          <dl>
+            <dt>주의점</dt>
+            <dd>
+              그냥 명령어 모음이 되면 가치가 약하다. “왜 이걸 쓰는지”와 “어디서
+              실수하는지”가 핵심이다.
+            </dd>
+          </dl>
+        </article>
+
+        <article id="idea-7" class="idea">
+          <div class="idea-head">
+            <div class="title-row">
+              <span class="rank">7</span>
+              <h3>SRE Simulation Game</h3>
+            </div>
+            <div class="badges">
+              <span class="badge mid">확신도 중간</span
+              ><span class="badge complex">복잡도 중간</span>
+            </div>
+          </div>
+          <p>
+            게임 개발은 버릴 필요가 없다. 다만 별도 브랜드로 키우기보다 SRE
+            개념을 설명하는 시각화 도구로 가져간다. Unity prototype에서 alert는
+            적, runbook은 tower, SLO budget은 체력, noisy alert는 자원을
+            낭비하게 만드는 적이 된다.
+          </p>
+          <div class="basis">
+            <strong>왜 좋은가:</strong> 창작 욕구와 C# 연습을 살리면서도 본진을
+            흐리지 않는다. “장애 대응을 tower defense로 설명해봤습니다” 같은
+            영상은 일반 강의보다 기억에 남을 수 있다.
+          </div>
+          <dl>
+            <dt>주의점</dt>
+            <dd>
+              재미있어서 메인 프로젝트 시간을 잡아먹기 쉽다. 반드시 timebox를
+              걸어야 한다.
+            </dd>
+          </dl>
+        </article>
+      </section>
+
+      <section id="deferred" class="section">
+        <p class="eyebrow">deferred</p>
+        <h2>아쉽지만 첫 번째 선택에서는 밀린 아이디어들</h2>
+        <ul class="deferred-list">
+          <li>
+            <strong>Incident Timeline Generator</strong> — 좋지만
+            로그·메트릭·트레이스·배포 이벤트 연동이 필요해 첫 MVP로는 크다.
+          </li>
+          <li>
+            <strong>SRE Change Reviewer</strong> — PR/Helm/alert rule 리뷰
+            도구로 유망하지만, Alert Rule Clinic 이후가 자연스럽다.
+          </li>
+          <li>
+            <strong>Zero-Dashboard Incident Brief</strong> — Slack/Teams
+            연동까지 가면 범위가 빨리 커진다.
+          </li>
+          <li>
+            <strong>Flight Black Box for Deployments</strong> — 멋진 방향이지만
+            첫 단계로는 복잡하다.
+          </li>
+          <li>
+            <strong>Open-source Grafana-stack .NET connectors</strong> — 검색
+            유입과 신뢰도에는 좋지만, 단독 제품보다는 보조 자산에 가깝다.
+          </li>
+          <li>
+            <strong>Blog Automation .NET port</strong> — 기존 자산을 살릴 수
+            있지만, 먼저 무엇을 계속 발행할지 정하는 게 우선이다.
+          </li>
+          <li>
+            <strong>Enterprise-grade AI SRE platform</strong> — 장기적으로는
+            중요하지만, 지금은 검증 전 과투자에 가깝다.
+          </li>
+        </ul>
+      </section>
+
+      <section id="first-step" class="section">
+        <p class="eyebrow">recommendation</p>
+        <h2>추천하는 첫 번째 선택</h2>
+        <p>첫 번째로는 <strong>Alert Rule Clinic</strong>을 추천한다.</p>
+        <ul>
+          <li>네 SRE 경험이 바로 드러난다.</li>
+          <li>C#/.NET으로 만들 명분이 있다.</li>
+          <li>AI 기능이 억지스럽지 않다.</li>
+          <li>너무 크지 않다.</li>
+          <li>블로그와 유튜브 소재로 바로 쓸 수 있다.</li>
+          <li>
+            나중에 Runbook Studio, Incident Benchmark, .NET AI SRE Lab으로
+            확장하기 좋다.
+          </li>
+        </ul>
+        <p>
+          처음부터 SaaS를 만들 필요는 없다. 아래 정도면 충분히 첫 실험이 된다.
+        </p>
+        <pre><code>사용자가 Prometheus alert rule YAML을 붙여 넣는다.
+도구가 rule을 읽는다.
+도구가 문제 후보를 설명한다.
+도구가 개선된 annotation/runbook/test idea를 제안한다.
+결과를 markdown report로 저장한다.</code></pre>
+        <p>이 정도만 되어도 첫 블로그와 첫 영상이 나온다.</p>
+      </section>
+
+      <section id="experiment" class="section">
+        <p class="eyebrow">two-week experiment</p>
+        <h2>당장 해볼 수 있는 2주짜리 실험</h2>
+        <ol>
+          <li>Alert Rule Clinic용 샘플 alert rule 10개를 모은다.</li>
+          <li>좋은 rule / 나쁜 rule 기준을 간단히 정리한다.</li>
+          <li>ASP.NET Core 또는 CLI로 YAML 입력을 받는다.</li>
+          <li>LLM에게 리뷰 프롬프트를 보내고 markdown report를 만든다.</li>
+          <li>이 과정을 블로그 1편, 유튜브 1편으로 만든다.</li>
+          <li>글/영상 끝에 “이런 도구가 있으면 쓸 것 같은지”를 묻는다.</li>
+        </ol>
+        <div class="callout">
+          이 실험의 목표는 완성도가 아니다.
+          <strong>제품, 학습, 콘텐츠가 한 번에 굴러가는지 확인하는 것</strong
+          >이다.
+        </div>
+      </section>
+
+      <section id="closing" class="section">
+        <p class="eyebrow">wrap-up</p>
+        <h2>최종 정리</h2>
+        <ol>
+          <li>
+            <strong>Alert Rule Clinic</strong>으로 첫 제품 wedge를 잡는다.
+          </li>
+          <li>이 과정을 <strong>.NET AI SRE Lab Series</strong>로 공개한다.</li>
+          <li>
+            모든 기능을 <strong>블로그·유튜브·강의 자료</strong>로 재가공한다.
+          </li>
+          <li>
+            경제 블로그와 돈 이야기는 <strong>money-flow</strong> 프로젝트로
+            분리한다.
+          </li>
+          <li>
+            게임 개발은 <strong>SRE Simulation Game</strong>처럼 교육용 시각화
+            실험으로 timebox한다.
+          </li>
+        </ol>
+        <p>
+          이렇게 가면 네 가지 관심사가 서로 싸우지 않는다. 하나의 중심
+          프로젝트가 제품이 되고, 콘텐츠가 되고, 강의가 되고, 장기적으로는 개인
+          브랜드와 수익 파이프라인이 된다.
+        </p>
+      </section>
+
+      <footer class="composition-signal">
+        Composed 2026-07-03 by ce-ideate from user-provided
+        career/product/content context.
+      </footer>
+    </main>
+  </body>
+</html>

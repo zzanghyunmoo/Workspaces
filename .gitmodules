@@ -6,10 +6,6 @@
 	path = blogs
 	url = https://github.com/zzanghyunmoo/zzanghyunmoo.github.io.git
 	branch = v4
-[submodule "projects/blog-automation"]
-	path = projects/blog-automation
-	url = https://github.com/zzanghyunmoo/blog-automation.git
-	branch = master
 [submodule "projects/getting-started-rust"]
 	path = projects/getting-started-rust
 	url = https://github.com/zzanghyunmoo/getting-started-rust.git
@@ -17,12 +13,4 @@
 [submodule "oh-my-pi"]
 	path = projects/oh-my-pi
 	url = https://github.com/zzanghyunmoo/oh-my-pi.git
-	branch = main
-[submodule "projects/money-pipeline"]
-	path = projects/money-pipeline
-	url = https://github.com/zzanghyunmoo/money-pipeline.git
-	branch = main
-[submodule "projects/random-tower-defense"]
-	path = projects/random-tower-defense
-	url = https://github.com/zzanghyunmoo/random-tower-defense.git
 	branch = main
