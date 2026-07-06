@@ -15,7 +15,7 @@ origin: docs/brainstorms/2026-07-03-sokoban-csharp-foundation-curriculum-require
 
 ## Goal Capsule
 
-- **Objective:** `projects/dotnet-foundation-lab`에 초보자용 C# 프로그래밍 기초 챕터와 실제 코드 스냅샷 Git branch chain을 만든다.
+- **Objective:** `projects/dotnet-foundation-lab`에 36장짜리 초보자용 C# 프로그래밍 기초 챕터와 실제 코드 스냅샷 Git branch chain을 만든다.
 - **Target repo:** `projects/dotnet-foundation-lab`; 이 계획의 파일 경로는 workspace root 기준으로 적는다.
 - **Product authority:** 기존 Sokoban C# Foundation Curriculum 요구사항과 2026-07-06 사용자 결정이 함께 기준이다.
 - **Execution profile:** 문서, .NET console app, 테스트 프로젝트, 학습 브랜치/태그를 만든다.
@@ -28,7 +28,7 @@ origin: docs/brainstorms/2026-07-03-sokoban-csharp-foundation-curriculum-require
 
 ### Summary
 
-Programming Fundamentals Branch Chain은 C#을 처음 배우는 사용자가 `왜 C#인가`에서 시작해 개발환경 설정, 변수와 타입, 제어문, 반복문, 메서드, 문자열/배열, 객체 지향 프로그래밍까지 따라 치며 익히는 학습 경로다.
+Programming Fundamentals Branch Chain은 C#을 처음 배우는 사용자가 `왜 C#인가`에서 시작해 개발환경 설정, 변수와 타입, 제어문, 반복문, 메서드, 문자열/배열, 객체 지향 프로그래밍, 컬렉션, nullable, 예외, 테스트, record, interface, generic, LINQ, file I/O, JSON, async, logging, configuration까지 따라 치며 익히는 36장 장기 학습 경로다.
 각 챕터는 문서만 읽어도 시작 상태, 작성할 코드, 완성 기준, 다음 챕터 시작 상태를 알 수 있어야 한다.
 코드 스냅샷은 사용자가 선택한 대로 Git branch chain으로 제공하며, `fundamentals/chNN+1`은 `fundamentals/chNN`의 완성 커밋에서 시작한다.
 
@@ -498,7 +498,7 @@ projects/dotnet-foundation-lab/
 ## Definition of Done
 
 - D1. `projects/dotnet-foundation-lab/docs/curriculum/tracks/fundamentals.md` exists and is linked from the curriculum index.
-- D2. Chapter docs cover why C#, OS-specific development environment setup, variables/types, control flow, methods/arrays, and OOP.
+- D2. Chapter docs cover why C#, OS-specific development environment setup, variables/types, control flow, methods/arrays, OOP, collections, nullable, exceptions, testing, records, interfaces, generics, LINQ, file I/O, JSON, async, debugging, logging, configuration, refactoring, and capstone readiness.
 - D3. Every chapter doc includes start state, type-through work, completed state, verification, and next chapter start state.
 - D4. `fundamentals/ch01-*` through `fundamentals/ch07-*` exist as a Git branch chain.
 - D5. Code-bearing branches build and run; branches with durable map/domain logic also pass tests.
