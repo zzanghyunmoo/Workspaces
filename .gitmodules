@@ -14,3 +14,6 @@
 	path = projects/oh-my-pi
 	url = https://github.com/zzanghyunmoo/oh-my-pi.git
 	branch = main
+[submodule "projects/ReplaceMe"]
+	path = projects/ReplaceMe
+	url = https://github.com/zzanghyunmoo/ReplaceMe.git
