@@ -40,3 +40,29 @@ Submodule.
 
 Updating a Standalone Project does not update the Workspace Container until the
 Submodule Pointer is advanced and committed in the container repository.
+
+## Review Workflow
+
+### Deployable Slice
+
+A review unit that can be understood, verified, merged, and deployed without
+requiring unrelated changes from the same oversized work batch.
+
+A Deployable Slice may depend on an earlier slice, but it should still have a
+clear boundary, validation story, and rollback implication of its own.
+
+### Stacked PR
+
+A sequence of pull requests where each later branch uses the previous slice
+branch as its base so reviewers can follow dependent work in deployment order.
+
+A Stacked PR sequence preserves dependency order without forcing all changes into
+one oversized review.
+
+### Oversized PR
+
+A pull request whose scope combines multiple deployable concerns so review order,
+validation scope, or rollback responsibility becomes unclear.
+
+An Oversized PR should be replaced by Deployable Slices when the bundled work can
+be split into a clear Stacked PR sequence.
