@@ -6,11 +6,13 @@
 
 각 스킬의 결과물은 다음 경로에 저장한다. 다른 경로에 흩뿌리지 말 것.
 
+<!-- markdownlint-disable MD013 -->
 | 스킬 | 저장 위치 | 파일명 패턴 |
 | --- | --- | --- |
 | `ce-brainstorm` | `docs/brainstorms/` | `<YYYY-MM-DD>-<topic>-requirements.md` |
 | `ce-plan` | `docs/plans/` | `<YYYY-MM-DD>-<topic>-plan.md` |
 | 그 외 (solution 등) | `docs/solutions/<category>/` | 해당 스킬 규약 따름 |
+<!-- markdownlint-enable MD013 -->
 
 ## Compound Engineering 활용 흐름
 
@@ -41,6 +43,8 @@
   게임 실험은 이 repo 범위에서 제외한다.
 - `runbooks/` — 운영/실행 절차 문서.
 - `docs/` — 워크스페이스 레벨 문서(`brainstorms/`, `plans/`, `solutions/`).
+- `CONCEPTS.md` — 워크스페이스 공유 도메인 용어집(엔티티, 명명된 프로세스,
+  상태 개념). 코드베이스를 파악하거나 도메인 개념을 논의할 때 참고할 만하다.
 
 ## PR/MR 작성 규칙
 
