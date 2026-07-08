@@ -41,6 +41,36 @@ Submodule.
 Updating a Standalone Project does not update the Workspace Container until the
 Submodule Pointer is advanced and committed in the container repository.
 
+## Notion Documentation
+
+### Ticket-scoped Documentation
+
+Documentation owned by a single ticket or work item and kept under that ticket's
+Notion page rather than a generic project document folder.
+
+Ticket-scoped Documentation keeps requirements, QA runbooks, review notes, and
+repair guidance discoverable from the same work item. Related pages should be
+created or moved under the ticket page unless the user explicitly chooses a
+broader project-level home.
+
+### QA Document Folder
+
+A Notion page that acts as the container for QA runbooks, test checklists, and
+manual verification notes for a specific feature or ticket.
+
+When a QA Document Folder belongs to a ticket, it should be nested as
+Ticket-scoped Documentation so its child pages remain attached to the work item
+that generated them.
+
+### Notion Ancestry Verification
+
+The practice of checking a Notion page's parent chain before creating or moving
+related documentation.
+
+Notion Ancestry Verification prevents follow-up artifacts from landing in a
+nearby but wrong workspace area, and it is the confirmation step after moving a
+misplaced page.
+
 ## Review Workflow
 
 ### Deployable Slice
