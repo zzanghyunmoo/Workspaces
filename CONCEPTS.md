@@ -48,19 +48,29 @@ Submodule Pointer is advanced and committed in the container repository.
 Documentation owned by a single ticket or work item and kept under that ticket's
 Notion page rather than a generic project document folder.
 
-Ticket-scoped Documentation keeps requirements, QA runbooks, review notes, and
-repair guidance discoverable from the same work item. Related pages should be
-created or moved under the ticket page unless the user explicitly chooses a
-broader project-level home.
+Ticket-scoped Documentation keeps requirements, decisions, review notes,
+verification results, and ticket-specific follow-up discoverable from the same
+work item. It should link to canonical operating procedures rather than become
+the home for repeated runbooks.
+
+### Ticket Work Document Folder
+
+A ticket-scoped Notion parent page that acts as the concise index for one work
+item and owns stage-specific child pages.
+
+A Ticket Work Document Folder keeps its parent page short: summary, external
+work-surface links, key decisions, current status, and a child-page table of
+contents. Ideation, brainstorming, planning, development notes, validation, and
+follow-up diagnostics live in ordered child pages beneath it.
 
 ### QA Document Folder
 
-A Notion page that acts as the container for QA runbooks, test checklists, and
-manual verification notes for a specific feature or ticket.
+A Notion page that acts as the container for reusable QA runbooks, test
+checklists, and manual verification procedures.
 
-When a QA Document Folder belongs to a ticket, it should be nested as
-Ticket-scoped Documentation so its child pages remain attached to the work item
-that generated them.
+For ReplaceMe, the canonical QA Document Folder belongs under the Operator Guide.
+Ticket pages record ticket-specific QA outcomes and link to the canonical QA
+procedures instead of owning duplicate runbooks.
 
 ### Notion Ancestry Verification
 
@@ -70,6 +80,62 @@ related documentation.
 Notion Ancestry Verification prevents follow-up artifacts from landing in a
 nearby but wrong workspace area, and it is the confirmation step after moving a
 misplaced page.
+
+## ReplaceMe Automation
+
+### Readiness Profile
+
+A pre-run capability check that decides whether a personal automation mode is
+safe to use before an agent starts code-changing work.
+
+A Readiness Profile reports blocking failures and warnings across the local
+environment and configured external work surfaces, so later automation does not
+discover missing access only after a run has started.
+
+### Run Passport
+
+A durable identity card for one automation run that ties the controlling issue,
+code-review surface, documentation surface, verification evidence, approvals,
+and final outcome into one traceable record.
+
+A Run Passport is the shared reference that downstream comments, review packets,
+and lifecycle documents point to; it should summarize evidence without exposing
+secrets, local-only paths, or provider tokens.
+
+### Run Passport Contract
+
+The minimal shared field and link semantics that Run Passport consumers agree to
+before full storage, rerun lineage, or analytics exist.
+
+A Run Passport Contract lets parallel consumers render the same run identity,
+status, evidence summary, and backlinks without inventing incompatible field
+names or nullability rules.
+
+### PR Review Packet
+
+A reviewer-facing summary package for an automated code change.
+
+A PR Review Packet explains the problem, change, verification evidence, demo or
+non-demo reason, linked work item, linked documentation, Run Passport reference,
+and residual risks in a form that is ready for human review.
+
+### Notion Lifecycle Document
+
+A ticket-scoped Notion document created when automation work starts and updated
+as the run moves through approval waiting, PR creation, failure, completion, and
+lessons learned.
+
+A Notion Lifecycle Document is memory, not just a copied ticket body: it should
+preserve why the work happened, what happened during the run, and what future
+runs should learn from it.
+
+### Linear Issue Execution Grammar
+
+The project-specific rules that decide whether a Linear issue contains enough
+information to become executable automation work.
+
+When the issue is not runnable, the grammar should produce a focused
+clarification path instead of starting an agent run from ambiguous requirements.
 
 ## Review Workflow
 
@@ -88,6 +154,25 @@ branch as its base so reviewers can follow dependent work in deployment order.
 
 A Stacked PR sequence preserves dependency order without forcing all changes into
 one oversized review.
+
+### Ticket-scoped PR Pair
+
+A matched documentation/code pull-request pair for one ticket, where the
+documentation PR establishes the review contract and the code PR stacks on that
+contract.
+
+A Ticket-scoped PR Pair shares the ticket identifier and title across both PRs;
+only the review-surface suffix distinguishes the documentation slice from the
+code slice.
+
+### External Work Surface Sync
+
+The handoff step that mirrors GitHub PR structure, verification evidence, and
+current status back into the external work surfaces that own the ticket context.
+
+External Work Surface Sync keeps Linear issues and Notion design or lifecycle
+notes aligned with the actual PR stack, so reviewers and future automation runs
+do not rely on stale ticket or document state.
 
 ### Oversized PR
 
