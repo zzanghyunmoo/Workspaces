@@ -33,43 +33,43 @@ delete_branch=0
 
 while [ "$#" -gt 0 ]; do
 	case "$1" in
-		--repo)
-			repo="${2:-}"
-			shift 2
-			;;
-		--pr)
-			pr="${2:-}"
-			shift 2
-			;;
-		--method)
-			method="${2:-}"
-			shift 2
-			;;
-		--subject)
-			subject="${2:-}"
-			shift 2
-			;;
-		--body)
-			body="${2:-}"
-			shift 2
-			;;
-		--body-file)
-			body_file="${2:-}"
-			shift 2
-			;;
-		--delete-branch)
-			delete_branch=1
-			shift
-			;;
-		-h|--help)
-			usage
-			exit 0
-			;;
-		*)
-			printf 'Unknown argument: %s\n\n' "$1" >&2
-			usage >&2
-			exit 64
-			;;
+	--repo)
+		repo="${2:-}"
+		shift 2
+		;;
+	--pr)
+		pr="${2:-}"
+		shift 2
+		;;
+	--method)
+		method="${2:-}"
+		shift 2
+		;;
+	--subject)
+		subject="${2:-}"
+		shift 2
+		;;
+	--body)
+		body="${2:-}"
+		shift 2
+		;;
+	--body-file)
+		body_file="${2:-}"
+		shift 2
+		;;
+	--delete-branch)
+		delete_branch=1
+		shift
+		;;
+	-h | --help)
+		usage
+		exit 0
+		;;
+	*)
+		printf 'Unknown argument: %s\n\n' "$1" >&2
+		usage >&2
+		exit 64
+		;;
 	esac
 done
 
@@ -79,13 +79,13 @@ if [ -z "$repo" ] || [ -z "$pr" ]; then
 fi
 
 case "$method" in
-	squash) method_flag="--squash" ;;
-	merge) method_flag="--merge" ;;
-	rebase) method_flag="--rebase" ;;
-	*)
-		printf 'Invalid --method: %s\n' "$method" >&2
-		exit 64
-		;;
+squash) method_flag="--squash" ;;
+merge) method_flag="--merge" ;;
+rebase) method_flag="--rebase" ;;
+*)
+	printf 'Invalid --method: %s\n' "$method" >&2
+	exit 64
+	;;
 esac
 
 mapfile -t pr_info < <(
@@ -105,8 +105,8 @@ mergeable="${pr_info[6]}"
 is_draft="${pr_info[7]}"
 state="${pr_info[8]}"
 
-if [ "${PR_MERGE_APPROVED:-}" != "1" ] || \
-	[ "${PR_MERGE_APPROVED_REPO:-}" != "$repo" ] || \
+if [ "${PR_MERGE_APPROVED:-}" != "1" ] ||
+	[ "${PR_MERGE_APPROVED_REPO:-}" != "$repo" ] ||
 	[ "${PR_MERGE_APPROVED_PR:-}" != "$pr_number" ]; then
 	cat >&2 <<MSG
 
