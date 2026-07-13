@@ -17,7 +17,10 @@ done
 cat <<'MSG'
 
 main-guard is active through core.hooksPath.
-To override after explicit user approval only:
+Root zWorkspaces may commit/push directly on main.
+Project repositories under projects/ remain protected.
+
+To override a protected project repo after explicit user approval only:
   MAIN_GUARD_APPROVED=1 git commit ...
   MAIN_GUARD_APPROVED=1 git push ...
 

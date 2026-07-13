@@ -1,30 +1,48 @@
 #!/bin/sh
 set -eu
+
+canonical_dir() {
+	cd "$1" && pwd -P
+}
+
+hook_dir="$(canonical_dir "$(dirname "$0")")"
+workspace_root="$(canonical_dir "$hook_dir/..")"
+repo_root="$(canonical_dir "$(git rev-parse --show-toplevel 2>/dev/null || pwd)")"
+
+# The root zWorkspaces repository is the operating workspace and intentionally
+# allows direct main/master pushes. Product/project repositories under projects/
+# remain protected and should use branch -> PR/MR.
+if [ "$repo_root" = "$workspace_root" ]; then
+	exit 0
+fi
+
 protected=" ${MAIN_GUARD_BRANCHES:-main master} "
 is_protected_ref() {
-  ref="$1"
-  name="${ref#refs/heads/}"
-  case "$protected" in
-    *" $name "*) return 0 ;;
-    *) return 1 ;;
-  esac
+	ref="$1"
+	name="${ref#refs/heads/}"
+	case "$protected" in
+		*" $name "*) return 0 ;;
+		*) return 1 ;;
+	esac
 }
-while read local_ref local_sha remote_ref remote_sha
- do
-  if is_protected_ref "$local_ref" || is_protected_ref "$remote_ref"; then
-    if [ "${MAIN_GUARD_APPROVED:-}" != "1" ]; then
-      cat >&2 <<'MSG'
+while read local_ref local_sha remote_ref remote_sha; do
+	if is_protected_ref "$local_ref" || is_protected_ref "$remote_ref"; then
+		if [ "${MAIN_GUARD_APPROVED:-}" != "1" ]; then
+			cat >&2 <<'MSG'
 
-⛔ main-guard: protected branch push blocked.
+⛔ main-guard: protected project branch push blocked.
 
-This workspace requires explicit user approval before pushing directly to main/master.
-Preferred workflow: create/confirm a ticket, work on a branch, and open a PR.
-If the user explicitly approved this exact main-branch push, rerun only that command with:
+Project repositories under projects/ must not push directly to main/master.
+Preferred workflow: create/confirm a ticket, work on a branch, and open a PR/MR.
+The root zWorkspaces repository is exempt and may push directly to main.
+
+If the user explicitly approved this exact project main-branch push, rerun only
+that command with:
 
   MAIN_GUARD_APPROVED=1 git push ...
 
 MSG
-      exit 1
-    fi
-  fi
+			exit 1
+		fi
+	fi
 done

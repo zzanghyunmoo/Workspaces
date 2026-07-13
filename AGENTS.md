@@ -48,17 +48,21 @@
 
 ## Git 작업 규칙
 
-- `main`/`master` 브랜치에서 직접 commit 또는 push 하지 않는다. 문서·메타 작업도
-  예외가 아니다.
-- 기본 흐름은 티켓 생성/확인 → 별도 브랜치 작업 → PR/MR 생성이다.
-- 사용자가 `main` 직접 반영을 명시적으로 요구해도, 실행 직전에 반드시 한 번 더
-  확인한다. 확인 메시지에는 대상 repo, 현재 브랜치, 변경 파일 요약, commit message,
+- 루트 워크스페이스 repo(`/Users/gurumee92/Workspaces/zWorkspaces`, GitHub
+  `zzanghyunmoo/Workspaces`)는 운영·문서·가드레일 repo이므로 `main`에서 직접 작업하고
+  commit/push할 수 있다.
+- `projects/` 아래 개별 프로젝트 repo(예: `projects/ReplaceMe`)에서는 `main`/`master`
+  브랜치에 직접 commit 또는 push 하지 않는다. 문서·메타 작업도 예외가 아니다.
+- 프로젝트 repo의 기본 흐름은 티켓 생성/확인 → 별도 브랜치 작업 → PR/MR 생성이다.
+- 사용자가 프로젝트 repo의 `main` 직접 반영을 명시적으로 요구해도, 실행 직전에 반드시 한 번
+  더 확인한다. 확인 메시지에는 대상 repo, 현재 브랜치, 변경 파일 요약, commit message,
   push 대상 remote/branch를 포함한다.
-- 사용자의 명시 승인 없이는 `MAIN_GUARD_APPROVED=1` 같은 main 보호 hook 우회 환경변수를
-  설정하지 않는다. hook이 차단하면 중단하고 사용자에게 승인 또는 브랜치/PR 전환을 묻는다.
+- 사용자의 명시 승인 없이는 `MAIN_GUARD_APPROVED=1` 같은 프로젝트 main 보호 hook 우회
+  환경변수를 설정하지 않는다. hook이 차단하면 중단하고 사용자에게 승인 또는 브랜치/PR 전환을
+  묻는다.
 - 로컬 main 보호 hook은 `runbooks/install-main-guard-hooks.sh`로 설치한다. 이 스크립트는
-  `core.hooksPath`를 `.githooks/`로 설정해 root repo와 `projects/ReplaceMe`에 같은
-  pre-commit/pre-push 차단 규칙을 적용한다.
+  `core.hooksPath`를 `.githooks/`로 설정하고, root repo는 main 직접 작업을 허용하되
+  `projects/ReplaceMe` 같은 프로젝트 repo에는 pre-commit/pre-push 차단 규칙을 적용한다.
 
 ## PR/MR Merge 승인 규칙
 

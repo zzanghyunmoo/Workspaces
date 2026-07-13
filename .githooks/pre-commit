@@ -1,22 +1,41 @@
 #!/bin/sh
 set -eu
+
+canonical_dir() {
+	cd "$1" && pwd -P
+}
+
+hook_dir="$(canonical_dir "$(dirname "$0")")"
+workspace_root="$(canonical_dir "$hook_dir/..")"
+repo_root="$(canonical_dir "$(git rev-parse --show-toplevel 2>/dev/null || pwd)")"
+
+# The root zWorkspaces repository is the operating workspace and intentionally
+# allows direct main/master commits. Product/project repositories under projects/
+# remain protected and should use branch -> PR/MR.
+if [ "$repo_root" = "$workspace_root" ]; then
+	exit 0
+fi
+
 branch="$(git symbolic-ref --quiet --short HEAD 2>/dev/null || true)"
 protected=" ${MAIN_GUARD_BRANCHES:-main master} "
 case "$protected" in
-  *" $branch "*)
-    if [ "${MAIN_GUARD_APPROVED:-}" != "1" ]; then
-      cat >&2 <<'MSG'
+	*" $branch "*)
+		if [ "${MAIN_GUARD_APPROVED:-}" != "1" ]; then
+			cat >&2 <<'MSG'
 
-⛔ main-guard: protected branch commit blocked.
+⛔ main-guard: protected project branch commit blocked.
 
-This workspace requires explicit user approval before committing directly on main/master.
-Preferred workflow: create/confirm a ticket, work on a branch, and open a PR.
-If the user explicitly approved this exact main-branch commit, rerun only that command with:
+Project repositories under projects/ must not commit directly on main/master.
+Preferred workflow: create/confirm a ticket, work on a branch, and open a PR/MR.
+The root zWorkspaces repository is exempt and may work directly on main.
+
+If the user explicitly approved this exact project main-branch commit, rerun only
+that command with:
 
   MAIN_GUARD_APPROVED=1 git commit ...
 
 MSG
-      exit 1
-    fi
-    ;;
+			exit 1
+		fi
+		;;
 esac
