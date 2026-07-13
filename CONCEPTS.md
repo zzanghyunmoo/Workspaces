@@ -81,6 +81,24 @@ Notion Ancestry Verification prevents follow-up artifacts from landing in a
 nearby but wrong workspace area, and it is the confirmation step after moving a
 misplaced page.
 
+### Background Document
+
+A Notion page that records why a project direction exists: problem framing,
+ideation, early scope, architecture options, and decision rationale.
+
+Background Documents are not execution trackers. They explain why a plan is
+reasonable, while dated execution plans and ticket documents own the operational
+order of work.
+
+### Development Plan Folder
+
+A Notion folder under a project's development documentation that groups dated
+execution plans and cross-ticket roadmaps.
+
+A Development Plan Folder is distinct from ticket-scoped documentation: it owns
+phase order, dependencies, and roadmap sequencing across tickets rather than the
+lifecycle notes for a single work item.
+
 ## ReplaceMe Automation
 
 ### Readiness Profile
