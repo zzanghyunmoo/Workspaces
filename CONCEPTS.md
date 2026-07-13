@@ -81,6 +81,34 @@ Notion Ancestry Verification prevents follow-up artifacts from landing in a
 nearby but wrong workspace area, and it is the confirmation step after moving a
 misplaced page.
 
+### Dual-published Documentation
+
+A documentation artifact maintained on both the Notion project wiki and the
+local repository docs for the same work stage or knowledge area.
+
+Dual-published Documentation is not two independent sources of truth: the Notion
+page owns the document taxonomy and current content shape, while the local copy
+keeps repository history and code-review context aligned to that Notion source.
+
+### Notion-first Documentation Sync
+
+The workflow of choosing or updating the canonical Notion page first, then
+mirroring its title, scope, section structure, links, and current status into the
+local repository documentation.
+
+Notion-first Documentation Sync applies when a work stage needs both a
+collaborative Notion surface and a versioned local record; duplicate Notion pages
+are redirected to the canonical page instead of becoming parallel sources.
+
+### Feature Status Document
+
+A Notion document that centralizes the product or design-facing map of what a
+project can do, what is implemented, and what remains planned.
+
+For ReplaceMe, a Feature Status Document belongs under design documentation.
+Ticket-specific implementation notes may link to it, but they do not become the
+canonical feature map.
+
 ### Background Document
 
 A Notion page that records why a project direction exists: problem framing,
