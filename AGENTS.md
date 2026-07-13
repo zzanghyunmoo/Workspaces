@@ -60,6 +60,23 @@
   `core.hooksPath`를 `.githooks/`로 설정해 root repo와 `projects/ReplaceMe`에 같은
   pre-commit/pre-push 차단 규칙을 적용한다.
 
+## PR/MR Merge 승인 규칙
+
+- PR/MR 생성, reviewer pass, merge 가능 상태 확인, "merge order" 정리, Linear In Review/Done
+  전환은 merge 승인으로 해석하지 않는다.
+- `gh pr merge`, `glab mr merge`, GitHub/GitLab API mutation 등 PR/MR을 병합하거나
+  종료하는 명령은 현재 turn에서 사용자가 해당 repo와 PR/MR 번호를 명시해 merge를 승인한
+  경우에만 실행한다.
+- merge 실행 직전에는 대상 repo, PR/MR 번호와 제목, head→base branch, merge method,
+  commit subject/body, branch 삭제 여부, Linear 상태 변경 계획을 한 번에 제시하고 승인을
+  받아야 한다.
+- GitHub PR merge는 `runbooks/guarded-pr-merge.sh`를 통해서만 실행한다. 직접
+  `gh pr merge`를 호출하지 않는다.
+- 사용자의 명시 승인 없이는 `PR_MERGE_APPROVED=1` 같은 merge 승인 우회 환경변수를
+  설정하지 않는다. guard가 차단하면 중단하고 approval packet을 사용자에게 제시한다.
+- Linear ticket을 Done으로 옮기는 것은 PR/MR이 사용자가 직접 merge했거나, 위 절차로 승인된
+  merge가 완료된 뒤에만 수행한다.
+
 ## PR/MR 작성 규칙
 
 - GitHub PR 또는 GitLab MR 본문은 기본적으로 한국어로 작성한다.

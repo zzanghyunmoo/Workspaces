@@ -20,4 +20,7 @@ main-guard is active through core.hooksPath.
 To override after explicit user approval only:
   MAIN_GUARD_APPROVED=1 git commit ...
   MAIN_GUARD_APPROVED=1 git push ...
+
+PR merge guard is procedural, because GitHub/GitLab PR merges do not run local
+Git hooks. Use runbooks/guarded-pr-merge.sh and never call gh pr merge directly.
 MSG
