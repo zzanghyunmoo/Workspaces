@@ -1,0 +1,30 @@
+#!/bin/sh
+set -eu
+protected=" ${MAIN_GUARD_BRANCHES:-main master} "
+is_protected_ref() {
+  ref="$1"
+  name="${ref#refs/heads/}"
+  case "$protected" in
+    *" $name "*) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+while read local_ref local_sha remote_ref remote_sha
+ do
+  if is_protected_ref "$local_ref" || is_protected_ref "$remote_ref"; then
+    if [ "${MAIN_GUARD_APPROVED:-}" != "1" ]; then
+      cat >&2 <<'MSG'
+
+⛔ main-guard: protected branch push blocked.
+
+This workspace requires explicit user approval before pushing directly to main/master.
+Preferred workflow: create/confirm a ticket, work on a branch, and open a PR.
+If the user explicitly approved this exact main-branch push, rerun only that command with:
+
+  MAIN_GUARD_APPROVED=1 git push ...
+
+MSG
+      exit 1
+    fi
+  fi
+done
