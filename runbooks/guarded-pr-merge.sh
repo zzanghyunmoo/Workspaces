@@ -4,9 +4,11 @@ set -euo pipefail
 usage() {
 	cat <<'MSG'
 Usage:
-  runbooks/guarded-pr-merge.sh --repo OWNER/REPO --pr NUMBER [options]
+  runbooks/guarded-pr-merge.sh --repo OWNER/REPO --pr NUMBER \
+    --workflow-evidence docs/works/WORK.md [options]
 
 Options:
+  --workflow-evidence PATH       Required docs/works evidence file
   --method squash|merge|rebase   Merge method. Default: squash
   --subject TEXT                 Commit subject passed to gh pr merge
   --body TEXT                    Commit body passed to gh pr merge
@@ -19,12 +21,17 @@ for the exact repo and PR. After that approval, rerun with:
   PR_MERGE_APPROVED=1 \
   PR_MERGE_APPROVED_REPO=OWNER/REPO \
   PR_MERGE_APPROVED_PR=NUMBER \
-  runbooks/guarded-pr-merge.sh --repo OWNER/REPO --pr NUMBER ...
+  runbooks/guarded-pr-merge.sh --repo OWNER/REPO --pr NUMBER \
+    --workflow-evidence docs/works/WORK.md ...
 MSG
 }
 
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+workflow_gate="$script_dir/compound_workflow_gate.py"
+
 repo=""
 pr=""
+workflow_evidence=""
 method="squash"
 subject=""
 body=""
@@ -39,6 +46,10 @@ while [ "$#" -gt 0 ]; do
 		;;
 	--pr)
 		pr="${2:-}"
+		shift 2
+		;;
+	--workflow-evidence)
+		workflow_evidence="${2:-}"
 		shift 2
 		;;
 	--method)
@@ -73,9 +84,14 @@ while [ "$#" -gt 0 ]; do
 	esac
 done
 
-if [ -z "$repo" ] || [ -z "$pr" ]; then
+if [ -z "$repo" ] || [ -z "$pr" ] || [ -z "$workflow_evidence" ]; then
 	usage >&2
 	exit 64
+fi
+
+if [ ! -x "$workflow_gate" ]; then
+	printf 'Workflow gate is missing or not executable: %s\n' "$workflow_gate" >&2
+	exit 1
 fi
 
 case "$method" in
@@ -105,6 +121,19 @@ mergeable="${pr_info[6]}"
 is_draft="${pr_info[7]}"
 state="${pr_info[8]}"
 
+gate_output="$(
+	python3 "$workflow_gate" pre-merge \
+		--evidence "$workflow_evidence" \
+		--repo "$repo" \
+		--pr "$pr_number"
+)"
+printf '%s\n' "$gate_output"
+verified_head="$(printf '%s\n' "$gate_output" | awk -F= '/^VERIFIED_HEAD_SHA=[0-9a-f]{40}$/ { print $2 }')"
+if [[ ! "$verified_head" =~ ^[0-9a-f]{40}$ ]]; then
+	printf 'Workflow gate did not return a verified PR head SHA.\n' >&2
+	exit 1
+fi
+
 if [ "${PR_MERGE_APPROVED:-}" != "1" ] ||
 	[ "${PR_MERGE_APPROVED_REPO:-}" != "$repo" ] ||
 	[ "${PR_MERGE_APPROVED_PR:-}" != "$pr_number" ]; then
@@ -120,6 +149,8 @@ Approval packet to show the user:
 - State: $state, draft: $is_draft
 - Mergeability: $mergeable / $merge_state
 - Merge method: $method
+- Workflow evidence: $workflow_evidence
+- Verified head: $verified_head
 - Delete branch: $delete_branch
 - Commit subject: ${subject:-<gh default>}
 - Commit body/body-file: ${body:-${body_file:-<gh default>}}
@@ -130,7 +161,8 @@ rerun with:
   PR_MERGE_APPROVED=1 \
   PR_MERGE_APPROVED_REPO="$repo" \
   PR_MERGE_APPROVED_PR="$pr_number" \
-  $0 --repo "$repo" --pr "$pr_number" --method "$method" ...
+  $0 --repo "$repo" --pr "$pr_number" \
+    --workflow-evidence "$workflow_evidence" --method "$method" ...
 
 Do not treat PR creation, merge order, reviewer pass, or Linear Done as merge
 approval.
@@ -138,7 +170,12 @@ MSG
 	exit 1
 fi
 
-args=(pr merge "$pr_number" --repo "$repo" "$method_flag")
+args=(
+	pr merge "$pr_number"
+	--repo "$repo"
+	"$method_flag"
+	--match-head-commit "$verified_head"
+)
 if [ "$delete_branch" -eq 1 ]; then
 	args+=(--delete-branch)
 fi
@@ -152,4 +189,23 @@ if [ -n "$body_file" ]; then
 	args+=(--body-file "$body_file")
 fi
 
-gh "${args[@]}"
+python3 "$workflow_gate" record-closeout \
+	--evidence "$workflow_evidence" \
+	--repo "$repo" \
+	--pr "$pr_number"
+
+if ! gh "${args[@]}"; then
+	python3 "$workflow_gate" cancel-closeout --repo "$repo" --pr "$pr_number" || true
+	exit 1
+fi
+
+cat <<MSG
+
+Merge completed. Completion is still pending until all closeout steps pass:
+- add or update docs/kb
+- sync Notion feature status and ticket documents
+- update work evidence to closeout_status: complete; use ticket_status: Done only for the final PR
+- push the root closeout commit, then run:
+
+  python3 $workflow_gate ack-closeout --repo $repo --pr $pr_number
+MSG

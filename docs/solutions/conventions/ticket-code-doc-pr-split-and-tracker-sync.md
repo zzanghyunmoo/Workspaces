@@ -1,6 +1,7 @@
 ---
 title: 티켓 작업 PR은 문서와 코드를 분리하고 외부 작업면까지 동기화한다
 date: 2026-07-09
+last_updated: 2026-07-14
 category: conventions
 module: replace-me-pr-workflow
 problem_type: convention
@@ -13,6 +14,8 @@ applies_when:
 tags: [pull-request, stacked-prs, linear, notion, ticket-workflow, pr-title]
 related_components: [documentation, assistant, tooling]
 ---
+
+<!-- markdownlint-disable MD013 MD025 -->
 
 # 티켓 작업 PR은 문서와 코드를 분리하고 외부 작업면까지 동기화한다
 
@@ -72,13 +75,20 @@ PR 제목 형식은 다음을 따른다.
 각 PR의 파일 범위를 확인한다.
 
 Linear/Notion 동기화는 PR 생성 뒤의 선택 작업이 아니라 handoff의 일부다. 최소한 다음을
-남긴다.
+`docs/works` evidence와 Notion 티켓 문서에 남긴다.
 
 - 어떤 PR이 문서이고 어떤 PR이 코드인지
 - 각 PR의 base/head 관계
-- 각 PR이 책임지는 범위
+- 각 PR이 책임지는 범위와 주요 구현 변경 지점
 - 실제 실행한 검증
+- PR 최신 head의 `ce-code-review`와 `ce-doc-review` 댓글
 - PR merge 전이라면 Linear 상태를 완료로 바꾸지 않는 이유
+
+각 PR은 자신의 `docs/works` evidence와 최신 head SHA를 가진 code/doc review marker를
+별도로 충족해야 한다. Parent merge 뒤 child를 retarget하거나 새 commit을 push하면 이전
+marker를 재사용하지 않는다. 중간 PR을 merge한 뒤에는 KB·Notion closeout을 하되 Linear는
+`In Review`와 `remaining_prs`를 유지한다. 마지막 PR의 closeout이 끝난 뒤에만 Linear를
+`Done`으로 전환한다.
 
 ## Why This Matters
 
@@ -143,14 +153,18 @@ ZZA-56은 PR을 문서/코드로 분리한 stacked PR로 정리했습니다.
 - 문서 PR: #9 — [ZZA-56] Run Passport minimum schema/interface (문서)
 - 코드 PR: #8 — [ZZA-56] Run Passport minimum schema/interface (코드)
 
-상태는 PR merge 전이므로 In Progress 유지가 맞습니다.
+PR이 열렸으므로 상태는 In Review로 전환하고, 마지막 PR closeout 전까지 유지합니다.
 ```
 
 ## Related
 
 - `docs/solutions/workflow-issues/split-oversized-integration-pr-into-deployable-stacked-prs.md` — 큰 PR을 deployable slice와 stacked PR로 분리하는 기존 workflow.
 - `docs/solutions/conventions/pr-description-template.md` — PR 본문은 한국어 4섹션 구조를 따른다.
+- `docs/works/README.md` — 티켓 work evidence, 최신-head review marker, merge closeout 규약.
+- `docs/kb/README.md` — merge된 기능의 현재 상태와 운영 지식 저장 규약.
 - `docs/solutions/workflow-issues/notion-operator-guide-qa-document-hierarchy.md` — QA 문서는 티켓 페이지가 아니라 운영자 가이드 아래에 둔다.
 - `docs/solutions/workflow-issues/run-passport-contract-before-dependent-follow-ups.md` — ZZA-56 최소 Run Passport 계약을 후속 작업 전에 먼저 정의해야 하는 이유.
 - GitHub PR `#9`: `[ZZA-56] Run Passport minimum schema/interface (문서)`.
 - GitHub PR `#8`: `[ZZA-56] Run Passport minimum schema/interface (코드)`.
+
+<!-- markdownlint-enable MD013 MD025 -->

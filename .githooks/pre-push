@@ -9,10 +9,23 @@ hook_dir="$(canonical_dir "$(dirname "$0")")"
 workspace_root="$(canonical_dir "$hook_dir/..")"
 repo_root="$(canonical_dir "$(git rev-parse --show-toplevel 2>/dev/null || pwd)")"
 
-# The root zWorkspaces repository is the operating workspace and intentionally
-# allows direct main/master pushes. Product/project repositories under projects/
-# remain protected and should use branch -> PR/MR.
+# The root zWorkspaces repository may push directly to main/master, but a project
+# PR merged through guarded-pr-merge leaves local closeout debt. Root pushes stay
+# blocked until docs/kb, Notion links, and ticket completion are committed.
 if [ "$repo_root" = "$workspace_root" ]; then
+	checked_ref=0
+	zero_sha=0000000000000000000000000000000000000000
+	while read local_ref local_sha remote_ref remote_sha; do
+		if [ "$local_sha" != "$zero_sha" ]; then
+			python3 "$workspace_root/runbooks/compound_workflow_gate.py" \
+				pending-closeouts --ref "$local_sha"
+			checked_ref=1
+		fi
+	done
+	if [ "$checked_ref" -eq 0 ]; then
+		python3 "$workspace_root/runbooks/compound_workflow_gate.py" \
+			pending-closeouts --ref HEAD
+	fi
 	exit 0
 fi
 

@@ -25,5 +25,7 @@ To override a protected project repo after explicit user approval only:
   MAIN_GUARD_APPROVED=1 git push ...
 
 PR merge guard is procedural, because GitHub/GitLab PR merges do not run local
-Git hooks. Use runbooks/guarded-pr-merge.sh and never call gh pr merge directly.
+Git hooks. Use runbooks/guarded-pr-merge.sh with --workflow-evidence and never call
+gh pr merge directly. A guarded merge records closeout debt; root pre-push blocks
+until docs/kb, Notion links, and ticket completion are committed.
 MSG
