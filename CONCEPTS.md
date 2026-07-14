@@ -199,7 +199,10 @@ A sequence of pull requests where each later branch uses the previous slice
 branch as its base so reviewers can follow dependent work in deployment order.
 
 A Stacked PR sequence preserves dependency order without forcing all changes into
-one oversized review.
+one oversized review. In this workspace's public squash-merge stacks, descendants
+land one at a time by retargeting the next PR, reconciling it with the new base,
+re-proving the slice boundary, and merging it before advancing to the next
+descendant; their public history is not rewritten during landing.
 
 ### Ticket-scoped PR Pair
 
