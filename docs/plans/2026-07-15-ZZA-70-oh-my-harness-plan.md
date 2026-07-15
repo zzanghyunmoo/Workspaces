@@ -197,14 +197,14 @@ Planning resolves the exact upstream identity, runtime baseline, verdict tiers, 
 - KTD4. **Require the full 116-cell hermetic Conformance Matrix.** (session-settled: user-directed — chosen over representative-only validation: every CE 3.19.0 feature must work in every selected runtime.) A vertical slice is sequencing evidence, not a reduced completion target.
 - KTD5. **Use a two-tier verdict.** (session-settled: user-directed — chosen over making all live integrations release-blocking or deferring live verification entirely: deterministic release confidence and real-environment evidence need separate truth.) Hermetic failure blocks release; live certification never upgrades a hermetic failure.
 - KTD6. **Use scripted providers for hermetic execution and hosted models for certification.** (session-settled: user-directed — chosen over hosted-model release gating or a fixed local model: the release gate needs deterministic conversations while quality still needs real-model evidence.) Deterministic structural/state checks take precedence over model judges.
-- KTD7. **Require a native hard gate.** (session-settled: user-directed — chosen over a launcher wrapper, CE skill mutation, or doctor-only warnings: native use must not silently bypass readiness.) A runtime without an enforceable install/session/tool/permission seam remains unsupported.
+- KTD7. **Require a native hard gate before the first model request.** (session-settled: user-directed — chosen over a launcher wrapper, CE skill mutation, tool-only late blocking, or doctor-only warnings: native use must not leak context, incur model cost, or reach tools before readiness.) A runtime without a pre-model install/session/input seam remains unsupported; tool/permission hooks additionally enforce every later side effect.
 - KTD8. **Install CE per user and generate guardrails per project.** (session-settled: user-directed — chosen over all-project, all-user, or dual-scope v1: plugin duplication and cross-project policy leakage must both be avoided.) Runtime homes carry the pinned plugin; repository files carry the common policy.
 - KTD9. **Compare semantic contracts, not byte output.** (session-settled: user-directed — chosen over exact prose or diff parity: model variation is expected.) Generated configuration remains byte-deterministic; agent output is checked by schema, IDs, state, evidence, seeded findings, and bounded quality rubrics.
 - KTD10. **Keep the coordinator test-only.** The coordinator provisions isolation, launches native CLIs, replays scripted interactions, captures evidence, and exits. It depends on neutral core ports and Runtime Adapters but is absent from production exports and user installation artifacts; the ordinary CLI cannot import it or use it as a common runner.
 - KTD11. **Use pure render, explicit ownership planning, and a transaction journal.** Preview is a byte-deterministic ownership plan bound to expected pre-image hashes. Apply requires approval of that plan digest, rechecks file identity immediately before each atomic managed write, and records partial outcomes. Rollback is compare-and-swap against the recorded post-image; stale or sensitive pre-images require manual recovery rather than destructive repair.
-- KTD12. **Use exact v1 runtime/platform locks.** Each passing baseline is the tuple `(runtime version, OS, architecture, executable digest, immutable acquisition identity)`. Canonical hermetic release uses Linux x64 tuples; this operator's personal install uses Darwin arm64 tuples. Codex 0.144.4, OpenCode 1.18.0, Claude Code 2.1.210, and Pi 0.80.7 are the only v1 versions. Any uncovered tuple is blocked until a separately reviewed support lane and U16 receipt are added.
+- KTD12. **Use exact v1 runtime/platform locks.** Each passing baseline is the tuple `(runtime version, OS, architecture, executable digest, immutable acquisition identity)`. Canonical hermetic release uses 116 Linux x64 cells; this operator's Darwin arm64 tuples require a separate 116-cell personal certification using the same feature contracts and semantic oracles before doctor may report full readiness. Codex 0.144.4, OpenCode 1.18.0, Claude Code 2.1.210, and Pi 0.80.7 are the only v1 versions. Any uncovered or uncertified tuple is blocked until a separately reviewed support lane and current evidence are added.
 - KTD13. **Treat harness-controlled runtime payloads and evidence as untrusted boundaries.** A pinned digest proves reproducibility, not trust. Upstream provenance, executable identity, shell-free argv, minimal environment, fail-closed cell isolation, capture-before-persist redaction, and live target fingerprints must all pass before native agent execution or publication of evidence. The threat model covers untrusted workspace/plugin/model output inside a harness-controlled run; it excludes a compromised kernel/container runtime, substituted locked binary, or concurrent malicious process already running as the same OS user.
-- KTD14. **Use a digest-pinned Linux OCI container as the canonical hermetic backend.** Release cells run with read-only root, dropped capabilities, no-new-privileges, resource/PID limits, isolated mounts and default-deny external network; the scripted provider shares only a cell-local network namespace. macOS development invokes that backend through a characterized OCI runtime and reports blocked when unavailable; deprecated host `sandbox-exec` is not a passing backend.
+- KTD14. **Use platform-native, digest-pinned isolation backends.** Linux release cells use a digest-pinned OCI image with read-only root, dropped capabilities, no-new-privileges, resource/PID limits, isolated mounts and default-deny external network. Darwin personal cells use a pinned Tart version and macOS 15 arm64 VM image digest with disposable snapshots, isolated workspace/HOME/auth mounts, bounded processes, broker-only egress and teardown verification. U16 must prove both backend receipts; host execution or deprecated `sandbox-exec` is never a passing fallback.
 
 ### High-Level Technical Design
 
@@ -326,11 +326,13 @@ harness/
 ├── baselines/
 │   ├── <runtime>-<version>-darwin-arm64.json
 │   ├── <runtime>-<version>-linux-x64.json
+│   ├── darwin-tart.json
 │   └── linux-oci.json
 ├── contracts/
 │   ├── conformance-result.schema.json
 │   ├── feature-contract.schema.json
 │   ├── harness-profile.schema.json
+│   ├── review-quality-v1.json
 │   └── runtime-adapter.schema.json
 ├── fixtures/
 │   ├── services/
@@ -361,6 +363,7 @@ scripts/
     ├── evidence.mjs
     ├── install.mjs
     ├── live-broker.mjs
+    ├── native-install-port.mjs
     ├── render.mjs
     ├── upstream.mjs
     ├── evaluators/
@@ -391,7 +394,7 @@ docs/
 - Neutral core and test-only coordinator use Node ESM and built-in test primitives, following `scripts/profile-pack.mjs` rather than introducing a runtime framework before evidence requires it.
 - Contract data lives in committed, secret-free JSON and Markdown. Timestamps, tokens, auth headers, prompt bodies from private workspaces, and credential paths never enter deterministic locks.
 - Runtime-specific files may import neutral data, but neutral modules must not import Pi `ExtensionAPI`, another runtime SDK, or coordinator modules. Import-boundary and package-content tests enforce this direction.
-- Canonical hermetic cells run inside the U16-proven digest-pinned Linux OCI backend with isolated mounts, process/PID/resource limits and default-deny external network; redirected HOME, a runtime's own sandbox flag, or host `sandbox-exec` alone is insufficient.
+- Canonical Linux release cells run in the U16-proven OCI backend; Darwin personal cells run in the U16-proven Tart/macOS 15 arm64 VM backend. Both require isolated mounts, process/PID/resource bounds, broker-only egress and teardown checks; redirected HOME, runtime sandbox flags, host execution, or `sandbox-exec` alone are insufficient.
 - The coordinator never invokes a shell. It resolves an allowlisted absolute executable identity, passes structured argv, uses a minimal environment and fixed cwd, and strips inherited credential, socket, preload and startup variables.
 - Scripted providers bind to a cell-specific loopback endpoint, require a per-cell capability token, and implement only the locked provider protocols using checked-in transcripts.
 - Upstream repository owner, release provenance, complete tree, dependency lock and install lifecycle are verified before plugin load; unexpected executable or lifecycle changes block the run.
@@ -402,8 +405,8 @@ docs/
 
 1. **Contract and existential proof:** U1–U3 establish immutable identity, schemas, profile and 116 expected keys; U16 provisions ephemeral exact baselines and proves each native gate/evidence seam plus the canonical OCI backend before broader control-plane work.
 2. **Safety/control primitives:** U4–U6 and U14 prove ownership planning, guarded apply, provider protocols, shell-free spawn, OCI isolation, evidence handling, and one fake-runtime vertical cell.
-3. **Native support implementation:** U7–U10 implement production native gate artifacts and normal-CLI adapters. Any mismatch with U16 characterization stops breadth expansion.
-4. **Production vertical slice, breadth and conformance:** U10 implements the first Pi production adapter; U11 fixes evaluator semantics on that path; U7–U9 implement remaining adapters; U18 confirms cross-runtime evaluator parity; U17 owns per-user native installation; U13 integrates doctor/migration; U15 supplies the 29 feature-contract families and executes all 116 cells.
+3. **First production support:** U10 implements the Pi native gate and normal-CLI adapter. Any mismatch with U16 characterization stops breadth expansion.
+4. **Evaluator-first breadth and conformance:** U11 fixes evaluator semantics on Pi; U7–U9 implement remaining adapters; U18 confirms cross-runtime evaluator parity; U17 owns per-user native installation; U13 integrates doctor/migration; U15 supplies the 29 feature-contract families, executes 116 Linux release cells, and certifies 116 Darwin personal cells.
 5. **User-value proof and release:** U12 adds the four-way workflow benchmark, target-bound hosted/live certification, docs, and aggregate release validation.
 
 Each phase may ship as a separate PR under ZZA-70.
@@ -431,7 +434,7 @@ Shared contract, lock, generated inventory, ownership engine, package manifest, 
 | U18 | Cross-runtime evaluator confirmation | `tests/harness/evaluator-parity.test.mjs` | U7–U11, U14 |
 | U17 | Per-user native install and sync | `scripts/harness/install.mjs` | U5, U7–U10 |
 | U13 | Neutral doctor and Pi migration integration | `scripts/harness/doctor.mjs`, `extensions/setup-doctor/` | U5, U7–U10, U17 |
-| U15 | Full feature contracts and 116-cell matrix | `harness/scenarios/`, `tests/harness/matrix.test.mjs` | U18 |
+| U15 | Full feature contracts, Linux release, and Darwin certification | `harness/scenarios/`, `tests/harness/matrix.test.mjs` | U18 |
 | U12 | Four-way benchmark, certification, and release integration | `harness/fixtures/workflows/`, `package.json`, `README.md` | U13, U15, U17 |
 
 The Unit Index order is the execution order; detailed sections retain stable U-IDs so review and work evidence references do not change when sequencing is refined.
@@ -486,18 +489,18 @@ Actor trace is explicit rather than inferred: A1 maps to U5/U13/U17/U12 operator
 
 ### U16. Exact-baseline, native-gate, and OCI feasibility proof
 
-- **Goal:** Retire the two existential v1 risks—an exact runtime lacking an unavoidable native gate/evidence path, or the release host lacking the required hermetic backend—before building the broader control plane.
+- **Goal:** Retire the existential v1 risks—an exact runtime lacking an unavoidable native gate/evidence path, scripted provider routing failing, or either Linux OCI/Darwin Tart isolation backend being unavailable—before building the broader control plane.
 - **Requirements:** R3, R7–R9, R13, R18–R20; F5; AE2; KTD7, KTD12, KTD14.
 - **Dependencies:** U1–U3.
-- **Files:** Create `harness/baselines/<runtime>-<version>-linux-x64.json`, `harness/baselines/<runtime>-<version>-darwin-arm64.json` for all four runtimes, `harness/baselines/linux-oci.json`, `scripts/harness/characterize.mjs`, `tests/harness/characterize.test.mjs`, `tests/harness/fixtures/characterize/`.
-- **Approach:** Provision each exact platform tuple and immutable CE payload into ephemeral homes, install a minimal probe through the documented native extension/plugin/hook mechanism, prove pre-model or pre-tool fail-closed interception, and remove the probe. In the cell-local network namespace, expose the minimum locked OpenAI-compatible or Anthropic-compatible probe endpoint; each runtime must select it, complete one native model request, emit an authenticated machine-readable control envelope, and show zero external egress. The Linux x64 tuple runs inside the digest-pinned OCI image; the Darwin arm64 tuple runs discovery/gate/headless-event smoke against the operator binary while still using an ephemeral home. Record tuple, acquisition and proof hashes—not speculative hook names—in baseline receipts.
+- **Files:** Create `harness/baselines/<runtime>-<version>-linux-x64.json`, `harness/baselines/<runtime>-<version>-darwin-arm64.json` for all four runtimes, `harness/baselines/linux-oci.json`, `harness/baselines/darwin-tart.json`, `scripts/harness/characterize.mjs`, `tests/harness/characterize.test.mjs`, `tests/harness/fixtures/characterize/`.
+- **Approach:** Provision each exact platform tuple and immutable CE payload into ephemeral homes, install a minimal probe through the documented native extension/plugin/hook mechanism, and require a fail-closed readiness decision before the first model request. Tool/permission hooks additionally enforce every later side effect; a tool-only hook cannot pass. Only after readiness succeeds does the cell-local network expose the minimum locked OpenAI-compatible or Anthropic-compatible probe endpoint; each runtime must complete one native model request, emit an authenticated machine-readable control envelope, and show zero external egress. The Linux x64 tuple runs inside the digest-pinned OCI image; the Darwin arm64 tuple runs inside a disposable Tart macOS 15 arm64 VM snapshot pinned by Tart version and image digest. Record tuple, acquisition and proof hashes—not speculative hook names—in baseline receipts.
 - **Test scenarios:**
-  - Missing binary, mismatched version/OS/architecture/digest/acquisition identity, mutable plugin source, absent gate, provider-routing failure, unauthenticated headless envelope, external egress, or cleanup residue marks that tuple unsupported and blocks U4/U6/U14/U7–U10.
-  - The OCI proof denies host home/workspace, external DNS/IP/Unix sockets, other loopback ports, remote git and background daemon persistence while allowing one token-protected provider endpoint.
-  - macOS without a supported OCI runtime reports blocked; host `sandbox-exec` alone cannot satisfy the baseline.
+  - Missing binary, mismatched version/OS/architecture/digest/acquisition identity, mutable plugin source, absent pre-model gate, tool-only late gate, provider-routing failure, unauthenticated headless envelope, external egress, or cleanup residue marks that tuple unsupported and blocks U4/U6/U14/U7–U10.
+  - The OCI and Tart proofs deny host home/workspace, external DNS/IP/Unix sockets, unapproved loopback ports, remote git and background daemon persistence while allowing one token-protected broker endpoint.
+  - Missing OCI runtime, Tart version/image mismatch, unavailable Apple virtualization support, dirty VM snapshot, or failed VM teardown reports blocked; host execution and `sandbox-exec` cannot satisfy the baseline.
   - Forged event-shaped stdout/stderr/tool output, duplicate or out-of-order terminal/approval events, and payload nesting changes cannot satisfy the native control-envelope proof.
   - Characterization uses ephemeral homes only and leaves personal runtime configuration unchanged.
-- **Verification:** Eight platform-specific gate/provider/evidence receipts and one OCI backend receipt pass before any breadth unit begins; a failed receipt stops v1 rather than selecting a wrapper or weaker lane.
+- **Verification:** Eight platform-specific gate/provider/evidence receipts plus Linux OCI and Darwin Tart backend receipts pass before any breadth unit begins; a failed receipt stops the affected support lane rather than selecting a wrapper, host fallback or weaker isolation.
 
 ### U4. Project overlay generator and ownership
 
@@ -523,7 +526,7 @@ Actor trace is explicit rather than inferred: A1 maps to U5/U13/U17/U12 operator
 - **Requirements:** R6, R8, R10; F1, F4; AE2, AE4; KTD8, KTD11, KTD13.
 - **Dependencies:** U3, U4.
 - **Files:** Create `scripts/harness/apply.mjs`, `scripts/harness/cli.mjs`, `tests/harness/apply.test.mjs`, `tests/harness/fixtures/transactions/`.
-- **Approach:** Require approval of the exact preview digest, execute no project code, revalidate trusted root and every path component immediately before write, and journal metadata before each mutation. Use platform no-follow support for the final target where available and otherwise refuse unsafe file types. Store sensitive pre-images only in an owner-only repository-external backup store; the committed/evidence journal holds hashes and references. Retain backups while a transaction is partial, in manual recovery, or inside an explicit rollback window; confirmed apply/rollback/uninstall or expiry makes them prune-eligible through list/prune operations. Rollback is compare-and-swap against the transaction's post-image and refuses concurrent edits, unsafe targets, corrupt/missing backup, or root mismatch. The OS account and absence of a concurrent same-UID attacker during apply are explicit trust assumptions.
+- **Approach:** Require approval of the exact preview digest, execute no project code, revalidate trusted root and every path component immediately before write, and journal metadata before each mutation. Use platform no-follow support for the final target where available and otherwise refuse unsafe file types. Store sensitive pre-images only in an owner-only repository-external backup store; the committed/evidence journal holds hashes and references. Retain backups while a transaction is partial, in manual recovery, or inside an explicit rollback window. A confirmed apply remains ineligible for pruning until that window expires; confirmed rollback or uninstall may make a backup immediately eligible only when no recovery state references it. Rollback is compare-and-swap against the transaction's post-image and refuses concurrent edits, unsafe targets, corrupt/missing backup, or root mismatch. The OS account and absence of a concurrent same-UID attacker during apply are explicit trust assumptions.
 - **Patterns to follow:** `extensions/workspace-connectors/setup-state.ts` atomic state writes and symlink refusal, strengthened with no-follow containment and CAS semantics.
 - **Test scenarios:**
   - Preview performs no writes; stale plan digest or changed pre-image forces re-preview.
@@ -549,12 +552,12 @@ Actor trace is explicit rather than inferred: A1 maps to U5/U13/U17/U12 operator
 
 ### U14. Secure coordinator and evidence lifecycle
 
-- **Goal:** Implement the shell-free launch boundary, canonical OCI isolation, process lifecycle, resume identity, and bounded capture-before-persist evidence pipeline proven by U16.
+- **Goal:** Implement the shell-free launch boundary, Linux OCI and Darwin Tart isolation adapters, process lifecycle, resume identity, and bounded capture-before-persist evidence pipeline proven by U16.
 - **Requirements:** R13, R14, R17–R21; F2, F5; KTD6, KTD10, KTD13, KTD14.
 - **Dependencies:** U5, U6, U16.
 - **Files:** Create `scripts/harness/coordinator.mjs`, `scripts/harness/evidence.mjs`, `tests/harness/coordinator.test.mjs`, `tests/harness/security-boundary.test.mjs`, `tests/harness/fixtures/processes/`, `tests/harness/fixtures/secrets/`.
-- **Approach:** Resolve an allowlisted absolute executable and digest, spawn structured argv without a shell, use a minimal environment and fixed cwd, and launch the U16-pinned Linux OCI image under its recorded policy. Accept control events only from the U16-characterized native envelope or dedicated control channel, preserving source labels and payload nesting; model/tool stdout, stderr and artifact bytes remain untrusted payload. Capture accepted events through allowlisted fields and streaming redaction before an owner-only repository-external evidence store. Ingest only coordinator-generated opaque names under pre-opened trusted roots; accept no-follow regular files whose before/after identity remains contained, and enforce per-stream, event, artifact, file-count and total-cell byte ceilings. Retries append attempts and never erase prior failures; coordinator modules are absent from production exports and user CLI imports.
-- **Execution note:** Unsupported OCI runtime or policy mismatch is an infrastructure failure; the coordinator never falls back to an unsandboxed host process.
+- **Approach:** Resolve an allowlisted absolute executable and digest, spawn structured argv without a shell, use a minimal environment and fixed cwd, then dispatch by tuple to either the U16-pinned Linux OCI image or a disposable snapshot of the U16-pinned Tart/macOS 15 arm64 VM under its recorded policy. Accept control events only from the U16-characterized native envelope or dedicated control channel, preserving source labels and payload nesting; model/tool stdout, stderr and artifact bytes remain untrusted payload. Capture accepted events through allowlisted fields and streaming redaction before an owner-only repository-external evidence store. Ingest only coordinator-generated opaque names under pre-opened trusted roots; accept no-follow regular files whose before/after identity remains contained, and enforce per-stream, event, artifact, file-count and total-cell byte ceilings. Retries append attempts and never erase prior failures; coordinator modules are absent from production exports and user CLI imports.
+- **Execution note:** Unsupported OCI/Tart runtime, image or policy mismatch is an infrastructure failure; the coordinator never falls back to an unsandboxed host process.
 - **Test scenarios:**
   - Spaces, quotes, newline, `$()`, semicolon, leading-dash values, PATH shadowing, preload/startup variables, inherited agent/socket variables, and forged provider URLs cannot create an extra process or file.
   - Real home, parent workspace, DNS, IPv4/IPv6, metadata address, other loopback ports, Unix/Docker/SSH sockets, remote git, background/double-fork processes, and timeout orphans remain unreachable; outside-root canaries and residual PID scans stay clean.
@@ -631,13 +634,13 @@ Actor trace is explicit rather than inferred: A1 maps to U5/U13/U17/U12 operator
 - **Goal:** Remove repeated manual CE setup by applying the exact upstream CE payload and harness native gate to each personal runtime home through a production-facing, preview-first path that is separate from the test coordinator.
 - **Requirements:** R3, R7, R8, R10, R11; F1, F5; AE2, AE4; KTD2, KTD7, KTD8, KTD11.
 - **Dependencies:** U5, U7–U10.
-- **Files:** Create `scripts/harness/install.mjs`, `tests/harness/install.test.mjs`, `tests/harness/fixtures/install/`; consume adapter-declared install operations without editing adapter-owned artifacts.
-- **Approach:** Render user-home desired state independently from project guardrails, preview four runtime-specific native operations, bind approval to one plan digest, and delegate writes/backups/CAS rollback to U5. Preserve unrelated user plugins and config, reject duplicate CE or gate loads, and verify ordinary interactive discovery plus native gate state after apply. Partial install is visible per runtime and never normalized to ready.
+- **Files:** Create `scripts/harness/install.mjs`, `scripts/harness/native-install-port.mjs`, `tests/harness/install.test.mjs`, `tests/harness/fixtures/install/`; consume adapter-declared install operations without editing adapter-owned artifacts.
+- **Approach:** Split desired state into native lifecycle operations and harness-owned file operations. Preview and approval-bind each native installer/uninstaller's shell-free argv, immutable source identity and expected registry transition, then execute through a production install port that is independent of the test coordinator. U5 CAS writes apply only to harness-owned gate/config files. Preserve unrelated user plugins and config, reject duplicate CE or gate loads, and verify the runtime's native registry, marketplace/cache freshness, ordinary CLI discovery and gate state after apply. Partial install and compensating uninstall state remain visible per runtime and never normalize to ready.
 - **Test scenarios:**
-  - Fresh install, no-op sync, exact-tuple upgrade, mutable/mismatched source, unmanaged collision, symlink, partial failure, concurrent user edit and rollback preserve user-owned content.
-  - Installed ordinary CLI discovers 29 CE skills and hits the same gate without coordinator involvement; doctor blocks a tuple without its matching U16 receipt.
-  - Confirmed uninstall removes only receipt-owned CE/gate surfaces, makes completed backups prune-eligible, and leaves profiles, credentials, recovery-required backups and unrelated plugins intact.
-- **Verification:** The operator can preview/apply/sync/rollback all four personal runtime installations once, and doctor observes exact CE/gate plus platform tuple identity from normal runtime homes; backup list/prune preserves active recovery state and deletes eligible sensitive pre-images.
+  - Fresh native install, no-op sync, exact-tuple update, stale marketplace/cache, mutable source, unmanaged collision, partial native-command failure, compensating uninstall, file collision, concurrent user edit and rollback preserve native registry and user-owned content.
+  - Installed ordinary CLI discovers 29 CE skills and hits the same gate without coordinator involvement; doctor reports `installed-unattested` until the matching U16 receipt and U15 Darwin certification are current.
+  - Confirmed uninstall removes only receipt-owned native CE/gate registrations and files, makes completed backups prune-eligible when no rollback window/recovery reference remains, and leaves profiles, credentials, recovery-required backups and unrelated plugins intact.
+- **Verification:** The operator can preview/apply/sync/rollback all four personal runtime installations once through native lifecycle operations, and doctor observes exact CE/gate plus platform tuple identity but withholds full readiness until Darwin certification is current; backup list/prune preserves active recovery state and deletes eligible sensitive pre-images.
 
 ### U13. Neutral doctor and Pi migration integration
 
@@ -649,7 +652,7 @@ Actor trace is explicit rather than inferred: A1 maps to U5/U13/U17/U12 operator
 - **Execution note:** Capture current behavior first in `extensions/setup-doctor/setup-doctor.test.ts`, `extensions/setup-doctor/omp-namespace.test.ts`, and `extensions/workspace-connectors/setup-state.test.ts`.
 - **Patterns to follow:** `extensions/workspace-connectors/readiness.ts` evaluator → typed report → formatter → assertion split and current setup-doctor presentation adapter.
 - **Test scenarios:**
-  - Exact adapter readiness, partial apply, drift, native-gate failure, OCI failure, and version/OS/architecture/executable-digest/acquisition mismatch map to distinct JSON verdicts and exit statuses.
+  - Exact adapter readiness, `installed-unattested`, expired Darwin certification, partial apply, drift, native-gate failure, OCI failure, and version/OS/architecture/executable-digest/acquisition mismatch map to distinct JSON verdicts and exit statuses.
   - Legacy-only, dual-loaded, migrated, rollback, and stale-receipt states remain distinguishable.
   - Existing connector/provider toggles remain opt-in, env-loader remains first, and Pi UI strings are absent from neutral modules.
 - **Verification:** Machine doctor and Pi UI render the same facts and block any platform tuple without a matching U16 receipt; existing characterization and workspace connector tests pass unchanged or with explicitly reviewed compatibility expectations.
@@ -659,11 +662,11 @@ Actor trace is explicit rather than inferred: A1 maps to U5/U13/U17/U12 operator
 - **Goal:** Fix deterministic evaluator semantics on the first production Pi adapter before implementing the remaining adapter breadth.
 - **Requirements:** R14, R16, R19–R21; F2; AE3, AE5; KTD4–KTD6, KTD9.
 - **Dependencies:** U10, U14.
-- **Files:** Create `scripts/harness/evaluators/artifact.mjs`, `scripts/harness/evaluators/git.mjs`, `scripts/harness/evaluators/review.mjs`, `scripts/harness/evaluators/safety.mjs`, `tests/harness/evaluators.test.mjs`, `tests/harness/fixtures/evaluators/`.
-- **Approach:** Use one fixed fixture to establish contract loading, terminal-status fail-closed behavior, artifact/git/review/safety oracle precedence, stale evidence identity, seeded finding recall, false-positive budget, and stylistic normalization. Deterministic state checks decide before any version-locked judge rubric.
+- **Files:** Create `harness/contracts/review-quality-v1.json`, `scripts/harness/evaluators/artifact.mjs`, `scripts/harness/evaluators/git.mjs`, `scripts/harness/evaluators/review.mjs`, `scripts/harness/evaluators/safety.mjs`, `tests/harness/evaluators.test.mjs`, `tests/harness/fixtures/evaluators/`.
+- **Approach:** Use one fixed fixture to establish contract loading, terminal-status fail-closed behavior, artifact/git/review/safety oracle precedence, stale evidence identity, and stylistic normalization. `review-quality-v1` pins three required seeded defect IDs (`missing-validation`, `scope-escape`, `safety-bypass`), requires 100% seeded recall, permits zero unseeded P0/P1 actionable findings and at most one unseeded P2/P3 advisory finding, and records any judge rubric/model version and digest. Deterministic state checks decide before any judge rubric.
 - **Test scenarios:**
   - Missing stage, invalid artifact, dirty scope, denied safety decision, stale key, non-pass terminal state, and receipt mismatch fail deterministically.
-  - Seeded defects prove required recall and false-positive bounds; equivalent stylistic variants pass.
+  - All three seeded IDs must be found, any unseeded P0/P1 or second unseeded advisory finding fails, and equivalent stylistic variants pass without changing the contract digest.
   - One vertical cell runs through Pi's normal native CLI path and cannot bypass its native gate.
 - **Verification:** The first production evaluator result is stable across repeated Pi fixtures and freezes the interface that U7–U9 consume; U18 later confirms cross-runtime parity without redefining status or evidence semantics.
 
@@ -673,7 +676,7 @@ Actor trace is explicit rather than inferred: A1 maps to U5/U13/U17/U12 operator
 - **Requirements:** R14, R16, R19–R21; F2; AE3, AE5; KTD4–KTD6, KTD9.
 - **Dependencies:** U7–U11, U14.
 - **Files:** Create `tests/harness/evaluator-parity.test.mjs`, `tests/harness/fixtures/evaluator-parity/`; reuse U11 evaluator modules without changing their public contract unless a reviewed blocker returns the work to U11.
-- **Approach:** Replay the same fixed semantic fixture through all four ordinary native CLI paths, validate authenticated control-event provenance and normalized artifacts, and compare deterministic verdicts. Adapter-specific payloads remain adapter-local; the evaluator sees one frozen neutral contract.
+- **Approach:** Replay the same fixed semantic fixture and `review-quality-v1` digest through all four ordinary native CLI paths, validate authenticated control-event provenance and normalized artifacts, and compare deterministic verdicts. Adapter-specific payloads remain adapter-local; the evaluator sees one frozen neutral contract.
 - **Test scenarios:**
   - All four adapters produce the same stage, terminal, approval, artifact and seeded-review verdict for equivalent input.
   - Forged event-shaped payload, missing source label, duplicate terminal event, platform tuple mismatch, schema drift, or adapter-only field dependency fails confirmation.
@@ -682,18 +685,18 @@ Actor trace is explicit rather than inferred: A1 maps to U5/U13/U17/U12 operator
 
 ### U15. Full feature contracts and hermetic Conformance Matrix
 
-- **Goal:** Add explicit required scenario sets for all 29 features and execute exactly 116 locked hermetic cells using the U18-confirmed evaluator and coordinator contracts.
+- **Goal:** Add explicit required scenario sets for all 29 features, execute exactly 116 locked Linux x64 hermetic release cells, and run a separate 116-cell Darwin arm64 personal certification with the same U18-confirmed evaluator and coordinator contracts.
 - **Requirements:** R13, R14, R16–R21; F2; AE3, AE5, AE6; KTD4–KTD6, KTD9.
 - **Dependencies:** U18.
 - **Files:** Create `harness/scenarios/<feature-id>/contract.json`, feature transcript/fixture files, `tests/harness/matrix.test.mjs`, `tests/harness/fixtures/matrix/`.
-- **Approach:** Generate the source feature list but review every committed contract. Group reusable fixtures by artifact, git, review, browser/media, external service, optimization, and lifecycle while keeping feature-specific happy, expected-failure, approval/safety, handoff, and evidence requirements explicit.
+- **Approach:** Generate the source feature list but review every committed contract. Group reusable fixtures by artifact, git, review, browser/media, external service, optimization, and lifecycle while keeping feature-specific happy, expected-failure, approval/safety, handoff, and evidence requirements explicit. Linux x64 receipts come from OCI and form the release report; Darwin arm64 receipts come from disposable Tart VM snapshots and form a tuple-scoped personal certification. Neither platform's evidence substitutes for the other.
 - **Test scenarios:**
   - Coverage rejects missing or duplicate cell keys, missing scenario sets, orphan files, filtered/extra cells, lock mismatch, success-valued skip, and stale evidence.
   - Browser, Xcode, GitHub, Proof, issue-tracker, and media paths use hermetic doubles and preserve human-only gates.
   - A guardrail-promotion fixture changes one stable policy ID, previews/applies every projection, proves the same policy meaning in all four native contexts, invalidates prior evidence keys, and reruns the declared affected cells.
   - Sharding, resume, cancellation, bounded concurrency, cost budget, and failure aggregation retain every cell verdict.
-  - A report with cardinality other than 116 or any non-passed required cell cannot pass.
-- **Verification:** `29 × 4 = 116` required cells pass with retained evidence and zero pass-valued skip.
+  - A Linux release report or Darwin personal report with cardinality other than 116, any stale tuple/quality-contract digest, or any non-passed required cell cannot pass.
+- **Verification:** `29 × 4 = 116` Linux release cells and a separate `29 × 4 = 116` Darwin personal certification pass with retained tuple-scoped evidence and zero pass-valued skip.
 
 ### U12. Four-way benchmark, live certification, release integration, and rename docs
 
@@ -701,7 +704,7 @@ Actor trace is explicit rather than inferred: A1 maps to U5/U13/U17/U12 operator
 - **Requirements:** R15–R21; F3; AE1, AE6; all Success Criteria; KTD5, KTD6, KTD9, KTD13.
 - **Dependencies:** U13, U15, U17.
 - **Files:** Create `harness/fixtures/workflows/plan-work-review/`, `scripts/harness/evaluators/workflow.mjs`, `scripts/harness/live-broker.mjs`, `tests/harness/plan-work-review.test.mjs`, `tests/harness/live-broker.test.mjs`, `docs/operations/oh-my-harness.md`; after U13, modify release-script regions of `package.json`, `README.md`, non-managed documentation outside U4's `AGENTS.md` block, `CONCEPTS.md`, and migration documentation. U12 does not re-own U13's settings/profile compatibility regions.
-- **Approach:** Run four independent copies from the same SHA and requirement digest and compare durable artifacts and review quality. Hosted/live certification uses a sanitized allowlisted fixture copy and is default `not-run`. A target manifest allowlists service, account/tenant, repository/project, endpoint, request/data classification, read-only operation class, egress and cost ceiling. Dry-run resolves a target fingerprint; approval is bound to that fingerprint and expiry. A target-bound local broker retains the real credential outside the agent sandbox and gives the cell only a one-use capability token; it enforces request schema, data policy, redirect denial, expiry and budget. Merge, publish, OAuth consent, mutation credentials, production-like targets, non-fixture data, and actual GitHub repository rename remain outside certification and require dedicated approval.
+- **Approach:** Run four independent copies from the same SHA, requirement digest and `review-quality-v1` digest and compare durable artifacts and review quality. Hosted/live certification uses a sanitized allowlisted fixture copy and is default `not-run`. A target manifest allowlists service, account/tenant, repository/project, endpoint, request/data classification, read-only operation class, egress and cost ceiling. Dry-run resolves a target fingerprint; approval is bound to that fingerprint and expiry. A target-bound local broker retains the real credential outside the agent sandbox and gives the cell only a one-use capability token; it enforces request schema, data policy, redirect denial, expiry and budget. Merge, publish, OAuth consent, mutation credentials, production-like targets, non-fixture data, and actual GitHub repository rename remain outside certification and require dedicated approval.
 - **Test scenarios:**
   - Covers AE1. Four runtimes produce implementation-ready plan, scoped work evidence, validation evidence, and actionable review artifacts from the same fixture.
   - Missing stage, unstable ID, scope escape, absent test evidence, missed seeded defect, or excess false positives fails the workflow evaluator.
@@ -720,11 +723,12 @@ Actor trace is explicit rather than inferred: A1 maps to U5/U13/U17/U12 operator
 | Existing profile lock | `npm run profile:verify` | U1–U5, U10, U12–U17 | Existing profiles and lock remain deterministic and secret-free |
 | Existing Pi integrations | `npm run test:workspace-connectors` | U10, U12, U13 | `extensions/setup-doctor/setup-doctor.test.ts`, `extensions/setup-doctor/omp-namespace.test.ts`, connector and setup-state regressions pass |
 | Harness contracts and unit tests | `npm run test:harness` | U1–U18 | The U1-added Node ESM runner executes `tests/harness/**/*.test.mjs`; contract, lock, characterization, generator, apply, install, doctor, provider, coordinator, adapter, evaluator/parity and migration tests pass |
-| Existential baseline proof | `npm run harness:characterize` | U16 | Eight Linux x64/Darwin arm64 native gate/provider/evidence receipts and the digest-pinned Linux OCI backend pass from ephemeral homes with no personal mutation |
+| Existential baseline proof | `npm run harness:characterize` | U16 | Eight Linux x64/Darwin arm64 native gate/provider/evidence receipts plus digest-pinned Linux OCI and Darwin Tart/macOS VM backends pass from disposable homes/snapshots with no personal mutation |
 | Desired-state verification | `npm run harness:verify` | U1–U5, U13, U17 | Source identity, provenance, inventory, profile, overlay, user install ownership and actual managed hashes match committed receipts |
 | Generated-tree cleanliness | `git diff --exit-code -- harness/` and `git status --porcelain` | U1–U18 | Verify produces no generated drift; only explicitly expected worktree paths are present |
-| Runtime readiness | `npm run harness:doctor -- --format json` | U7–U10, U13, U14, U16, U17 | Four exact baselines, ordinary-CLI native gates, OCI backend, CE pin, companions, user install and project overlay report ready |
-| Hermetic matrix | `npm run harness:conformance -- --tier hermetic` | U6–U16 | Exactly 116 required cells pass inside the pinned OCI backend; every other terminal state is release-nonpassing |
+| Runtime readiness | `npm run harness:doctor -- --format json` | U7–U10, U13, U14, U16, U17 | Four exact native registrations, pre-model gates, OCI backend, CE pin, companions and project overlay report ready; Darwin remains `installed-unattested` without current full certification |
+| Hermetic matrix | `npm run harness:conformance -- --tier hermetic --platform linux-x64` | U6–U16 | Exactly 116 required Linux cells pass inside the pinned OCI backend; every other terminal state is release-nonpassing |
+| Personal tuple certification | `npm run harness:certify -- --tier personal --platform darwin-arm64` | U15, U17 | Exactly 116 Darwin cells pass the same feature contracts and semantic oracles before personal tuples become fully ready |
 | Evaluator parity | `npm run harness:evaluator-parity` | U11, U18 | The first Pi vertical contract remains identical across all four authenticated native event paths |
 | Workflow benchmark | `npm run harness:benchmark -- plan-work-review` | U11, U12, U15, U18 | Four runtime outputs satisfy stage, artifact, validation and review-quality contracts |
 | Hosted/live certification | `npm run harness:certify -- --tier hosted` | U12 | Report always emits all statuses; `failed` exits non-zero, `not-run`/`expired` never count as pass, and none alter hermetic release state |
@@ -733,7 +737,7 @@ Actor trace is explicit rather than inferred: A1 maps to U5/U13/U17/U12 operator
 
 ### Evidence Requirements
 
-Every hermetic cell receipt includes CE tag/commit/tree and provenance verdict, runtime version/OS/architecture/executable digest/acquisition identity, authenticated control-channel identity, adapter and overlay digests, sandbox backend/version/policy, allowed endpoint, structured argv, environment-key allowlist, scripted provider protocol/version, feature/fixture/oracle/coordinator/redactor/scanner digests, workspace identity, attempt history, exit/terminal reason, duration/cost class, artifact hashes, git diff, permission decisions, escape-probe and residual-PID results, and redacted event paths.
+Every cell receipt includes CE tag/commit/tree and provenance verdict, runtime version/OS/architecture/executable digest/acquisition identity, authenticated control-channel identity, adapter and overlay digests, OCI or Tart/macOS VM backend/version/image/policy/snapshot identity, allowed endpoint, structured argv, environment-key allowlist, scripted provider protocol/version, feature/fixture/oracle/coordinator/redactor/scanner digests, workspace identity, attempt history, exit/terminal reason, duration/cost class, artifact hashes, git diff, permission decisions, escape-probe and residual-process results, and redacted event paths.
 
 Redaction is capture-before-persist and field-allowlist based; raw provider payload, private prompt, credential value/path, inherited environment, and unredacted stdout/stderr are not stored by default. Evidence lives outside the repository with directory mode 0700 and file mode 0600, has retention/deletion rules, and fails publication/release if the final repository/evidence secret scan is not clean.
 
@@ -748,10 +752,10 @@ Hosted/live receipts add model/provider, a secret-free resolved target fingerpri
 - Product Contract R1–R21 and applicable A/F/AE IDs are traced to implementation units and passing evidence.
 - CE 3.19.0 immutable identity and 29-feature inventory are reproducible from a clean checkout.
 - Four runtime baselines expose upstream native CE skills without copied or modified skill bodies.
-- U16 proves eight exact Linux x64/Darwin arm64 native gate/provider/evidence tuples and the digest-pinned Linux OCI backend before breadth work; any failed proof stops v1.
+- U16 proves eight exact Linux x64/Darwin arm64 native gate/provider/evidence tuples plus digest-pinned Linux OCI and Darwin Tart/macOS VM backends before breadth work; any failed proof blocks the affected support lane.
 - Native hard gates are installed for ordinary interactive CLI use; the test coordinator is not required for enforcement.
 - Per-user CE/gate install and project overlay generation are deterministic, preview-first, managed-only, drift-aware, rollback-capable, and secret-free.
-- All 116 hermetic cells and the four-way `Plan → Work → Review` benchmark pass.
+- All 116 Linux hermetic release cells, all 116 Darwin personal certification cells, evaluator quality thresholds, and the four-way `Plan → Work → Review` benchmark pass.
 - Hosted/live certification is separate, keyed, expiring, and truthful about `not-run`.
 - Existing Pi profile, connector, provider, extension order, toggle, CWD `.env`, doctor, OMP and auth-path behavior remains preserved or has a tested compatibility path.
 - README, operations guide, Linear ZZA-70, local plan/work evidence, and canonical Notion plan/ticket documents reflect the final scope and validation state.
@@ -764,7 +768,7 @@ Hosted/live receipts add model/provider, a secret-free resolved target fingerpri
 | U1 | Tag/commit/tree and 29-feature lock verifies and drift fixtures fail |
 | U2 | Neutral schemas validate cross-references, statuses and evidence identity |
 | U3 | Four exact descriptors construct 116 expected cell keys with native-gate declarations |
-| U16 | Eight platform tuples prove native gate/provider/evidence seams and the pinned OCI backend without personal mutation |
+| U16 | Eight platform tuples prove native gate/provider/evidence seams plus pinned OCI and Tart/macOS VM backends without personal mutation |
 | U4 | Pure overlay render and receipt-bound marker grammar pass hostile ownership fixtures |
 | U5 | Digest-bound apply and CAS rollback preserve user state and protected backups |
 | U6 | Both scripted provider protocols pass transcript, token, endpoint and teardown tests |
@@ -777,7 +781,7 @@ Hosted/live receipts add model/provider, a secret-free resolved target fingerpri
 | U13 | Neutral doctor, Pi presentation, migration and existing compatibility tests agree |
 | U11 | The first production Pi path freezes deterministic evaluator semantics before remaining adapter breadth |
 | U18 | All four ordinary native CLI paths confirm the frozen evaluator contract and authenticated event provenance |
-| U15 | Every feature contract exists and exactly 116 hermetic cells pass |
+| U15 | Every feature contract exists; exactly 116 Linux release and 116 Darwin personal cells pass with the same oracle digests |
 | U12 | Four-way benchmark, target-bound certification, release gate and migration docs pass review |
 
 ---
@@ -805,7 +809,7 @@ Hosted/live receipts add model/provider, a secret-free resolved target fingerpri
 | Full matrix cost and duration explode | Slow feedback and abandoned certification | Hermetic scripted provider, deterministic sharding, cache only by complete evidence key, bounded concurrency |
 | Multi-target apply partially fails or rollback is stale | Mixed runtime state, lost settings, or secret-bearing backup exposure | Plan/pre-image digest, no-follow containment, metadata-only journal, owner-only backup, partial verdict, CAS rollback, manual recovery |
 | Hostile path, changed pre-image, or argv/env injection | Write or execute outside the owned target | Execute no project code during apply; revalidate root/type/inode/mode; shell-free absolute executable, structured argv, minimal environment, hostile fixtures and canaries |
-| OCI runtime or pinned policy is unavailable | Canonical hermetic isolation cannot start | U16 proves the Linux OCI image/policy before breadth; macOS requires a characterized OCI runtime and blocks instead of falling back to host execution |
+| OCI/Tart runtime, pinned image or policy is unavailable | Linux release or Darwin personal isolation cannot start | U16 proves Linux OCI and Darwin Tart/macOS 15 arm64 image policies before breadth; the affected lane blocks instead of falling back to host execution |
 | Pinned upstream/plugin is compromised or drifts | Reproducible malicious code executes with agent privileges | Trusted owner/provenance review, tree and dependency lock, lifecycle-script deny, unexpected executable check, sandbox/tool policy precedence |
 | User instructions conflict with generated guardrails | Runtime-dependent behavior | Managed blocks, precedence scan, conflict verdict, project-scoped policy source |
 | Secret or private prompt data enters evidence | Credential or data exposure | No real hermetic credential, capture-before-persist allowlist/redaction, owner-only evidence, canary scan across every channel, retention/delete policy |
