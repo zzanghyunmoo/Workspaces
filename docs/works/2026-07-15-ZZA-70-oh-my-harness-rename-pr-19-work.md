@@ -40,17 +40,19 @@ closed_at:
   profile identity를 새 repository 이름으로 전환했다.
 - `docs/blueprints/`: secret-free blueprint 파일, schema ID와 설치 재현 경로를 새 이름으로
   전환했다.
+- `extensions/setup-doctor/`, `extensions/capability-registry.ts`, `skills/omp/SKILL.md`: `/oh-my-harness`, `/oh-my-harness-doctor`, `oh-my-harness:` canonical surface를 추가하고 기존 `/oh-my-pi`, `/oh-my-pi-doctor`, `oh-my-pi:` alias를 보존했다.
 - `README.md`, `AGENTS.md`, `settings.example.json`: 새 install source와 프로젝트 identity,
-  기존 `/oh-my-pi`, `/oh-my-pi-doctor`, `omp:`, `OH_MY_PI_*` 호환 경계를 문서화했다.
+  기존 `omp:`, `OH_MY_PI_*` 호환 경계를 문서화했다.
 
 ## 검증
 
 - `npm run profile:verify`: 4개 profile과 `oh-my-harness.profile-lock.json`의 deterministic,
   secret-free 상태를 확인했다.
-- `npm run test:workspace-connectors`: 31개 테스트 통과.
+- `npm run test:workspace-connectors`: canonical·legacy command/prefix를 포함한 31개 테스트 통과.
+- `npm pack --dry-run --json`: package `oh-my-harness@0.1.0`, archive `oh-my-harness-0.1.0.tgz` 확인.
 - `git diff --check`: 통과.
-- 변경한 JavaScript, JSON, Markdown LSP diagnostics를 확인했다.
-- 실제 기존 사용자 install migration은 GitHub repository rename과 PR merge 뒤 수행한다.
+- 변경한 JavaScript, JSON, Markdown LSP primary diagnostics 0건을 확인했다.
+- GitHub repository와 workspace directory rename은 완료했으며, 기존 사용자 install spec migration은 PR #19 merge 뒤 수행한다.
 
 ## 외부 동기화
 
