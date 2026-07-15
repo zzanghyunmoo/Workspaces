@@ -4,7 +4,7 @@ ticket_id: ZZA-70
 ticket_url: https://linear.app/zzanghyunmoo/issue/ZZA-70/oh-my-harness-4개-코딩-에이전트용-compound-engineering-호환-코어
 ticket_status: In Review
 ticket_completion: pending
-remaining_prs: implementation PRs for U1-U18
+remaining_prs: https://github.com/zzanghyunmoo/oh-my-pi/pull/19
 ideation_status: waived
 ideation_path:
 ideation_notion_url:
