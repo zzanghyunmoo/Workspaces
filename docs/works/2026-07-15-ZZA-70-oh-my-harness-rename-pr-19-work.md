@@ -52,11 +52,14 @@ closed_at:
 - `npm pack --dry-run --json`: package `oh-my-harness@0.1.0`, archive `oh-my-harness-0.1.0.tgz` 확인.
 - `git diff --check`: 통과.
 - 변경한 JavaScript, JSON, Markdown LSP primary diagnostics 0건을 확인했다.
+- 최신 head `055740e7797a505afc08fd789e46e64f477cb475`의 code/doc review marker가 blocker 0건으로 게시됐다.
 - GitHub repository와 workspace directory rename은 완료했으며, 기존 사용자 install spec migration은 PR #19 merge 뒤 수행한다.
 
 ## 외부 동기화
 
 - GitHub rename PR: <https://github.com/zzanghyunmoo/oh-my-harness/pull/19>
+- Code review: <https://github.com/zzanghyunmoo/oh-my-harness/pull/19#issuecomment-4979057151>
+- Doc review: <https://github.com/zzanghyunmoo/oh-my-harness/pull/19#issuecomment-4979057147>
 - Canonical Notion ticket: <https://app.notion.com/p/39eef22ad4fc81c4a4bce021fa26b92b>
 - Linear ZZA-70은 후속 구현 PR이 남아 있어 `In Review`를 유지한다.
 
