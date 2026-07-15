@@ -2,7 +2,7 @@
 workflow_schema: compound-work/v1
 ticket_id: ZZA-70
 ticket_url: https://linear.app/zzanghyunmoo/issue/ZZA-70/oh-my-harness-4개-코딩-에이전트용-compound-engineering-호환-코어
-ticket_status: In Progress
+ticket_status: In Review
 ticket_completion: pending
 remaining_prs: implementation PRs for U1-U18
 ideation_status: waived
@@ -13,9 +13,9 @@ plan_status: complete
 plan_path: docs/plans/2026-07-15-ZZA-70-oh-my-harness-plan.md
 plan_notion_url: https://www.notion.so/39eef22ad4fc8134bdbcd7de4afec13a
 plan_waiver_reason:
-work_status: in_progress
+work_status: complete
 work_notion_url: https://www.notion.so/39eef22ad4fc81c4a4bce021fa26b92b
-pr_url:
+pr_url: https://github.com/zzanghyunmoo/oh-my-pi/pull/18
 closeout_status: pending
 merged_pr_url:
 merge_commit:
@@ -49,7 +49,8 @@ Compound Engineering 3.19.0의 29개 기능을 Codex, OpenCode, Claude Code, Pi�
 
 ## 외부 동기화
 
-- Linear ZZA-70을 `In Progress`로 전환했다.
+- Linear ZZA-70을 planning PR 생성 뒤 `In Review`로 전환했다.
+- GitHub planning PR: <https://github.com/zzanghyunmoo/oh-my-pi/pull/18>
 - Notion `Oh My Harness 프로젝트 위키 > 개발 문서 > 계획`과 `개발 문서 > 티켓`을 최신 계획 및 planning PR 상태로 갱신했다.
 - Canonical plan: <https://app.notion.com/p/39eef22ad4fc8134bdbcd7de4afec13a>
 - Canonical ticket: <https://app.notion.com/p/39eef22ad4fc81c4a4bce021fa26b92b>
