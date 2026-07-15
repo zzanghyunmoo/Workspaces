@@ -10,9 +10,9 @@
 	path = projects/getting-started-rust
 	url = https://github.com/zzanghyunmoo/getting-started-rust.git
 	branch = main
-[submodule "oh-my-pi"]
-	path = projects/oh-my-pi
-	url = https://github.com/zzanghyunmoo/oh-my-pi.git
+[submodule "oh-my-harness"]
+	path = projects/oh-my-harness
+	url = https://github.com/zzanghyunmoo/oh-my-harness.git
 	branch = main
 [submodule "projects/ReplaceMe"]
 	path = projects/ReplaceMe

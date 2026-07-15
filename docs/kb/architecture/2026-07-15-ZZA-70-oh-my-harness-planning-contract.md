@@ -1,7 +1,7 @@
 ---
 title: ZZA-70 Oh My Harness planning contract
 ticket: ZZA-70
-merged_pr: https://github.com/zzanghyunmoo/oh-my-pi/pull/18
+merged_pr: https://github.com/zzanghyunmoo/oh-my-harness/pull/18
 merge_commit: 31c7fee6d1bc3c2da04bfba8d4306cb30fc54de9
 work_evidence: docs/works/2026-07-15-ZZA-70-oh-my-harness-planning-pr-18-work.md
 notion_feature_status: https://www.notion.so/39eef22ad4fc819db113ce1029c899a4

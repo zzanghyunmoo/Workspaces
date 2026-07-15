@@ -15,7 +15,7 @@ plan_notion_url: https://www.notion.so/39eef22ad4fc8134bdbcd7de4afec13a
 plan_waiver_reason:
 work_status: complete
 work_notion_url: https://www.notion.so/39eef22ad4fc81c4a4bce021fa26b92b
-pr_url: https://github.com/zzanghyunmoo/oh-my-pi/pull/19
+pr_url: https://github.com/zzanghyunmoo/oh-my-harness/pull/19
 closeout_status: pending
 merged_pr_url:
 merge_commit:
@@ -54,7 +54,7 @@ closed_at:
 
 ## 외부 동기화
 
-- GitHub rename PR: <https://github.com/zzanghyunmoo/oh-my-pi/pull/19>
+- GitHub rename PR: <https://github.com/zzanghyunmoo/oh-my-harness/pull/19>
 - Canonical Notion ticket: <https://app.notion.com/p/39eef22ad4fc81c4a4bce021fa26b92b>
 - Linear ZZA-70은 후속 구현 PR이 남아 있어 `In Review`를 유지한다.
 
