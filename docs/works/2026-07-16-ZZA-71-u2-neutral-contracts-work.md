@@ -2,9 +2,9 @@
 workflow_schema: compound-work/v1
 ticket_id: ZZA-71
 ticket_url: https://linear.app/zzanghyunmoo/issue/ZZA-71/oh-my-harness-u2-neutral-contracts-and-personal-profile
-ticket_status: In Review
-ticket_completion: pending
-remaining_prs: https://github.com/zzanghyunmoo/oh-my-harness/pull/23
+ticket_status: Done
+ticket_completion: complete
+remaining_prs:
 ideation_status: waived
 ideation_path:
 ideation_notion_url:
@@ -16,13 +16,13 @@ plan_waiver_reason:
 work_status: complete
 work_notion_url: https://www.notion.so/39fef22ad4fc81ee9a61d2f9adb52ee7
 pr_url: https://github.com/zzanghyunmoo/oh-my-harness/pull/23
-closeout_status: pending
-merged_pr_url:
-merge_commit:
-kb_paths:
+closeout_status: complete
+merged_pr_url: https://github.com/zzanghyunmoo/oh-my-harness/pull/23
+merge_commit: 32e73af3636bf79e0b2d47dcd4b7ce0cdf9b8c5f
+kb_paths: docs/kb/architecture/2026-07-16-ZZA-71-runtime-neutral-harness-contracts.md
 notion_feature_status_url: https://www.notion.so/39eef22ad4fc819db113ce1029c899a4
 notion_ticket_url: https://www.notion.so/39fef22ad4fc81ee9a61d2f9adb52ee7
-closed_at:
+closed_at: 2026-07-16T09:32:06Z
 ---
 
 # ZZA-71 U2 neutral contracts 작업 기록
@@ -66,14 +66,19 @@ runtime-neutral JSON contract로 고정한다.
 
 ## 외부 동기화
 
-- Linear ZZA-71: `In Review`.
-- PR #23: <https://github.com/zzanghyunmoo/oh-my-harness/pull/23>
+- Linear ZZA-71: `Done`.
+- PR #23: merge commit `32e73af3636bf79e0b2d47dcd4b7ce0cdf9b8c5f`.
 - Canonical Notion plan: <https://app.notion.com/p/39fef22ad4fc819690eec79654ddff53>
-- Canonical Notion ticket: <https://app.notion.com/p/39fef22ad4fc81ee9a61d2f9adb52ee7>
-- Parent ZZA-70은 U2-U18이 남아 있어 `In Review`를 유지한다.
+- Canonical Notion ticket: merge 결과, review gate와 KB 경로 동기화 완료.
+  <https://app.notion.com/p/39fef22ad4fc81ee9a61d2f9adb52ee7>
+- Canonical Notion 기능 현황: U1-U2 완료와 U3 다음 단계 동기화 완료.
+  <https://app.notion.com/p/39eef22ad4fc819db113ce1029c899a4>
+- Parent ZZA-70은 U3-U18이 남아 있어 `In Review`를 유지한다.
 
 ## Merge closeout
 
-PR #23이 open 상태이므로 closeout은 pending이다. Merge 뒤 U2 contract 상태를 KB와
-Notion 기능 현황·티켓 문서에 반영하고, ZZA-71을 `Done`으로 전환한다. Parent ZZA-70은
-후속 U3-U18 때문에 `In Review`를 유지한다.
+PR #23은 guarded squash merge로 완료되었다. Merge commit은
+`32e73af3636bf79e0b2d47dcd4b7ce0cdf9b8c5f`이며 현재 기능 상태·운영 경계·검증 결과는
+`docs/kb/architecture/2026-07-16-ZZA-71-runtime-neutral-harness-contracts.md`에 정리했다.
+Notion 기능 현황과 ticket 결과 문서도 동기화했고 ZZA-71을 `Done`으로 전환했다. Parent
+ZZA-70만 후속 단위 때문에 `In Review`로 남는다.
