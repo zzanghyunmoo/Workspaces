@@ -1,0 +1,87 @@
+---
+workflow_schema: compound-work/v1
+ticket_id: ZZA-70
+ticket_url: https://linear.app/zzanghyunmoo/issue/ZZA-70/oh-my-harness-4개-코딩-에이전트용-compound-engineering-호환-코어
+ticket_status: In Review
+ticket_completion: pending
+remaining_prs: https://github.com/zzanghyunmoo/oh-my-harness/pull/21
+ideation_status: waived
+ideation_path:
+ideation_notion_url:
+ideation_waiver_reason: merged ZZA-70 planning contract에서 U1 범위와 불변 upstream 기준점이 이미 확정되어 별도 아이디에이션을 반복하지 않음
+plan_status: complete
+plan_path: docs/plans/2026-07-16-ZZA-70-upstream-lock-inventory-plan.md
+plan_notion_url: https://www.notion.so/39eef22ad4fc8134bdbcd7de4afec13a
+plan_waiver_reason:
+work_status: complete
+work_notion_url: https://www.notion.so/39eef22ad4fc81c4a4bce021fa26b92b
+pr_url: https://github.com/zzanghyunmoo/oh-my-harness/pull/21
+closeout_status: pending
+merged_pr_url:
+merge_commit:
+kb_paths:
+notion_feature_status_url: https://www.notion.so/39eef22ad4fc819db113ce1029c899a4
+notion_ticket_url: https://www.notion.so/39eef22ad4fc81c4a4bce021fa26b92b
+closed_at:
+---
+
+# ZZA-70 CE 3.19.0 upstream lock·inventory 작업 기록
+
+## 작업 목표
+
+ZZA-70의 첫 구현 단위 U1로 Compound Engineering 3.19.0의 불변 upstream 기준점과
+29개 직접 스킬 inventory를 고정한다. 이 PR은 runtime adapter, 실행 기능, OCI lane 및
+conformance matrix를 포함하지 않는다.
+
+## 주요 변경 지점
+
+- `harness/contracts/upstream-lock.schema.json`: owner/repository/tag/commit/tree,
+  manifest, GitHub verification receipt, dependency lock, executable set, package script와
+  inventory digest를 닫힌 1.0.0 계약으로 정의했다.
+- `harness/locks/compound-engineering-v3.19.0.lock.json`: CE 3.19.0 tag의 commit
+  `1756c0b9f3cf94493f287ea29ae766ad668fb7cf`와 tree
+  `808d20cc08a2b45e0200e68f5b9f604c55cf8a06`, signed payload receipt, `bun.lock`,
+  executable 및 package-script identity를 고정했다.
+- `harness/inventory/compound-engineering-v3.19.0.json`: `skills/*/SKILL.md`에서 직접
+  노출되는 29개 스킬을 lexicographic order와 Git blob object ID로 기록했으며 `lfg`를
+  포함한다. upstream skill 본문은 복사하지 않는다.
+- `scripts/harness/canonical.mjs`: canonical JSON/SHA-256과 secret-bearing key,
+  authorization value, token/private-key/credential URL 거부를 제공한다.
+- `scripts/harness/upstream.mjs`: npm-modified `PATH`를 신뢰하지 않는 host Git 선택,
+  Git config·replacement·alternates·promisor 격리, `git fsck --strict` object integrity,
+  pinned-object derivation, closed-shape 및 cross-artifact 검증, symlink·stale pre-image·
+  parent replacement 방어, inventory-first/lock-last atomic publication을 구현했다.
+- `tests/harness/inventory.test.mjs`: pinned derivation, drift, corrupt object database,
+  hostile Git/path, credential, mixed generation, same-size edit 및 parent swap 회귀를 검증한다.
+
+## 검증
+
+- `npm run test:harness`: 15/15 통과.
+- canonical CE checkout에서 `harness:upstream:generate --write` 후
+  `harness:upstream:verify`와 `git diff --exit-code -- harness/`: 29개 스킬과 고정
+  commit 기준 byte-identical no-op 검증 통과.
+- `npm run profile:verify`: 4개 profile 및 profile lock deterministic·secret-free 검증 통과.
+- `npm run test:workspace-connectors`: 31/31 통과.
+- `git diff --check origin/main...HEAD`: 통과.
+- Pi Lens diagnostics: 변경 JavaScript 3개 파일에서 이슈 없음.
+- 브라우저 테스트: UI·route 변경이 없어 해당 없음.
+- 구조화 code review에서 발견한 ambient `PATH` Git trust, same-size stale pre-image,
+  artifact semantic digest, credential shape, Windows Git path, Git object integrity,
+  symbolic tag, subprocess timeout/overflow 문제를 수정하고 targeted review와 전체 검증을
+  반복했다. Follow-up issue #20은 검증 완료 뒤 종료했다.
+- 독립 cross-model adversarial pass는 Claude, Grok(Cursor route), Composer route가 모두
+  usable schema output을 반환하지 않아 결과를 fold-in하지 못했다.
+
+## 외부 동기화
+
+- GitHub 구현 PR: <https://github.com/zzanghyunmoo/oh-my-harness/pull/21>
+- Canonical Notion plan: <https://app.notion.com/p/39eef22ad4fc8134bdbcd7de4afec13a>
+- Canonical Notion ticket: <https://app.notion.com/p/39eef22ad4fc81c4a4bce021fa26b92b>
+- 현재 세션에는 Linear API key와 Notion connector 인증이 없어 새 U1 구현 결과를
+  외부 문서에 갱신하지 못했다. 기존 티켓 상태 `In Review`와 canonical 링크를 유지한다.
+
+## Merge closeout
+
+PR #21이 열려 있어 closeout은 pending이다. Merge 뒤 U1 기능 상태와 운영 경계를
+`docs/kb/`와 Notion 기능 현황·티켓 문서에 동기화하고, 후속 U2-U18이 남으므로 Linear
+ZZA-70은 `In Review` 및 `ticket_completion: pending`을 유지한다.
