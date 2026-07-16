@@ -62,7 +62,7 @@ conformance matrix를 포함하지 않는다.
   commit 기준 byte-identical no-op 검증 통과.
 - `npm run profile:verify`: 4개 profile 및 profile lock deterministic·secret-free 검증 통과.
 - `npm run test:workspace-connectors`: 31/31 통과.
-- `git diff --check origin/main...HEAD`: 통과.
+- `git diff --check`: 통과.
 - Pi Lens diagnostics: 변경 JavaScript 3개 파일에서 이슈 없음.
 - 브라우저 테스트: UI·route 변경이 없어 해당 없음.
 - 구조화 code review에서 발견한 ambient `PATH` Git trust, same-size stale pre-image,
@@ -76,9 +76,10 @@ conformance matrix를 포함하지 않는다.
 
 - GitHub 구현 PR: <https://github.com/zzanghyunmoo/oh-my-harness/pull/21>
 - Canonical Notion plan: <https://app.notion.com/p/39eef22ad4fc8134bdbcd7de4afec13a>
+- Canonical Notion feature status: <https://app.notion.com/p/39eef22ad4fc819db113ce1029c899a4>
 - Canonical Notion ticket: <https://app.notion.com/p/39eef22ad4fc81c4a4bce021fa26b92b>
-- 현재 세션에는 Linear API key와 Notion connector 인증이 없어 새 U1 구현 결과를
-  외부 문서에 갱신하지 못했다. 기존 티켓 상태 `In Review`와 canonical 링크를 유지한다.
+- Notion 기능 현황과 티켓 문서를 PR #19 closeout 및 PR #21 U1 review 상태로 갱신했다.
+- Linear ZZA-70을 `In Review`로 동기화했으며 후속 U2-U18 때문에 완료 처리하지 않았다.
 
 ## Merge closeout
 
