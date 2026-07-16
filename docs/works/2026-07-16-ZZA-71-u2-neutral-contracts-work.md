@@ -35,21 +35,32 @@ runtime-neutral JSON contract로 고정한다.
 
 ## 주요 변경 지점
 
-- `harness/contracts/`: harness profile, feature contract, runtime adapter와 conformance result
-  schema를 닫힌 draft 2020-12 계약으로 추가할 예정이다.
-- `harness/profiles/personal-v1.profile.json`: U1 source identity, Linux x64/Darwin arm64 lane,
-  네 runtime exact version과 Pi companion 기대치를 선언할 예정이다.
-- `tests/harness/contracts.test.mjs`: valid/invalid schema fixture, fail-closed pass accounting,
-  stable cross-reference, evidence identity sensitivity와 secret-free 검증을 추가할 예정이다.
-- U3 descriptor instance, U16 feasibility와 runtime 실행 코드는 범위에서 제외한다.
+- `harness/contracts/harness-profile.schema.json`: U1 source identity, contract ref, ownership,
+  platform/runtime/companion과 hermetic/personal/hosted tier를 닫힌 draft 2020-12 shape로 정의했다.
+- `harness/contracts/feature-contract.schema.json`: workflow artifact/step/handoff, required·optional
+  capability readiness, safety class, approval boundary, 7개 scenario kind와 oracle을 분리했다.
+- `harness/contracts/runtime-adapter.schema.json`: U3가 채울 immutable executable/acquisition
+  tuple, native lifecycle, pre-model gate와 structured headless evidence shape를 정의했다.
+- `harness/contracts/conformance-result.schema.json`: 8개 evidence digest와 tier-local terminal
+  status를 정의하고 `passed` 이외 상태의 `countsAsPass: true`를 schema conditional로 막았다.
+- `harness/profiles/personal-v1.profile.json`: upstream/harness/project/runtime/user ownership,
+  Linux x64/Darwin arm64 lane, 네 runtime exact version과 Pi companion 기대치를 고정했다.
+- `tests/harness/contracts.test.mjs`: bounded schema evaluator, valid/invalid fixture, stable
+  cross-reference, evidence identity sensitivity, closed shape와 secret-free 검증을 추가했다.
+- U3 descriptor instance, U16 feasibility와 runtime 실행 코드는 범위에서 제외했다.
 
 ## 검증
 
-- 구현 전 상태: implementation-ready local/Notion plan과 ZZA-71 ticket 생성·동기화 완료.
-- 계획된 검증: `npm run test:harness`, canonical U1 verify, `npm run profile:verify`,
-  `npm run test:workspace-connectors`, `git diff --check`.
+- `npm run test:harness`: PASS, 21/21(U2 6개와 U1 15개).
+- `npm run harness:upstream:verify -- --source /tmp/oh-my-harness-ce-3.19.0`: PASS,
+  pinned commit의 29개 skill과 committed lock/inventory가 일치했다.
+- `npm run profile:verify`: PASS, 기존 Pi distribution profile 4개가 deterministic·secret-free다.
+- `npm run test:workspace-connectors`: PASS, 31/31.
+- `node --check tests/harness/contracts.test.mjs`와 `git diff --check`: PASS.
+- LSP primary check는 두 차례 timeout되어 확정 진단을 받지 못했고 Node syntax check와 전체
+  harness test로 보완했다. 별도 Python `jsonschema` 검증은 module 미설치로 미실행이며,
+  committed test-local evaluator가 실제 사용 keyword의 positive/negative fixture를 검증한다.
 - 브라우저 검증은 JSON contract와 Node test만 변경하므로 대상 route가 없다.
-- 실제 구현 검증 결과와 미실행 항목은 work 완료 시 갱신한다.
 
 ## 외부 동기화
 

@@ -60,7 +60,7 @@ The unit commits schemas rather than execution code. It separates stable IDs, so
 
 ### Acceptance Examples
 
-- AE1. A complete `personal-v1` profile validates, references the U1 lock/inventory, declares exactly four unique runtimes and two unique platform lanes, and contains no secret-like fields or credential values.
+- AE1. A complete `personal-v1` profile validates, references the U1 lock/inventory, declares exactly four unique runtimes, two unique platform lanes, and six explicit ownership domains, and contains no secret-like fields or credential values.
 - AE2. Duplicate IDs, unknown platform references, wrong U1 commit/tree, a runtime version outside the exact v1 set, or a missing Pi companion causes contract tests to fail.
 - AE3. A valid feature fixture distinguishes required from optional capabilities and declares every required scenario kind: discovery/invocation, scripted interaction, artifact, handoff, approval/safety, expected failure, and evidence oracle.
 - AE4. A runtime adapter fixture validates exact native surfaces and pre-model gate metadata while rejecting copied skill bodies, shell command strings, missing headless evidence, or incomplete platform tuple identity.
@@ -73,6 +73,7 @@ The unit commits schemas rather than execution code. It separates stable IDs, so
 - All four schemas are closed, independently parseable, and exercised by valid and invalid fixtures.
 - The personal profile is deterministic, secret-free, U1-bound, and exact about runtime versions, platform lanes, companions, and schema references.
 - Cross-reference validation rejects unknown and duplicate stable IDs.
+- Upstream, harness, project, runtime, and user ownership domains remain explicit and non-overlapping.
 - Terminal status and pass accounting are mechanically fail-closed.
 - Evidence identity is sensitive to every R20 input digest.
 - Existing U1, profile, and connector tests remain green.
@@ -137,6 +138,7 @@ The unit commits schemas rather than execution code. It separates stable IDs, so
 - `schemaVersion`, `id`, `displayName`
 - `source`: lock path, inventory path, tag, commit, tree
 - `contractRefs`: feature, runtime adapter, and conformance-result schema paths
+- `ownership`: upstream payload, source receipt, generated core, project overlay, native lifecycle, and personal configuration domains
 - `platforms`: stable ID, OS, architecture, and lane
 - `runtimes`: stable runtime ID, exact version, platform refs, descriptor ref, companions
 - `tiers`: hermetic release policy and hosted default status
