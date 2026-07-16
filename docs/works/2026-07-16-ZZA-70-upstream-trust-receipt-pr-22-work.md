@@ -55,9 +55,10 @@ U1에서 검증한 immutable upstream trust receipt 패턴을 검색 가능한 s
 - GitHub 문서 PR: <https://github.com/zzanghyunmoo/oh-my-harness/pull/22>
 - Canonical Notion feature status: <https://app.notion.com/p/39eef22ad4fc819db113ce1029c899a4>
 - Canonical Notion ticket: <https://app.notion.com/p/39eef22ad4fc81c4a4bce021fa26b92b>
+- Notion 티켓 문서에 PR #22의 architecture learning과 shared vocabulary 범위를 갱신했다.
 - Linear ZZA-70은 후속 U2-U18이 남아 있어 `In Review`를 유지한다.
 
 ## Merge closeout
 
-PR #22가 열리기 전이므로 closeout은 pending이다. Merge 뒤 문서가 `main`에서 검색 가능한지
+PR #22가 열려 있어 closeout은 pending이다. Merge 뒤 문서가 `main`에서 검색 가능한지
 확인하고 Notion 티켓 문서와 work evidence를 merge commit 기준으로 갱신한다.
