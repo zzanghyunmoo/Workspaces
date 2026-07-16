@@ -57,9 +57,11 @@ runtime-neutral JSON contract로 고정한다.
 - `npm run profile:verify`: PASS, 기존 Pi distribution profile 4개가 deterministic·secret-free다.
 - `npm run test:workspace-connectors`: PASS, 31/31.
 - `node --check tests/harness/contracts.test.mjs`와 `git diff --check`: PASS.
-- LSP primary check는 두 차례 timeout되어 확정 진단을 받지 못했고 Node syntax check와 전체
-  harness test로 보완했다. 별도 Python `jsonschema` 검증은 module 미설치로 미실행이며,
-  committed test-local evaluator가 실제 사용 keyword의 positive/negative fixture를 검증한다.
+- `npx --yes ajv-cli@5.0.0 compile --spec=draft2020 --strict=true`: PASS, schema 4개 모두
+  strict compile되며 `personal-v1.profile.json`도 Ajv validation을 통과했다. 첫 compile에서
+  conditional의 strict-required 경고를 발견해 branch property 선언을 보강한 뒤 재검증했다.
+- LSP primary check는 두 차례 timeout되어 확정 진단을 받지 못했고 Node syntax check, Ajv
+  strict compile과 전체 harness test로 보완했다.
 - 브라우저 검증은 JSON contract와 Node test만 변경하므로 대상 route가 없다.
 
 ## 외부 동기화
