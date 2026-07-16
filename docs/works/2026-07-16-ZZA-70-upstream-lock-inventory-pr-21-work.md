@@ -4,7 +4,7 @@ ticket_id: ZZA-70
 ticket_url: https://linear.app/zzanghyunmoo/issue/ZZA-70/oh-my-harness-4개-코딩-에이전트용-compound-engineering-호환-코어
 ticket_status: In Review
 ticket_completion: pending
-remaining_prs: https://github.com/zzanghyunmoo/oh-my-harness/pull/21
+remaining_prs: https://github.com/zzanghyunmoo/oh-my-harness/pulls
 ideation_status: waived
 ideation_path:
 ideation_notion_url:
@@ -16,13 +16,13 @@ plan_waiver_reason:
 work_status: complete
 work_notion_url: https://www.notion.so/39eef22ad4fc81c4a4bce021fa26b92b
 pr_url: https://github.com/zzanghyunmoo/oh-my-harness/pull/21
-closeout_status: pending
-merged_pr_url:
-merge_commit:
-kb_paths:
+closeout_status: complete
+merged_pr_url: https://github.com/zzanghyunmoo/oh-my-harness/pull/21
+merge_commit: 143c2e827245c46f4ec367567126f1b255ac7e00
+kb_paths: docs/kb/architecture/2026-07-16-ZZA-70-ce-3.19-upstream-lock-inventory.md
 notion_feature_status_url: https://www.notion.so/39eef22ad4fc819db113ce1029c899a4
 notion_ticket_url: https://www.notion.so/39eef22ad4fc81c4a4bce021fa26b92b
-closed_at:
+closed_at: 2026-07-16T05:24:14Z
 ---
 
 # ZZA-70 CE 3.19.0 upstream lock·inventory 작업 기록
@@ -75,14 +75,20 @@ conformance matrix를 포함하지 않는다.
 ## 외부 동기화
 
 - GitHub 구현 PR: <https://github.com/zzanghyunmoo/oh-my-harness/pull/21>
+- Merge commit: `143c2e827245c46f4ec367567126f1b255ac7e00`
+- Code review: <https://github.com/zzanghyunmoo/oh-my-harness/pull/21#issuecomment-4988090441>
+- Latest doc review: <https://github.com/zzanghyunmoo/oh-my-harness/pull/21#issuecomment-4988403392>
 - Canonical Notion plan: <https://app.notion.com/p/39eef22ad4fc8134bdbcd7de4afec13a>
 - Canonical Notion feature status: <https://app.notion.com/p/39eef22ad4fc819db113ce1029c899a4>
 - Canonical Notion ticket: <https://app.notion.com/p/39eef22ad4fc81c4a4bce021fa26b92b>
-- Notion 기능 현황과 티켓 문서를 PR #19 closeout 및 PR #21 U1 review 상태로 갱신했다.
-- Linear ZZA-70을 `In Review`로 동기화했으며 후속 U2-U18 때문에 완료 처리하지 않았다.
+- Notion 기능 현황과 티켓 문서를 PR #21 merge 및 U1 완료 상태로 갱신했다.
+- Linear ZZA-70은 후속 U2-U18 때문에 `In Review`를 유지한다.
 
 ## Merge closeout
 
-PR #21이 열려 있어 closeout은 pending이다. Merge 뒤 U1 기능 상태와 운영 경계를
-`docs/kb/`와 Notion 기능 현황·티켓 문서에 동기화하고, 후속 U2-U18이 남으므로 Linear
-ZZA-70은 `In Review` 및 `ticket_completion: pending`을 유지한다.
+PR #21은 `143c2e827245c46f4ec367567126f1b255ac7e00`으로 squash merge됐다. U1의 현재 기능
+상태, trust boundary와 운영 주의사항을
+`docs/kb/architecture/2026-07-16-ZZA-70-ce-3.19-upstream-lock-inventory.md`에 기록하고,
+Notion 기능 현황·티켓 문서를 U1 완료 상태로 동기화했다. 후속 U2-U18 PR은 아직 열리지
+않았으며 repository pull queue를 `remaining_prs`에 기록했다. 따라서
+`ticket_completion: pending`, Linear `In Review`를 유지한다.
