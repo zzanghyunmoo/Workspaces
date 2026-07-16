@@ -2,9 +2,9 @@
 workflow_schema: compound-work/v1
 ticket_id: ZZA-71
 ticket_url: https://linear.app/zzanghyunmoo/issue/ZZA-71/oh-my-harness-u2-neutral-contracts-and-personal-profile
-ticket_status: In Progress
+ticket_status: In Review
 ticket_completion: pending
-remaining_prs:
+remaining_prs: https://github.com/zzanghyunmoo/oh-my-harness/pull/23
 ideation_status: waived
 ideation_path:
 ideation_notion_url:
@@ -13,9 +13,9 @@ plan_status: complete
 plan_path: docs/plans/2026-07-16-ZZA-71-u2-neutral-contracts-plan.md
 plan_notion_url: https://www.notion.so/39fef22ad4fc819690eec79654ddff53
 plan_waiver_reason:
-work_status: in_progress
+work_status: complete
 work_notion_url: https://www.notion.so/39fef22ad4fc81ee9a61d2f9adb52ee7
-pr_url:
+pr_url: https://github.com/zzanghyunmoo/oh-my-harness/pull/23
 closeout_status: pending
 merged_pr_url:
 merge_commit:
@@ -64,13 +64,14 @@ runtime-neutral JSON contract로 고정한다.
 
 ## 외부 동기화
 
-- Linear ZZA-71: `In Progress`.
+- Linear ZZA-71: `In Review`.
+- PR #23: <https://github.com/zzanghyunmoo/oh-my-harness/pull/23>
 - Canonical Notion plan: <https://app.notion.com/p/39fef22ad4fc819690eec79654ddff53>
 - Canonical Notion ticket: <https://app.notion.com/p/39fef22ad4fc81ee9a61d2f9adb52ee7>
 - Parent ZZA-70은 U2-U18이 남아 있어 `In Review`를 유지한다.
 
 ## Merge closeout
 
-구현과 PR 생성 전이므로 closeout은 pending이다. Merge 뒤 U2 contract 상태를 KB와 Notion
-기능 현황·티켓 문서에 반영하고, 후속 U3-U18 때문에 ZZA-71 completion 정책과 parent
-ZZA-70 `In Review` 상태를 함께 정리한다.
+PR #23이 open 상태이므로 closeout은 pending이다. Merge 뒤 U2 contract 상태를 KB와
+Notion 기능 현황·티켓 문서에 반영하고, ZZA-71을 `Done`으로 전환한다. Parent ZZA-70은
+후속 U3-U18 때문에 `In Review`를 유지한다.
