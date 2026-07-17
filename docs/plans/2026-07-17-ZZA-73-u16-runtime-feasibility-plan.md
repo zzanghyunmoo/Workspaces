@@ -124,9 +124,9 @@ Current operator tools also differ from the v1 baseline: Codex is exact, while i
 
 ### Dependencies and Assumptions
 
-- Start gate: after ZZA-72/U3 is implemented and verified, record its exact head SHA plus exported descriptor resolver path/symbol in work evidence, rebase/stack ZZA-73 on that commit, and only then begin U16 production writes. Until then this plan is implementation-ready but dependency-blocked.
+- Start gate satisfied: ZZA-73 is stacked on verified ZZA-72 head `01eacf38a61d5937b4cc6ec91c499b598a3a4007` and imports `scripts/harness/descriptors.mjs::loadRuntimeDescriptors`; U16 must not duplicate its tuple or key semantics.
 - The eight exact provider release artifacts and archive/member/executable hashes are supplied by U3 and are extractable without global installation; a missing or provenance-mismatched artifact blocks that tuple.
-- Tart `2.32.0` is the provisional executable baseline (`openai/tart` release asset `tart.tar.gz`, SHA-256 `65adc1c6d0aefb55e9fa82f683bb93b62550b8dc1b9d0a26e1d5abc66500ef80`); a macOS 15 arm64 image reference/digest and enforceable network topology must be fixed in the substrate manifest before Darwin can pass.
+- Tart `2.32.0` is pinned to `openai/tart` release asset `tart.tar.gz` (SHA-256 `65adc1c6d0aefb55e9fa82f683bb93b62550b8dc1b9d0a26e1d5abc66500ef80`), member `tart.app/Contents/MacOS/tart` (SHA-256 `0fe00886e9eca1d88ad8c1970f7a9dc611582808db481c35b2d4d9421cdcae6d`). The macOS 15 arm64 base is `ghcr.io/cirruslabs/macos-sequoia-base@sha256:fdd8b72a6ee46fc8ad35dc1b9f3b1f162b6607b82a584947d20bb28d3dcb99ed` with config digest `sha256:3a6cb4eb6201aa00136781f9d350858ca23054fdda419893193af3e3a044b3a8`; enforceable network topology still must pass before Darwin.
 - Tart Softnet or an equivalent pinned policy can enforce broker-only guest egress; if black-box probes disprove this, Darwin support is blocked rather than weakened.
 - OpenCode `1.18.0` has a pre-request plugin surface, but its fail-closed behavior is unproven and must be treated as the highest-risk runtime characterization.
 
@@ -251,7 +251,7 @@ tests/
 
 - Linux uses `ubuntu:24.04@sha256:52df9b1ee71626e0088f7d400d5c6b5f7bb916f8f0c82b474289a4ece6cf3faf` for `linux/amd64`, Docker Engine `29.2.0`, and `runc 1.3.4`; implementation records and verifies effective image config plus engine/runtime executable identities in `u16-v1.json` before a pass.
 - Linux networking uses a fresh Docker `--internal` bridge containing only the runtime cell and U16 deny-sink/provider peer, with no default external route, no host mounts/sockets, and DNS disabled except an explicit broker mapping. Namespace counters and hostile peer/DNS/IP/loopback/Unix-socket probes attest the effective topology.
-- Darwin uses the pinned Tart `2.32.0` release executable and resolves `ghcr.io/cirruslabs/macos-sequoia-base:latest` to one immutable macOS 15 arm64 image digest before clone; the mutable tag is never stored as the passing identity.
+- Darwin uses the pinned Tart `2.32.0` executable identity above and immutable base `ghcr.io/cirruslabs/macos-sequoia-base@sha256:fdd8b72a6ee46fc8ad35dc1b9f3b1f162b6607b82a584947d20bb28d3dcb99ed`; implementation re-resolves the source tag only as provenance and never stores the mutable tag as passing identity.
 - Darwin runs the U16 deny-sink/provider on one exact guest loopback address/port. Softnet blocks host/private-network access; administrator-owned PF uses default deny and allows only that broker address/port, including on loopback; the runtime executes as non-admin. Runtime HOME/temp contain no shared sockets, listener inventory must equal the allowlist, and accessible Unix sockets are denied by isolated roots/permissions. Effective PF/listener/socket state plus host/private/public/DNS/alternate-loopback/Unix-socket probes must prove enforcement; if not, Darwin remains blocked.
 
 ### Implementation Constraints
@@ -299,9 +299,9 @@ tests/
 
 - **Goal:** Bind U16 to finalized U3 tuple semantics and define the ten-receipt fail-closed data contract.
 - **Requirements:** R1, R2, R15–R20; AE3, AE6; KTD1, KTD2, KTD7, KTD9.
-- **Dependencies:** ZZA-72/U3 finalized branch.
+- **Dependencies:** ZZA-72 head `01eacf38a61d5937b4cc6ec91c499b598a3a4007`; `scripts/harness/descriptors.mjs::loadRuntimeDescriptors`.
 - **Files:** `harness/contracts/baseline-receipt.schema.json`, `harness/contracts/characterization-attestation.schema.json`, `harness/contracts/characterization-transcript.schema.json`, `harness/contracts/baseline-generation.schema.json`, `harness/substrates/u16-v1.json`, `scripts/harness/characterize.mjs`, `scripts/harness/characterize/receipts.mjs`, `tests/harness/characterize.test.mjs`, `tests/harness/fixtures/characterize/`.
-- **Approach:** After the start gate records the ZZA-72 commit/export, import U3 resolution; define closed runtime/backend receipt, trusted normalized attestation, substrate manifest, stable reason/recovery, pass accounting, and logical generation contracts.
+- **Approach:** Import `loadRuntimeDescriptors` from the recorded ZZA-72 head; define closed runtime/backend receipt, trusted normalized attestation, substrate manifest, stable reason/recovery, pass accounting, and logical generation contracts.
 - **Execution note:** Start with failing schema/semantic tests for valid, one-field-mutated, incomplete, secret-bearing, and forged-pass receipts.
 - **Test scenarios:**
   - U3 returns exactly eight tuples and the receipt filenames/identities match them.
