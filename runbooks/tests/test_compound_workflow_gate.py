@@ -154,6 +154,15 @@ class CompoundWorkflowGateTests(unittest.TestCase):
         with self.assertRaisesRegex(GATE.GateError, "ideation_notion_url"):
             self.validate(self.evidence_text(ideation_notion_url=""))
 
+    def test_accepts_app_notion_urls(self) -> None:
+        self.validate(
+            self.evidence_text(
+                ideation_notion_url="https://app.notion.com/p/idea",
+                plan_notion_url="https://app.notion.com/p/plan",
+                work_notion_url="https://app.notion.com/p/work",
+            )
+        )
+
     def test_rejects_placeholder_section(self) -> None:
         text = self.evidence_text().replace(
             "- API 계약과 실행 경계의 변경 지점을 파일 단위로 정리했다.",

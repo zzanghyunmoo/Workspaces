@@ -251,7 +251,7 @@ def validate_optional_phase(
         require_https_url(
             fields,
             f"{phase}_notion_url",
-            allowed_hosts=("notion.so", "notion.site"),
+            allowed_hosts=("notion.so", "notion.site", "app.notion.com"),
         )
         return
     if status == "waived":
@@ -309,7 +309,7 @@ def validate_work_evidence(
     require_https_url(
         fields,
         "work_notion_url",
-        allowed_hosts=("notion.so", "notion.site"),
+        allowed_hosts=("notion.so", "notion.site", "app.notion.com"),
     )
     for heading in REQUIRED_SECTIONS:
         require_section(evidence.body, heading)
@@ -577,12 +577,12 @@ def validate_closeout(
     require_https_url(
         fields,
         "notion_feature_status_url",
-        allowed_hosts=("notion.so", "notion.site"),
+        allowed_hosts=("notion.so", "notion.site", "app.notion.com"),
     )
     require_https_url(
         fields,
         "notion_ticket_url",
-        allowed_hosts=("notion.so", "notion.site"),
+        allowed_hosts=("notion.so", "notion.site", "app.notion.com"),
     )
     require_iso_timestamp(fields, "closed_at")
 
