@@ -258,6 +258,75 @@ class CompoundWorkflowGateTests(unittest.TestCase):
                 head_sha,
             )
 
+    def test_pre_merge_reads_new_evidence_from_verified_pr_head(self) -> None:
+        repo = "owner/repo"
+        pr = 42
+        head_sha = "c" * 40
+        evidence_path = "docs/works/work.md"
+        evidence = GATE.parse_evidence_text(
+            PurePosixPath(evidence_path),
+            self.evidence_text(
+                ticket_status="In Review",
+                pr_url=f"https://github.com/{repo}/pull/{pr}",
+            ),
+        )
+        metadata = {
+            "state": "OPEN",
+            "isDraft": False,
+            "url": f"https://github.com/{repo}/pull/{pr}",
+            "headRefOid": head_sha,
+            "mergeable": "MERGEABLE",
+            "mergeStateStatus": "CLEAN",
+        }
+        comments = [
+            {
+                "id": index,
+                "body": (
+                    f"{review_type} 리뷰에서 변경 범위, 계약, 검증 결과와 회귀 위험을 "
+                    "확인했으며 merge를 막을 blocker가 남아 있지 않습니다.\n\n"
+                    f"<!-- ce-review:v1 type={review_type} ticket=ZZA-123 "
+                    f"head_sha={head_sha} verdict=pass -->"
+                ),
+                "user": {"login": "reviewer"},
+                "author_association": "OWNER",
+            }
+            for index, review_type in enumerate(("code", "doc"), start=1)
+        ]
+        evidence_refs: list[str | None] = []
+
+        def fake_read_evidence(
+            root: Path, raw_path: str, *, ref: str | None = None
+        ) -> GATE.Evidence:
+            del root, raw_path
+            evidence_refs.append(ref)
+            return evidence
+
+        def fake_ref_contains_file(
+            root: Path, ref: str | None, path: PurePosixPath
+        ) -> bool:
+            del root, path
+            return ref == head_sha
+
+        with (
+            mock.patch.object(GATE, "refresh_origin_main"),
+            mock.patch.object(GATE, "read_evidence", side_effect=fake_read_evidence),
+            mock.patch.object(
+                GATE, "ref_contains_file", side_effect=fake_ref_contains_file
+            ),
+            mock.patch.object(GATE, "pr_metadata", return_value=metadata),
+            mock.patch.object(
+                GATE,
+                "trusted_review_comments",
+                return_value=("reviewer", comments),
+            ),
+        ):
+            self.assertEqual(
+                GATE.validate_pre_merge(self.root, evidence_path, repo, pr),
+                head_sha,
+            )
+
+        self.assertEqual(evidence_refs, [head_sha])
+
     def test_pre_merge_rejects_untrusted_comment_author(self) -> None:
         repo = "owner/repo"
         pr = 42

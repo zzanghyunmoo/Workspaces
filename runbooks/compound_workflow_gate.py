@@ -377,23 +377,37 @@ def trusted_review_comments(
     return actor_login, comments
 
 
+def pre_merge_evidence_ref(
+    root: Path, evidence_path: str, pr: int, head_sha: str
+) -> str:
+    path = normalize_relative_path(evidence_path, prefix="docs/works")
+    if ref_contains_file(root, "origin/main", path):
+        return "origin/main"
+    if ref_contains_file(root, head_sha, path):
+        return head_sha
+
+    pull_ref = f"refs/remotes/origin/workflow-gate-pr-{pr}"
+    git(
+        root,
+        "fetch",
+        "--quiet",
+        "origin",
+        f"+refs/pull/{pr}/head:{pull_ref}",
+    )
+    fetched_head = git(root, "rev-parse", pull_ref).strip()
+    if fetched_head != head_sha:
+        raise GateError("fetched PR head does not match GitHub metadata")
+    if not ref_contains_file(root, head_sha, path):
+        raise GateError(
+            "workflow evidence must exist in origin/main or the verified PR head: "
+            f"{path}"
+        )
+    return head_sha
+
+
 def validate_pre_merge(root: Path, evidence_path: str, repo: str, pr: int) -> str:
     refresh_origin_main(root)
-    evidence = read_evidence(root, evidence_path, ref="origin/main")
-    validate_work_evidence(
-        root,
-        evidence,
-        expected_ticket_status="In Review",
-        ref="origin/main",
-    )
-
-    fields = evidence.fields
     expected_url = expected_pr_url(repo, pr)
-    if require_https_url(fields, "pr_url") != expected_url:
-        raise GateError(f"pr_url must be {expected_url}")
-    if require_field(fields, "closeout_status").lower() != "pending":
-        raise GateError("closeout_status must be pending before merge")
-
     metadata = pr_metadata(root, repo, pr)
     if metadata.get("state") != "OPEN":
         raise GateError("PR must be OPEN before merge")
@@ -410,6 +424,21 @@ def validate_pre_merge(root: Path, evidence_path: str, repo: str, pr: int) -> st
     head_sha = str(metadata.get("headRefOid") or "")
     if not re.fullmatch(r"[0-9a-f]{40}", head_sha):
         raise GateError("GitHub did not return a full PR head SHA")
+
+    evidence_ref = pre_merge_evidence_ref(root, evidence_path, pr, head_sha)
+    evidence = read_evidence(root, evidence_path, ref=evidence_ref)
+    validate_work_evidence(
+        root,
+        evidence,
+        expected_ticket_status="In Review",
+        ref=evidence_ref,
+    )
+
+    fields = evidence.fields
+    if require_https_url(fields, "pr_url") != expected_url:
+        raise GateError(f"pr_url must be {expected_url}")
+    if require_field(fields, "closeout_status").lower() != "pending":
+        raise GateError("closeout_status must be pending before merge")
 
     actor_login, comments = trusted_review_comments(root, repo, pr)
     ticket_id = fields["ticket_id"]
