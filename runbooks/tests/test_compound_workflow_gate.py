@@ -91,6 +91,34 @@ class CompoundWorkflowGateTests(unittest.TestCase):
             ref=None,
         )
 
+    def test_workspace_root_resolves_invoking_nested_repository(self) -> None:
+        GATE.run(["git", "init"], cwd=self.root)
+        nested = self.root / "nested" / "directory"
+        nested.mkdir(parents=True)
+        self.assertEqual(GATE.workspace_root(nested), self.root.resolve())
+
+    def test_git_reads_utf8_evidence_under_non_utf8_host_locale(self) -> None:
+        GATE.run(["git", "init"], cwd=self.root)
+        evidence_path = self.write_evidence(
+            self.evidence_text().replace("작업 기록", "호스트 자동 기동 작업 기록")
+        )
+        GATE.run(["git", "add", evidence_path], cwd=self.root)
+        GATE.run(
+            [
+                "git",
+                "-c",
+                "user.name=Workflow Test",
+                "-c",
+                "user.email=workflow@example.test",
+                "commit",
+                "-m",
+                "UTF-8 evidence",
+            ],
+            cwd=self.root,
+        )
+        evidence = GATE.read_evidence(self.root, evidence_path, ref="HEAD")
+        self.assertIn("호스트 자동 기동 작업 기록", evidence.body)
+
     def test_accepts_complete_work_evidence(self) -> None:
         self.validate(self.evidence_text())
 

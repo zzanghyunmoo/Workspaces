@@ -29,6 +29,22 @@ MSG
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 workflow_gate="$script_dir/compound_workflow_gate.py"
 
+resolve_python() {
+	local candidate
+	for candidate in "${COMPOUND_PYTHON:-}" python3 python; do
+		[ -n "$candidate" ] || continue
+		if command -v "$candidate" >/dev/null 2>&1 &&
+			"$candidate" -c 'import sys; raise SystemExit(0)' >/dev/null 2>&1; then
+			printf '%s\n' "$candidate"
+			return 0
+		fi
+	done
+	printf 'Python 3 is required to run the Compound workflow gate.\n' >&2
+	return 1
+}
+
+python_command="$(resolve_python)"
+
 repo=""
 pr=""
 workflow_evidence=""
@@ -122,7 +138,7 @@ is_draft="${pr_info[7]}"
 state="${pr_info[8]}"
 
 gate_output="$(
-	python3 "$workflow_gate" pre-merge \
+	"$python_command" "$workflow_gate" pre-merge \
 		--evidence "$workflow_evidence" \
 		--repo "$repo" \
 		--pr "$pr_number"
@@ -189,13 +205,13 @@ if [ -n "$body_file" ]; then
 	args+=(--body-file "$body_file")
 fi
 
-python3 "$workflow_gate" record-closeout \
+"$python_command" "$workflow_gate" record-closeout \
 	--evidence "$workflow_evidence" \
 	--repo "$repo" \
 	--pr "$pr_number"
 
 if ! gh "${args[@]}"; then
-	python3 "$workflow_gate" cancel-closeout --repo "$repo" --pr "$pr_number" || true
+	"$python_command" "$workflow_gate" cancel-closeout --repo "$repo" --pr "$pr_number" || true
 	exit 1
 fi
 

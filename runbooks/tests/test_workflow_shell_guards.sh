@@ -9,6 +9,9 @@ mkdir -p "$test_dir/bin"
 cat >"$test_dir/bin/python3" <<'PYTHON'
 #!/usr/bin/env bash
 set -euo pipefail
+if [ "${1:-}" = "-c" ]; then
+  exit 0
+fi
 command_name="${2:-}"
 case "$command_name" in
 pre-merge)
@@ -87,6 +90,18 @@ local_sha=bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
 printf 'refs/heads/main %s refs/heads/main %s\n' \
 	"$local_sha" cccccccccccccccccccccccccccccccccccccccc |
 	"$workspace_root/.githooks/pre-push" origin https://github.com/owner/repo.git
+
+grep -F -- "pending-closeouts --ref $local_sha" "$test_dir/pre-push-args" >/dev/null
+
+project_dir="$test_dir/project"
+git init -q "$project_dir"
+: >"$test_dir/pre-push-args"
+(
+	cd "$project_dir"
+	printf 'refs/heads/feature %s refs/heads/feature %s\n' \
+		"$local_sha" cccccccccccccccccccccccccccccccccccccccc |
+		"$workspace_root/.githooks/pre-push" origin https://github.com/owner/project.git
+)
 
 grep -F -- "pending-closeouts --ref $local_sha" "$test_dir/pre-push-args" >/dev/null
 

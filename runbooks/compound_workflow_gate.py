@@ -46,8 +46,27 @@ class PendingCloseout:
     evidence: str
 
 
-def workspace_root() -> Path:
-    return Path(__file__).resolve().parents[1]
+def workspace_root(start: Path | None = None) -> Path:
+    """Resolve the Git checkout that invoked the gate.
+
+    The runbook lives in the workspace repository, but project PRs keep their
+    workflow evidence in nested, independent Git repositories. Resolving from
+    the process working directory keeps origin/main, PR refs, evidence, and
+    local closeout debt scoped to the repository being merged.
+    """
+    current = (start or Path.cwd()).resolve()
+    result = subprocess.run(
+        ["git", "rev-parse", "--show-toplevel"],
+        cwd=current,
+        check=False,
+        text=True,
+        encoding="utf-8",
+        capture_output=True,
+    )
+    if result.returncode != 0 or not result.stdout.strip():
+        detail = result.stderr.strip() or "not inside a Git repository"
+        raise GateError(f"cannot resolve repository root from {current}: {detail}")
+    return Path(result.stdout.strip()).resolve()
 
 
 def run(command: list[str], *, cwd: Path) -> str:
@@ -56,6 +75,7 @@ def run(command: list[str], *, cwd: Path) -> str:
         cwd=cwd,
         check=False,
         text=True,
+        encoding="utf-8",
         capture_output=True,
     )
     if result.returncode != 0:
@@ -181,6 +201,7 @@ def ref_contains_file(root: Path, ref: str | None, path: PurePosixPath) -> bool:
             cwd=root,
             check=False,
             text=True,
+            encoding="utf-8",
             capture_output=True,
         )
         return result.returncode == 0 and result.stdout.strip() == "blob"
@@ -640,6 +661,7 @@ def pending_records(root: Path) -> Iterable[PendingCloseout]:
         cwd=root,
         check=False,
         text=True,
+        encoding="utf-8",
         capture_output=True,
     )
     if result.returncode == 1:
@@ -763,8 +785,8 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
-    root = workspace_root()
     try:
+        root = workspace_root()
         if args.command == "validate-work":
             evidence = read_evidence(root, args.evidence)
             validate_work_evidence(

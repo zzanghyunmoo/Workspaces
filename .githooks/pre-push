@@ -9,25 +9,20 @@ hook_dir="$(canonical_dir "$(dirname "$0")")"
 workspace_root="$(canonical_dir "$hook_dir/..")"
 repo_root="$(canonical_dir "$(git rev-parse --show-toplevel 2>/dev/null || pwd)")"
 
-# The root zWorkspaces repository may push directly to main/master, but a project
-# PR merged through guarded-pr-merge leaves local closeout debt. Root pushes stay
-# blocked until docs/kb, Notion links, and ticket completion are committed.
-if [ "$repo_root" = "$workspace_root" ]; then
-	checked_ref=0
-	zero_sha=0000000000000000000000000000000000000000
-	while read local_ref local_sha remote_ref remote_sha; do
-		if [ "$local_sha" != "$zero_sha" ]; then
-			python3 "$workspace_root/runbooks/compound_workflow_gate.py" \
-				pending-closeouts --ref "$local_sha"
-			checked_ref=1
+resolve_python() {
+	for candidate in "${COMPOUND_PYTHON:-}" python3 python; do
+		[ -n "$candidate" ] || continue
+		if command -v "$candidate" >/dev/null 2>&1 &&
+			"$candidate" -c 'import sys; raise SystemExit(0)' >/dev/null 2>&1; then
+			printf '%s\n' "$candidate"
+			return 0
 		fi
 	done
-	if [ "$checked_ref" -eq 0 ]; then
-		python3 "$workspace_root/runbooks/compound_workflow_gate.py" \
-			pending-closeouts --ref HEAD
-	fi
-	exit 0
-fi
+	printf 'Python 3 is required to run the Compound workflow gate.\n' >&2
+	return 1
+}
+
+python_command="$(resolve_python)"
 
 protected=" ${MAIN_GUARD_BRANCHES:-main master} "
 is_protected_ref() {
@@ -38,7 +33,25 @@ is_protected_ref() {
 		*) return 1 ;;
 	esac
 }
+
+# guarded-pr-merge records closeout debt in the Git repository being merged.
+# Validate every pushed commit in that same checkout before applying the
+# additional protected-branch rule for project repositories.
+checked_ref=0
+zero_sha=0000000000000000000000000000000000000000
 while read local_ref local_sha remote_ref remote_sha; do
+	if [ "$local_sha" != "$zero_sha" ]; then
+		(
+			cd "$repo_root"
+			"$python_command" "$workspace_root/runbooks/compound_workflow_gate.py" \
+				pending-closeouts --ref "$local_sha"
+		)
+		checked_ref=1
+	fi
+
+	if [ "$repo_root" = "$workspace_root" ]; then
+		continue
+	fi
 	if is_protected_ref "$local_ref" || is_protected_ref "$remote_ref"; then
 		if [ "${MAIN_GUARD_APPROVED:-}" != "1" ]; then
 			cat >&2 <<'MSG'
@@ -59,3 +72,11 @@ MSG
 		fi
 	fi
 done
+
+if [ "$checked_ref" -eq 0 ]; then
+	(
+		cd "$repo_root"
+		"$python_command" "$workspace_root/runbooks/compound_workflow_gate.py" \
+			pending-closeouts --ref HEAD
+	)
+fi
