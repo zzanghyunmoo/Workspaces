@@ -17,3 +17,7 @@
 [submodule "projects/ReplaceMe"]
 	path = projects/ReplaceMe
 	url = https://github.com/zzanghyunmoo/ReplaceMe.git
+[submodule "projects/our-moneyflow"]
+	path = projects/our-moneyflow
+	url = https://github.com/zzanghyunmoo/our-moneyflow.git
+	branch = main

@@ -4,9 +4,11 @@ set -euo pipefail
 workspace_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 repos=("$workspace_root")
 
-if [ -d "$workspace_root/projects/ReplaceMe/.git" ]; then
-	repos+=("$workspace_root/projects/ReplaceMe")
-fi
+for project_repo in "$workspace_root"/projects/*; do
+	if [ -e "$project_repo/.git" ]; then
+		repos+=("$project_repo")
+	fi
+done
 
 for repo in "${repos[@]}"; do
 	git -C "$repo" rev-parse --git-dir >/dev/null

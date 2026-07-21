@@ -10,11 +10,14 @@
 - 목적: 매일 1시간씩 C#/.NET 기본기, 자료구조/알고리즘, 네트워크, DB를 정리
 - 운영: 제품 작업과 분리된 고정 학습 루틴
 
-### 2. SRE AI Lab
+### 2. Our Moneyflow
 
-- 경로: `projects/sre-ai-lab`
-- 목적: Alert Rule Clinic을 중심으로 .NET 기반 AI SRE 제품과 개발 콘텐츠를 만든다
-- 운영: 주 2~3회, 회당 1~1.5시간
+- 경로: `projects/our-moneyflow`
+- 목적: 여러 은행 계좌를 읽기 전용으로 연결해 계좌별 가계부·예산과 주·월·연
+  보고서를 제공한다
+- 기술 방향: Flutter Android/iOS 앱과 .NET API·sync worker
+- 현재 단계: ZZA-87 프로젝트 PR merge 완료·root pointer closeout 진행 중,
+  Flutter 골격은 ZZA-88에서 시작
 
 ## 보류/중지한 프로젝트
 
