@@ -23,7 +23,7 @@ submodule도 `projects/our-moneyflow`를 사용하며, 이전 경로는 원격 c
 ## 주요 동작과 경계
 
 - 제품 경계는 읽기 전용 다중 은행 가계부·예산·보고서다.
-- 기술 방향은 Flutter Android/iOS 앱과 .NET API·sync worker다.
+- 기술 방향은 Flutter/Dart Android/iOS 단일 앱이다.
 - 송금·결제 기능과 ReplaceMe 변경은 이 저장소 전환 범위에 포함하지 않았다.
 - 프로젝트 변경은 ticket branch와 PR을 사용하며 `main` 직접 작업은 보호한다.
 
@@ -42,8 +42,8 @@ submodule도 `projects/our-moneyflow`를 사용하며, 이전 경로는 원격 c
 ## 운영 및 사용 시 주의사항
 
 현재 저장소는 제품 계약과 개발 workflow 문서만 가진 초기 상태다. 실행 가능한 Flutter
-앱이나 .NET 서비스가 있다고 가정하면 안 된다. 후속 개발은 ZZA-88부터 티켓별 branch,
-PR review와 closeout 가드레일을 동일하게 적용한다.
+앱은 아직 없다. 후속 개발은 ZZA-88부터 티켓별 branch, PR review와 closeout 가드레일을
+동일하게 적용한다.
 
 ## 관련 문서
 
