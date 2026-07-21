@@ -16,7 +16,7 @@
 - 목적: 여러 은행 계좌를 읽기 전용으로 연결해 계좌별 가계부·예산과 주·월·연
   보고서를 제공한다
 - 기술 방향: Flutter Android/iOS 앱과 .NET API·sync worker
-- 현재 단계: ZZA-87 프로젝트 PR merge 완료·root pointer closeout 진행 중,
+- 현재 단계: ZZA-87 저장소 전환·closeout 완료,
   Flutter 골격은 ZZA-88에서 시작
 
 ## 보류/중지한 프로젝트

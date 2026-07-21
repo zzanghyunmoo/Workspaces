@@ -2,9 +2,9 @@
 workflow_schema: compound-work/v1
 ticket_id: ZZA-87
 ticket_url: https://linear.app/zzanghyunmoo/issue/ZZA-87/u1-sre-ai-lab을-our-moneyflow-저장소로-직접-전환
-ticket_status: In Review
-ticket_completion: pending
-remaining_prs: project closeout publication, root pointer finalization
+ticket_status: Done
+ticket_completion: complete
+remaining_prs:
 ideation_status: complete
 ideation_path: docs/ideation/2026-07-21-our-moneyflow-ideation.html
 ideation_notion_url: https://app.notion.com/p/3a4ef22ad4fc8144a07afe36f395b47d
@@ -16,13 +16,13 @@ plan_waiver_reason:
 work_status: complete
 work_notion_url: https://app.notion.com/p/3a4ef22ad4fc81d79240cc3aeeb09453
 pr_url: https://github.com/zzanghyunmoo/our-moneyflow/pull/1
-closeout_status: pending
+closeout_status: complete
 merged_pr_url: https://github.com/zzanghyunmoo/our-moneyflow/pull/1
 merge_commit: 5c86d8f9765d512e8cb89acd58df7a890150bbaf
-kb_paths:
+kb_paths: docs/kb/repository-transitions/2026-07-21-ZZA-87-our-moneyflow-repository-transition.md
 notion_feature_status_url: https://app.notion.com/p/3a4ef22ad4fc810c901aeeeda170de57
 notion_ticket_url: https://app.notion.com/p/3a4ef22ad4fc81d79240cc3aeeb09453
-closed_at:
+closed_at: 2026-07-21T12:37:03Z
 ---
 
 # ZZA-87 저장소 직접 전환 작업 기록
@@ -59,17 +59,23 @@ closed_at:
 - PASS: active project 파일의 SRE AI Lab·Alert Rule Clinic identity 검색 결과가 0건이고
   ReplaceMe staged/unstaged diff가 없다.
 - PASS: feature branch clean clone에서 Git object와 필수 project-local 문서를 확인했다.
+- PASS: project closeout commit
+  `b89f3b556000ed53525d0b3547957770f7386174`를 `our-moneyflow/main`에 반영하고 closeout
+  debt를 해제했다.
+- PASS: root pointer finalization commit
+  `bd824c95c17f7454d162307412730c9d368a6e44`가 project closeout commit을 가리킨다.
+- PASS: root 원격 clean clone과 submodule init에서 project commit, old path 부재,
+  project-local KB와 완료된 work evidence를 확인했다.
 - SKIP: `markdownlint-cli2`와 `npx`가 설치되어 있지 않아 Markdown lint는 실행하지 못했다.
-- NOT RUN: root merge commit publication 뒤의 clean clone/submodule init과 project-local
-  KB/work evidence 최종 closeout은 아직 실행하지 않았다.
 
 ## 외부 동기화
 
-Linear ZZA-87은 closeout 전까지 `In Review`다. canonical Notion 계획·프로젝트 위키·티켓
-구현 문서와 새 기능 현황 문서에 merge commit, 검증 결과와 남은 root/project closeout을
-동기화했다.
+Linear ZZA-87을 `Done`으로 전환했다. canonical Notion 계획·프로젝트 위키·티켓 구현
+문서와 기능 현황 문서에 merge commit, project closeout commit, root pointer commit과
+최종 검증 결과를 동기화했다.
 
 ## Merge closeout
 
-Project PR은 merge됐지만 project-local KB/work evidence publication, root pointer 원격
-반영과 clean clone 검증이 남아 있으므로 closeout은 pending이다.
+Project PR merge, project-local KB/work evidence publication, root pointer 원격 반영,
+Notion·Linear 동기화와 clean clone 검증을 완료했다. 현재 runtime은 의도적으로 없으며
+Flutter 골격 구현은 후속 티켓 ZZA-88의 범위다.
