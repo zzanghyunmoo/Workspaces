@@ -21,3 +21,7 @@
 	path = projects/our-moneyflow
 	url = https://github.com/zzanghyunmoo/our-moneyflow.git
 	branch = main
+[submodule "projects/home-ai-infra"]
+	path = projects/home-ai-infra
+	url = https://github.com/zzanghyunmoo/home-ai-infra.git
+	branch = main
