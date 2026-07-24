@@ -183,6 +183,24 @@ information to become executable automation work.
 When the issue is not runnable, the grammar should produce a focused
 clarification path instead of starting an agent run from ambiguous requirements.
 
+## Agent Orchestration
+
+### Pi Worker Run
+
+A named group of bounded Pi sessions coordinated as one parallel work batch.
+
+A Pi Worker Run limits concurrency, records each worker's tmux session and working
+copy, and leaves review, commits, and integration to one coordinator.
+
+### Worker Write Scope
+
+The repo-relative files or directories that one write-capable Pi worker is allowed
+to modify inside its isolated Git worktree.
+
+Worker Write Scopes must not overlap across unresolved workers. Shared resources
+that are not represented by paths, such as ports or test databases, are reserved
+separately and also serialized when they contend.
+
 ## Review Workflow
 
 ### Deployable Slice
