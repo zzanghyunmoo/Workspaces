@@ -4,10 +4,10 @@
 
 ## 현재 우선순위
 
-### 1. .NET Foundation Lab
+### 1. LetsStudyCS
 
-- 경로: `projects/dotnet-foundation-lab`
-- 목적: 매일 1시간씩 C#/.NET 기본기, 자료구조/알고리즘, 네트워크, DB를 정리
+- 경로: `projects/LetsStudyCS`
+- 목적: 컴퓨터 과학 기본기와 언어별 실습을 정리하며, 현재는 Rust 기초와 예제를 학습
 - 운영: 제품 작업과 분리된 고정 학습 루틴
 
 ### 2. Our Moneyflow

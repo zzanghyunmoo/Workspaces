@@ -93,7 +93,7 @@ root pre-push가 closeout 완료를 검사하므로 KB·Notion·티켓 정리 �
 - `blogs/` — 기술 블로그(`zzanghyunmoo.github.io`). 디렉터리 자체는 유지,
   내용물 교체는 허용.
 - `projects/` — 개별 프로젝트 작업 공간.
-- `projects/dotnet-foundation-lab/` — 매일 1시간 C#/.NET 기본기 학습 repo.
+- `projects/LetsStudyCS/` — 컴퓨터 과학 기본기와 언어별 실습을 정리하는 학습 repo.
   제품 구현보다 작은 예제와 학습 노트를 우선한다.
 - `projects/our-moneyflow/` — 읽기 전용 다중 은행 가계부·예산·보고서 제품 repo.
   Flutter/Dart Android/iOS 단일 앱으로 개발하며, 별도 API·server·sync worker와
