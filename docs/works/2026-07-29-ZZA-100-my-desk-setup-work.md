@@ -188,6 +188,38 @@ resolver로 지원하고, 인증은 자동화하지 않고 사용자가 직접 �
     - refs: orphan baseline `5326d4e`, 티켓 브랜치 `3d9fd9e`
     - `git bundle verify`: complete history, 2 refs, 통과
     - 별도 clone `git fsck --full`과 두 ref 확인 통과
+  - 격리 티켓 브랜치에서 U8 read-only doctor와 명시적 exact update를
+    구현하고 local commit `6e456a2`
+    (`feat: add read-only doctor and explicit updates`)로 고정했다.
+    - `mds doctor`: 현재 target만 대상으로 설치·버전·소유권 상태를
+      `Observe`하고, 설치·기능 실행·인증 probe 없이 stable
+      `mds.doctor/v1` human/JSON report 생성
+    - `mds update`: npm exact candidate 자동 발견 또는 검토된 candidate JSON을
+      입력받아 lock diff와 resulting target plan을 먼저 출력하고, 같은
+      update digest를 명시한 경우에만 적용
+    - update 전에 plan payload, catalog/lock preimage, target fingerprint를
+      재검증하고 stale digest에서는 lock·state mutation 0
+    - 후보 provenance와 artifact URL을 absolute HTTPS로 제한하고 artifact
+      SHA-256을 실제 32-byte hex digest로 검증
+    - scoped npm package path encoding, rate limit, unsupported provider,
+      user-owned NvChad 보호, mds-managed config replacement/restore,
+      symlinked lock directory 차단 테스트
+    - apply/update의 잘못된 output format을 첫 mutation 전에 거부
+    - `go test ./...`, `go test -race ./...`, `go vet ./...`,
+      `go build ./cmd/mds`, `git diff --check`, `shellcheck` 통과
+    - 실제 macOS에서 `mds doctor --component xcode --format json`을 실행해
+      `mds.doctor/v1`, `action-required`, 인증 미실행과 실행 전후 Git 상태
+      동일을 확인
+  - U8을 포함한 complete-history 복구 bundle을 이전 U7 bundle과 별도로
+    보존했다.
+    - 경로:
+      `/Users/gurumee92/Workspaces/.recovery/my-desk-setup/2026-07-29/my-desk-setup-pre-approval-u8-2026-07-29.bundle`
+    - 권한: `0600`
+    - SHA-256:
+      `e2d6a78dc7527ae3d42d5e660f91d8dacbb66048d1472952fd729ad977635ba4`
+    - refs: orphan baseline `5326d4e`, 티켓 브랜치 `6e456a2`
+    - `git bundle verify`: complete history, 2 refs, 통과
+    - 별도 clone에서 branch tip 확인과 `git fsck --full --strict` 통과
 - 미실행:
   - 저장소 rename, orphan baseline, force-push, 원격 브랜치 정리는 승인 전이므로
     실행하지 않았다.
