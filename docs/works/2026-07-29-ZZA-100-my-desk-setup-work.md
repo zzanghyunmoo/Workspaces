@@ -281,8 +281,11 @@ resolver로 지원하고, 인증은 자동화하지 않고 사용자가 직접 �
     설치하고 `mds --version`의 version·commit·date와 macOS host plan의
     schema·target·catalog revision을 검증했다.
   - 같은 최종 binary로 실제 macOS host evidence를 capture했다.
-    - bundle:
+    - capture bundle:
       `/private/tmp/mds-macos-evidence-4763239.pDqObs/macos-host`
+    - 영구 보존 bundle:
+      `/Users/gurumee92/Workspaces/.recovery/my-desk-setup/2026-07-30/evidence/macos-host-4763239`
+    - 영구 디렉터리 권한 `0700`, 파일 권한 `0600`
     - target fingerprint:
       `sha256:57f0f28b1d1c225fbff55f69083408d92b3d4982eec1a31f1ef8432c39a48f60`
     - plan digest:
@@ -299,6 +302,7 @@ resolver로 지원하고, 인증은 자동화하지 않고 사용자가 직접 �
       `--require-publication-acceptable` promotion verification은 예상대로
       실패했다.
     - evidence directory Gitleaks scan은 통과했다.
+    - 영구 복제 뒤 `checksums.txt` 재검증과 Gitleaks 재검사도 통과했다.
   - U9 최종 complete-history 복구 bundle을 영구 경로에 보존했다.
     - 경로:
       `/Users/gurumee92/Workspaces/.recovery/my-desk-setup/2026-07-30/my-desk-setup-final-u9-4763239-2026-07-30.bundle`
@@ -308,9 +312,108 @@ resolver로 지원하고, 인증은 자동화하지 않고 사용자가 직접 �
     - `git bundle verify`: complete history, 5 refs, 통과
     - 별도 clone에서 `git fsck --full --strict`, head/baseline tip,
       최종 `go.mod` byte 비교 통과
+  - U9 이후 `ce-doc-review`의 여섯 reviewer lens로 계획과 구현의 일치,
+    보안·운영·검증 계약을 재검토하고 U10 hardening을 완료했다. 위
+    `4763239` release/evidence/bundle은 검토 전 역사적 증거로 보존하되,
+    최종 review head와 release identity는 `80f866a`로 대체한다.
+    - 계획 문서는 읽기 전용 target discovery와 apply 시점 guest
+      provisioning 의존성을 분리하고, `conflict` outcome, target
+      image/catalog identity, `review_commit`/`release_commit`, update 전체
+      target matrix, CI trust boundary와 approval-gated remote cutover를
+      명시했다.
+    - `4fa9602`: fresh guest가 host release에 embed된 같은 release Linux
+      archive URL·SHA-256과 bounded stdin bootstrap으로
+      `~/.local/bin/mds`를 owner-only·atomic하게 self-provision한다.
+      apt/Docker privilege preflight는 `/usr/bin/sudo -n true`만 사용하고
+      비밀번호를 묻지 않으며, Docker group 변경은 root-equivalent 권한임을
+      알리는 사용자 수동 action으로 남겼다. WSL은 pinned `.wsl` artifact를
+      checksum 검증한 뒤 `wsl.exe --install --from-file`로 설치한다.
+    - `221e2a0`: update plan/apply가 대상 component의 모든 eligible
+      macOS/Windows/WSL/Lima × amd64/arm64 compatibility matrix를 검증하고
+      vendor artifact 누락 시 lock publication을 거부한다.
+    - `5d99a8b`: GitHub Actions를 full commit SHA로 pin하고 actual-target
+      runner를 네 허용 target/label pair, credential-free OS account와
+      protected environment 계약으로 제한했다.
+    - `196bb5b`: Ubuntu target YAML과 pinned image URL·SHA-256을 canonical
+      catalog revision 및 Lima/WSL plan action input에 포함해 guest image를
+      reviewed plan identity에 묶었다.
+    - `80f866a`: shellcheck가 지적한 WSL 오류 문자열을 정리하고 최종
+      review head를 고정했다.
+  - 최종 head `80f866abe5f9570e382309c08f988fabca1fff3a`에서 다음
+    검증을 다시 통과했다.
+    - `git diff --check`
+    - `go test ./...`
+    - `go test -race ./...`
+    - `go vet ./...`
+    - `golangci-lint run ./...` — `0 issues`
+    - `actionlint`
+    - `shellcheck bootstrap/*.sh scripts/*.sh`
+    - darwin/linux/windows × amd64/arm64의 `go build ./...`
+    - Gitleaks `8.30.1` source history scan — 19 commits, leak 0
+  - `0.1.0-rc.1` release를 최종 head에서 두 번 만들고 두 디렉터리의
+    `scripts/verify-release.sh`, `diff -rq`와 release Gitleaks scan을
+    통과했다.
+    - commit:
+      `80f866abe5f9570e382309c08f988fabca1fff3a`
+    - build date: `2026-07-30T03:06:25Z`
+    - catalog revision:
+      `sha256:20ace324d143c47fd8dfe1f079c7d31c21dfabb295aedb476910faeaa30574dd`
+    - release directories:
+      `/private/tmp/mds-final-release-80f866a-one.xulkP0/dist`,
+      `/private/tmp/mds-final-release-80f866a-two.5XfCKu/dist`
+    - archive/binary SHA-256:
+      - darwin/amd64:
+        `ec36e32ff7dd4c74ad32334e86a3a94d8b22a922575f477d7447110a6545e611` /
+        `e8e9033993ed7fa1970f252c2ad2a7308d90dfdb93935ded6bc05e970cdc647a`
+      - darwin/arm64:
+        `740a3181878e4915bfa0403d81728d2baba8adafd9c400e28875d66b18446ad4` /
+        `8ef14cddd5909ee46e438cd11387621b05e8ee90c62294af5e0284a2bb7e55ee`
+      - linux/amd64:
+        `fbe916be11589b7d6a4a37332f7363577b210c225b7fa97a556b0f5eec268359` /
+        `126c2ea58301281a79e6af8995172929c0c2920c4c1136310e2729c1adcb3469`
+      - linux/arm64:
+        `a5401b04302ab185733c58eb8daf3307abf3396ea778ffe77fe142d97e264e1f` /
+        `90d173173704d91ecba12c595e4d153aaf794f5572ac9f134e99e408bd73efd4`
+      - windows/amd64:
+        `3b6d4a4e54c4a24dddc608e77cd2ffb7607e5a1eacf3e123dd117a5e797da619` /
+        `fa502fa1ea1af681d6760dc01891556b3a981b9ecb1094469657d1b5c3e6fff1`
+      - windows/arm64:
+        `ccbc82a4d8733c5c1f913020aa635ca0a194bc75b1023511e6f9d53f69110730` /
+        `2c8679faa0003b91506e94c3cbad367f577e5936bcd77aba2394db5b5a470ed1`
+  - 최종 darwin/arm64 release binary로 실제 macOS host evidence를 다시
+    capture하고 strict identity를 검증했다.
+    - 임시 capture:
+      `/private/tmp/mds-macos-evidence-80f866a.XhHxqF/macos-host`
+    - 영구 보존:
+      `/Users/gurumee92/Workspaces/.recovery/my-desk-setup/2026-07-30/evidence/macos-host-80f866a`
+    - 영구 디렉터리 권한 `0700`, 파일 권한 `0600`
+    - target fingerprint:
+      `sha256:bb9b70fb486d058e00388a3e42f48610f690bb4faec974b44de6ae9b97963d08`
+    - plan digest:
+      `sha256:f653439b450ee8a60ab473e02293cf8b72358226c4b6a11976640e26cd8e7e75`
+    - binary SHA-256:
+      `8ef14cddd5909ee46e438cd11387621b05e8ee90c62294af5e0284a2bb7e55ee`
+    - ready: Chrome, KakaoTalk, Linear Desktop, Notion Desktop, Slack
+    - conflict: Bun, Claude Code, Codex, OpenCode
+    - unready: Lima `mds`, WezTerm
+    - action-required: Xcode
+    - 결과는 정직하게 `blocked`이며 commit/catalog/plan/binary/freshness
+      exact identity verification, checksum 재검증과 Gitleaks scan은
+      통과했다. conflict/unready가 남아 publication acceptable 검증은
+      예상대로 실패했다.
+  - U10 최종 complete-history 복구 bundle을 영구 경로에 보존했다.
+    - 경로:
+      `/Users/gurumee92/Workspaces/.recovery/my-desk-setup/2026-07-30/my-desk-setup-final-u10-80f866a-2026-07-30.bundle`
+    - SHA-256:
+      `46d5be7f5d2744523838d31b74c4ca4b0a2b6d42bc8a5a79a865553bcaca1600`
+    - 권한: `0600`
+    - refs: baseline `5326d4e`, 티켓 브랜치 `80f866a`, 이전 origin 추적 ref
+    - `git bundle verify`: complete history, 5 refs, 통과
+    - 별도 clone에서 `git fsck --full --strict`, exact HEAD와
+      최종 `go.mod` byte 비교 통과
 - 미실행:
-  - 저장소 rename, orphan baseline, force-push, 원격 브랜치 정리는 승인 전이므로
-    실행하지 않았다.
+  - 저장소 rename, orphan default force-push, 원격 브랜치 정리와 root
+    submodule 전환은 현재 turn의 명시적 파괴적 승인 전이므로 실행하지 않았다.
   - 실제 Windows/WSL target 인증은 현재 macOS 실행 환경에서 수행할 수 없어
     미실행이다.
   - Lima `2.1.4`에는 `home-ai-infra`라는 별도 stopped Ubuntu guest만 있고,

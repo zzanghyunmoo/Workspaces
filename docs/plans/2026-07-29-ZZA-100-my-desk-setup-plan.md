@@ -44,6 +44,9 @@ Linux guest를 준비하고, 전체 또는 선택한 개발 환경을 결정적�
   보관을 제공하지 않는다.
 - 기존 `settings` 저장소는 검증된 recovery bundle과 별도 파괴적 승인 뒤
   `my-desk-setup`으로 rename하고 orphan 이력으로 전환한다.
+- recovery, local orphan baseline과 feature 구현·검토는 원격 mutation 없이
+  먼저 완료한다. remote rename·force-push·branch 삭제·workspace gitlink
+  이동은 검증된 최종 head와 복구 경로를 포함한 현재 turn 승인 뒤에만 실행한다.
 
 ### Delivery Gates
 
@@ -107,8 +110,8 @@ scope에서 제외한다.
 ### Key Flows
 
 - **F1 New-machine bootstrap:** host bootstrap → Go CLI 확보 → WSL/Lima
-  Ubuntu guest 탐지·생성 → `plan` → digest 확인 → `apply` → 기능 검증 →
-  secret-free receipt.
+  상태 탐지 → guest 생성 action을 포함한 `plan` → digest 확인 → `apply`에서
+  guest 생성·handoff → 기능 검증 → secret-free receipt.
 - **F2 All installation:** host와 guest의 `all`을 같은 graph에서 계산하고
   target별 action과 결과를 분리한다.
 - **F3 Selective installation:** chooser 또는 stable args가 같은 Selection을
@@ -119,8 +122,9 @@ scope에서 제외한다.
   dependency 영향을 먼저 보여주고 확인된 digest만 적용한다.
 - **F6 Doctor without auth:** executable, version, PATH, config, integration과
   bounded 기능만 검사하고 login/token 상태는 읽지 않는다.
-- **F7 Repository transition:** recovery bundle 검증 → approval packet →
-  rename/orphan transition → branch/PR workflow → root pointer 이동.
+- **F7 Repository transition:** recovery bundle과 local orphan/feature head
+  검증 → approval packet → rename/orphan remote transition → branch/PR
+  workflow → merged release commit 재검증 → root pointer 이동.
 
 ### Acceptance Coverage
 
@@ -142,17 +146,21 @@ scope에서 제외한다.
 
 ### Traceability Index
 
-- Requirements: R1, R2, R3, R4, R5, R6 → U1; R7, R8, R9, R10,
-  R11, R12, R13 → U2/U4; R14, R15, R16, R17, R18, R19, R20 →
-  U3/U6/U7; R21, R22, R23, R24, R25, R26, R27 → U4/U5/U8;
-  R28, R29, R30, R31 → U2/U6/U7/U8; R32, R33, R34, R35, R36 →
-  U5/U7/U8; R37, R38, R39, R40 → U2/U4/U5/U7/U9.
-- Flows: F1 → U3/U6/U7; F2 → U3/U4/U6/U7; F3 → U2/U4;
-  F4 → U5/U7; F5 → U8; F6 → U8; F7 → U1/U9.
-- Acceptance examples: AE1 → U3/U4/U9; AE2 → U2/U7; AE3 →
-  U3/U6/U9; AE4 → U2/U7/U9; AE5 → U5/U9; AE6 → U6/U8/U9;
-  AE7 → U8/U9; AE8 → U7/U8/U9; AE9 → U7/U8; AE10 → U5/U7;
-  AE11 → U5/U6/U7/U9; AE12 → U1/U9; AE13 → U2/U9.
+- Requirements: R1–R3, R6 → U1; R4 → U1/U9; R5 →
+  U1/U3/U6/U9; R7, R13, R37 → U2; R8–R11, R38 → U2/U4;
+  R12 → U2/U4/U9; R14 → U3/U6; R15–R16 → U3/U7;
+  R17–R18 → U2/U3/U6/U7; R19 → U2/U3/U7; R20 → U2/U3/U6;
+  R21 → U4; R22, R26 → U5; R23–R24 → U8; R25 →
+  U4/U5/U8; R27 → U5/U9; R28–R29, R31 → U2/U6/U7/U8;
+  R30 → U2/U4/U6/U7/U8; R32–R35 → U7/U8; R36 → U3/U5/U6;
+  R39 → U5/U7/U8/U9; R40 → U1/U3/U7/U9.
+- Flows: F1 → U3/U6; F2 → U3/U4/U6/U7; F3 → U4/U7;
+  F4 → U5/U7; F5–F6 → U8; F7 → U1.
+- Acceptance examples: AE1 → U3/U4/U9; AE2 → U2/U4/U7; AE3 →
+  U3/U4/U6/U9; AE4 → U2/U4/U7/U9; AE5 → U5/U9; AE6 →
+  U6/U8/U9; AE7 → U8/U9; AE8 → U7/U8/U9; AE9 → U7/U8;
+  AE10 → U5/U7; AE11 → U5/U6/U7/U9; AE12 → U1/U9; AE13 →
+  U2/U9.
 
 ### Scope Boundaries
 
@@ -202,12 +210,18 @@ Primary target repository는 rename 후의 `zzanghyunmoo/my-desk-setup`이다.
   versioned release artifact와 checksum을 검증하는 POSIX shell/PowerShell만
   둔다.
 - **KTD2 — One Ubuntu baseline:** v1 guest identity는 Ubuntu 26.04 LTS
-  image digest, target kind, instance/distro name, OS version과 architecture로
-  고정한다.
+  image URL·SHA-256, target kind, instance/distro name, OS version과
+  architecture로 고정한다. target YAML 전체와 image identity는 canonical
+  catalog revision과 plan action input에 포함한다. WSL은 checksum으로 고정한
+  `.wsl` artifact를 `wsl.exe --install --from-file`로 설치하고 Lima는
+  checksum으로 고정한 cloud image를 사용한다.
 - **KTD3 — Guest-local authority:** host는 `wsl.exe`/`limactl` structured
-  transport만 소유하고 실제 Linux detect/apply/doctor는 같은 CLI/catalog
-  revision을 guest 안에서 실행한다. host가 guest filesystem을 직접 수정하지
-  않는다.
+  transport만 소유한다. host release에는 같은 release의 Linux
+  amd64/arm64 archive URL과 SHA-256 및 bounded bootstrap script를 embed하고,
+  guest stdin으로 전달해 `~/.local/bin/mds`를 owner-only·atomic하게
+  self-provision한다. 실제 Linux detect/apply/doctor는 검증된 같은
+  CLI/catalog revision을 guest 안에서 실행하며 host가 guest filesystem을
+  직접 수정하지 않는다.
 - **KTD4 — Closed declarative graph:** component/profile/target은 사람이
   편집 가능한 YAML로 선언하되 JSON Schema와 Go semantic validation으로
   unknown field, duplicate ID, cycle, conflict, ineligible installer와
@@ -228,9 +242,10 @@ Primary target repository는 rename 후의 `zzanghyunmoo/my-desk-setup`이다.
   분리한다. state file은 secret-free, owner-only permission, bounded read와
   atomic rename을 사용한다.
 - **KTD9 — Package ownership:** host OS package는 Homebrew/WinGet adapter,
-  Ubuntu base는 apt adapter, development toolchain은 committed `mise.lock`,
-  vendor CLI/agent는 reviewed release adapter가 소유한다. Homebrew Bundle과
-  moving install script를 canonical lock으로 사용하지 않는다.
+  Ubuntu base는 apt adapter, development toolchain은
+  `catalog/locks/versions.lock.yaml`의 mise-managed entry, vendor CLI/agent는
+  reviewed release adapter가 소유한다. Homebrew Bundle과 moving install
+  script를 canonical lock으로 사용하지 않는다.
 - **KTD10 — Guest-local containers:** WSL/Lima Ubuntu에 Docker Engine과
   CLI를 설치하며 Docker Desktop과 host Docker engine은 v1 catalog에서
   제외한다.
@@ -253,6 +268,13 @@ Primary target repository는 rename 후의 `zzanghyunmoo/my-desk-setup`이다.
 - **KTD16 — Recoverable identity transition:** orphan rewrite는 일반 feature
   PR과 분리된 one-time admin operation이며 verified bundle과 현재 turn의 별도
   승인 없이는 실행하지 않는다.
+- **KTD17 — Reviewed trust roots:** checksum은 전송 무결성만 증명한다.
+  artifact 신뢰는 reviewed Git commit, canonical lock/catalog와 공식
+  publisher HTTPS/provenance에 묶는다. upstream이 signature/attestation을
+  제공하면 검증하고, 제공하지 않으면 exact URL·digest 변경을 별도 review
+  대상으로 남긴다. CI Action은 full commit SHA로 pin하고 actual-target
+  runner는 허용된 target/label pair, 전용 credential-free OS account와
+  protected environment로 제한한다.
 
 ### High-Level Technical Design
 
@@ -328,8 +350,8 @@ stateDiagram-v2
 | Lima guest | `lima:<instance>`, Lima version, Ubuntu 26.04 image digest, arch | create/start named pinned instance |
 
 Component outcome은 `ready`, `external`, `unsupported`, `action-required`,
-`failed`, `blocked`, `interrupted`, `unverifiable`로 닫고 dependency 원인은
-별도 `blocked_by`와 reason code로 표현한다. Aggregate는 `ready`,
+`conflict`, `failed`, `blocked`, `interrupted`, `unverifiable`로 닫고
+dependency 원인은 별도 `blocked_by`와 reason code로 표현한다. Aggregate는 `ready`,
 `partial-unready`, `stale-plan`, `cancelled` 중 하나로 계산한다.
 
 ### Initial Component Ownership
@@ -399,13 +421,17 @@ Component outcome은 `ready`, `external`, `unsupported`, `action-required`,
 
 ### Phased Delivery
 
-1. **Identity transition:** verified recovery와 one-time orphan baseline.
+1. **Local recovery and baseline:** 원격을 변경하지 않고 verified recovery,
+   local orphan baseline과 격리 feature branch를 준비한다.
 2. **Planning kernel:** catalog, target identity, deterministic plan, exact
    digest와 fake-adapter apply/recovery.
 3. **Production adapters:** host provisioning, Ubuntu guest creation, host/guest
    component catalog.
-4. **Lifecycle completion:** doctor, update, release artifacts, real target
-   certification과 workspace pointer finalization.
+4. **Review and certification:** doctor, update, release artifacts, code/doc
+   review와 가능한 실제 target evidence를 최종 review head에 묶는다.
+5. **Approval-gated remote cutover:** 현재 turn의 파괴적 승인 뒤 remote
+   rename/orphan/branch 정리, child PR과 merge 후 release commit 재검증,
+   workspace pointer finalization을 순서대로 수행한다.
 
 ---
 
@@ -427,10 +453,12 @@ baseline을 만든다.
 `[workspace] projects/settings`, `[workspace] projects/my-desk-setup`
 
 **Approach:** current root gitlink, remote default tip, 모든 remote branch/tag를
-포함한 bundle을 만들고 별도 clone에서 object와 refs를 검증한다. approval
-packet에는 repo/branch/refs, rename, orphan default, force-push/branch cleanup,
-bundle path와 restore 명령을 포함한다. 승인 뒤 minimal orphan baseline을
-만들고 이후 source change는 non-main branch/PR로만 진행한다.
+포함한 bundle을 만들고 별도 clone에서 object와 refs를 검증한다. 원격 mutation
+없이 local orphan baseline과 non-main feature branch 구현·검토·release
+evidence까지 준비한다. approval packet에는 검증된 exact head, repo/branch/refs,
+rename, orphan default, force-push/branch cleanup, bundle path와 restore 명령을
+포함한다. 승인 뒤에만 remote identity를 전환하고 이후 source change는
+non-main branch/PR로 진행한다.
 
 **Patterns to follow:** workspace standalone-project/submodule 지식 문서와
 project main guard. Legacy Ansible source는 bundle에만 남고 새 tree에는
@@ -491,7 +519,8 @@ guest를 준비하며 같은 revision의 guest-local CLI로 handoff한다.
 
 **Requirements:** R5, R14–R20, R36, R40, F1–F2, AE1, AE3
 
-**Dependencies:** U2
+**Dependencies:** U3a discovery/identity/transport는 U2, U3b
+provisioning/bootstrap은 U4–U5
 
 **Files:** `catalog/targets/ubuntu-26.04.yaml`,
 `internal/target/facts.go`, `internal/target/identity.go`,
@@ -502,12 +531,15 @@ guest를 준비하며 같은 revision의 guest-local CLI로 handoff한다.
 `tests/unit/target_identity_test.go`,
 `tests/integration/guest_handoff_test.go`, `tests/fixtures/targets/`
 
-**Approach:** target ID에 host/guest kind, distro/instance, OS/image revision과
-arch를 포함한다. 복수 distro/instance는 명시 선택을 요구한다. host transport는
-shell string 대신 executable+argv로 `wsl.exe`/`limactl`을 호출하고
-timeout/output limit을 적용한다. WSL/Lima guest의 systemd 지원과 상태를
-fact/preflight로 관찰한다. reboot, 최초 Linux user와 non-TTY privilege prompt는
-action-required로 중단한다.
+**Approach:** U3a는 target ID에 host/guest kind, distro/instance,
+OS/image revision과 arch를 포함하고 read-only discovery·identity·transport
+계약만 U4에 제공한다. 복수 distro/instance는 명시 선택을 요구한다. U3b의
+guest creation과 bootstrap은 U4의 immutable plan action에 포함하고 U5의 exact
+digest apply에서만 실행한다. host transport는 동적 shell command 조립 없이
+executable+argv 또는 고정된 reviewed shell snippet과 별도 argv/stdin으로
+`wsl.exe`/`limactl`을 호출하고 timeout/output limit을 적용한다. WSL/Lima
+guest의 systemd 지원과 상태를 fact/preflight로 관찰한다. reboot, 최초 Linux
+user와 non-TTY privilege prompt는 action-required로 중단한다.
 
 **Test scenarios:**
 
@@ -530,7 +562,7 @@ planner를 통해 read-only plan과 stable JSON을 생성하게 한다.
 
 **Requirements:** R8–R12, R21, R25, R30, R38, F2–F3, AE1–AE4
 
-**Dependencies:** U2, U3
+**Dependencies:** U2, U3a
 
 **Files:** `internal/cli/root.go`, `internal/cli/arguments.go`,
 `internal/cli/commands.go`, `internal/ui/chooser.go`,
@@ -603,7 +635,7 @@ agents를 no-hidden-upgrade 정책으로 관리한다.
 **Requirements:** R5, R14, R17–R18, R20, R28–R31, R36, F1–F2, AE3,
 AE6, AE11
 
-**Dependencies:** U3, U5
+**Dependencies:** U3b, U5
 
 **Files:** `internal/adapters/packages/homebrew.go`,
 `internal/adapters/packages/winget.go`,
@@ -642,7 +674,7 @@ ownership을 안전하게 관리한다.
 **Requirements:** R15–R19, R28–R35, R39–R40, F2–F4, AE2, AE4,
 AE8–AE11
 
-**Dependencies:** U3, U5
+**Dependencies:** U3b, U5
 
 **Files:** `internal/adapters/packages/apt.go`,
 `internal/adapters/packages/mise.go`,
@@ -653,7 +685,7 @@ AE8–AE11
 `internal/adapters/guest/agents.go`,
 `internal/adapters/guest/collaboration.go`,
 `internal/adapters/guest/docker.go`, `catalog/components/guest/`,
-`catalog/locks/mise.lock`, `templates/herdr/`, `templates/nvim/`,
+`catalog/locks/versions.lock.yaml`, `templates/herdr/`, `templates/nvim/`,
 `templates/shell/`, `tests/adapters/guest_components_test.go`,
 `tests/integration/guest_all_test.go`, `tests/fixtures/home/`
 
@@ -702,7 +734,9 @@ daemon/socket만 소유하고 Docker Desktop 연동은 탐지 시 conflict로 �
 선택한다. 모든 probe는 timeout, noninteractive, no-auth와 bounded output을
 선언한다. update는 latest-stable metadata를 조회해 exact version/checksum/
 provenance와 lock preimage를 계획에 포함하고, dirty/conflicting lock을 mutation
-전에 거부한다.
+전에 거부한다. candidate plan과 apply는 선택 component가 지원되는 모든
+macOS/Windows/WSL/Lima × amd64/arm64 cell의 compatibility matrix를 계산하며,
+vendor artifact는 eligible cell 하나라도 누락되면 lock publication을 거부한다.
 
 **Test scenarios:**
 
@@ -741,9 +775,17 @@ evidence를 확보한 뒤 workspace submodule을 merged child commit으로 최�
 **Approach:** darwin/windows/linux release artifacts와 checksums를 생성하고
 bootstrap이 emitted artifact를 실제 실행한다. deterministic CI는
 unit/contract/fake-adapter/artifact smoke를 수행하고 WSL/Lima nested
-virtualization을 가장하지 않는다. 실제 macOS/Windows/WSL/Lima에서 secret-free
-certification bundle을 수집해 target fingerprint, catalog/plan digest,
-component outcomes와 verification만 보관한다.
+virtualization을 가장하지 않는다. workflow dependency는 full commit SHA로
+pin하고 actual-target job은 허용된 target/runner label pair와 전용
+credential-free account/protected environment만 사용한다. 실제
+macOS/Windows/WSL/Lima에서 secret-free certification bundle을 수집해 target
+fingerprint, catalog/plan digest, component outcomes와 verification만 보관한다.
+
+PR 최신 head와 review marker가 묶인 커밋을 `review_commit`이라 한다. merge
+결과가 다른 SHA이면 그것을 `release_commit`으로 정의하고 release artifact,
+identity verification과 가능한 target certification을 `release_commit`에서
+다시 생성한다. publication과 root gitlink는 `review_commit`이 아니라 검증된
+`release_commit`만 가리킨다.
 
 **Test scenarios:**
 
@@ -791,8 +833,10 @@ Evidence는 `implemented`, `blocked`, `verified`를 구분한다. fixture pass�
 - `plan`과 `doctor`는 target와 repository를 변경하지 않는다.
 - stale digest/preimage는 첫 mutation 전에 실패한다.
 - external/user-owned config는 명시적 ownership 전환 없이 덮어쓰지 않는다.
-- command runner는 shell string, unbounded output와 inherited credential
-  environment를 사용하지 않는다.
+- command runner는 동적으로 조립한 shell command string을 사용하지 않는다.
+  필요한 shell 동작은 고정된 reviewed snippet과 별도 argv/bounded stdin으로
+  제한하고, 모든 실행은 bounded output와 credential-free allowlist
+  environment를 사용한다.
 - plan, journal, receipt, logs와 evidence에는 credential 또는 auth 상태가 없다.
 - unsupported/manual action은 결과에서 사라지지 않는다.
 
@@ -808,7 +852,8 @@ Evidence는 `implemented`, `blocked`, `verified`를 구분한다. fixture pass�
 - Ubuntu 26.04 LTS WSL2/Lima guest가 제품에 의해 준비되고 같은 guest-local
   CLI/catalog revision을 실행한다.
 - initial host/guest catalog의 모든 requested node가 `ready`, 검증된
-  `external` 또는 honest `unsupported`/`action-required` 결과를 낸다.
+  `external` 또는 honest `unsupported`/`action-required`/`conflict` 결과를
+  낸다.
 - all/profile/component/interactive selection이 같은 resolver와 deterministic
   digest를 사용한다.
 - repeat apply가 verified component를 재설치하지 않고 partial failure/resume이
