@@ -2,8 +2,8 @@
 workflow_schema: compound-work/v1
 ticket_id: ZZA-100
 ticket_url: https://linear.app/zzanghyunmoo/issue/ZZA-100/my-desk-setup-크로스플랫폼-개발-환경-bootstrap-구현
-ticket_status: In Review
-ticket_completion: pending
+ticket_status: Done
+ticket_completion: complete
 remaining_prs:
 ideation_status: complete
 ideation_path: docs/ideation/2026-07-29-cross-platform-development-environment-ideation.html
@@ -16,13 +16,13 @@ plan_waiver_reason:
 work_status: complete
 work_notion_url: https://app.notion.com/p/3acef22ad4fc81f0b3dad0814f0cee1a
 pr_url: https://github.com/zzanghyunmoo/my-desk-setup/pull/1
-closeout_status: pending
-merged_pr_url:
-merge_commit:
-kb_paths:
+closeout_status: complete
+merged_pr_url: https://github.com/zzanghyunmoo/my-desk-setup/pull/1
+merge_commit: 58b22df0dc80617be0ab11c3515bb79cfba0b14b
+kb_paths: docs/kb/developer-environments/2026-07-30-ZZA-100-my-desk-setup.md
 notion_feature_status_url: https://app.notion.com/p/3acef22ad4fc81e0813ff060d2fdd436
 notion_ticket_url: https://app.notion.com/p/3acef22ad4fc81f0b3dad0814f0cee1a
-closed_at:
+closed_at: 2026-07-30T10:14:33Z
 ---
 
 # ZZA-100 작업 기록
@@ -702,7 +702,7 @@ resolver로 지원하고, 인증은 자동화하지 않고 사용자가 직접 �
 ## 외부 동기화
 
 - Linear: [ZZA-100](https://linear.app/zzanghyunmoo/issue/ZZA-100/my-desk-setup-크로스플랫폼-개발-환경-bootstrap-구현)
-  — `In Review`
+  — `Done`
 - Notion 계획:
   [My Desk Setup 구현 계획](https://app.notion.com/p/3acef22ad4fc81a08204d8022f962bcb)
 - Notion 구현 기록:
@@ -715,5 +715,28 @@ resolver로 지원하고, 인증은 자동화하지 않고 사용자가 직접 �
 
 ## Merge closeout
 
-아직 merge 전이다. PR merge 뒤 KB 경로, Notion 기능 현황·티켓 문서,
-merge commit, Linear `Done` 전환 결과를 기록한다.
+- PR #1을 exact approved packet과 guarded merge로 squash merge했다.
+  - review head: `cb85413beca723873e883cfc0e5ca324756630a0`
+  - merge commit: `58b22df0dc80617be0ab11c3515bb79cfba0b14b`
+  - merged at: `2026-07-30T10:10:57Z`
+  - 원격 `zza-100/bootstrap` branch 삭제 확인
+- root workspace submodule을 `projects/settings`에서
+  `projects/my-desk-setup`으로 이동하고 `.gitmodules` URL을
+  `https://github.com/zzanghyunmoo/my-desk-setup.git`로 바꿨다. gitlink와
+  local detached submodule은 모두 merge commit을 가리킨다.
+- GitHub Git API에서 review head와 merge commit의 tree가 모두
+  `c0cbcc216365d40dba6d21d262e570ac2d0e469b`임을 확인했고 local submodule의
+  `HEAD^{tree}`도 일치했다. merge commit에서 `go test ./...` 전체가
+  통과했다.
+- root workflow gate unit test 22건과 `validate-work`, `git diff --check`를
+  통과했다. `markdownlint-cli2`와 `markdownlint` executable은 없어 Markdown
+  lint는 실행하지 못했다.
+- 현재 기능 상태와 운영 경계를
+  `docs/kb/developer-environments/2026-07-30-ZZA-100-my-desk-setup.md`에
+  기록했다.
+- Notion `디자인 문서 > 기능 현황`과 `개발 문서 > 티켓`을 merge commit,
+  최종 검증과 actual-target 미실행 경계로 동기화하고 재조회했다.
+- 마지막 PR이 병합되고 closeout 산출물이 준비돼 Linear ZZA-100을 `Done`으로
+  전환했다.
+- merge commit의 실제 macOS·Windows·WSL·Lima target certification은 여전히
+  미실행이며, 해당 evidence 전까지 release promotion을 차단한다.

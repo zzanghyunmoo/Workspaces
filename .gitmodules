@@ -1,6 +1,6 @@
-[submodule "projects/settings"]
-	path = projects/settings
-	url = https://github.com/zzanghyunmoo/settings.git
+[submodule "projects/my-desk-setup"]
+	path = projects/my-desk-setup
+	url = https://github.com/zzanghyunmoo/my-desk-setup.git
 	branch = main
 [submodule "blogs"]
 	path = blogs
