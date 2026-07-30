@@ -731,6 +731,10 @@ resolver로 지원하고, 인증은 자동화하지 않고 사용자가 직접 �
 - root workflow gate unit test 22건과 `validate-work`, `git diff --check`를
   통과했다. `markdownlint-cli2`와 `markdownlint` executable은 없어 Markdown
   lint는 실행하지 못했다.
+- root closeout commit `de805b47c6472203a9ebdbc438cba2f53be43b83`을 원격
+  `main`에 push하고 closeout debt를 ack했다. 원격 clean shallow clone에서
+  `projects/my-desk-setup` submodule init, merge commit checkout, 이전
+  `projects/settings` 경로 부재와 clean root status를 확인했다.
 - 현재 기능 상태와 운영 경계를
   `docs/kb/developer-environments/2026-07-30-ZZA-100-my-desk-setup.md`에
   기록했다.

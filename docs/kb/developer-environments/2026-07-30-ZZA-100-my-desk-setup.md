@@ -48,6 +48,11 @@ PR #1은 squash merge commit
   독립 clone 검증을 통과했다.
 - 원격 `zza-100/bootstrap` branch가 삭제되고 child `main`과 workspace gitlink가
   merge commit을 가리키는지 확인했다.
+- root closeout commit `de805b47c6472203a9ebdbc438cba2f53be43b83`을 원격
+  `main`에 push한 뒤 clean shallow clone에서
+  `git submodule update --init --depth 1 projects/my-desk-setup`이 성공했다.
+  새 submodule은 merge commit을 가리켰고 이전 `projects/settings` 경로는
+  존재하지 않았으며 root clone은 clean 상태였다.
 
 ## 운영 및 사용 시 주의사항
 
