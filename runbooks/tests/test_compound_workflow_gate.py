@@ -199,6 +199,21 @@ class CompoundWorkflowGateTests(unittest.TestCase):
         with self.assertRaisesRegex(GATE.GateError, "주요 변경 지점"):
             self.validate(text)
 
+    def test_accepts_go_recursive_package_pattern_in_verification(self) -> None:
+        text = self.evidence_text().replace(
+            "- 관련 단위 테스트와 문서 검사를 실행해 결과를 기록했다.",
+            "- `go test ./...`와 문서 검사를 실행해 결과를 기록했다.",
+        )
+        self.validate(text)
+
+    def test_rejects_standalone_ellipsis_placeholder(self) -> None:
+        text = self.evidence_text().replace(
+            "- 관련 단위 테스트와 문서 검사를 실행해 결과를 기록했다.",
+            "- ...",
+        )
+        with self.assertRaisesRegex(GATE.GateError, "검증"):
+            self.validate(text)
+
     def test_pre_merge_requires_both_latest_head_review_markers(self) -> None:
         repo = "owner/repo"
         pr = 42

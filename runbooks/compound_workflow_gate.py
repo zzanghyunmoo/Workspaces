@@ -24,7 +24,10 @@ KB_REQUIRED_SECTIONS = (
     "검증 결과",
     "운영 및 사용 시 주의사항",
 )
-PLACEHOLDER_MARKERS = ("[작성 필요]", "TODO", "TBD", "ZZA-000", "example.com", "...")
+PLACEHOLDER_MARKERS = ("[작성 필요]", "TODO", "TBD", "ZZA-000", "example.com")
+ELLIPSIS_PLACEHOLDER = re.compile(
+    r"(?m)^\s*(?:[-*]\s*)?(?:\[\s*)?\.\.\.(?:\s*\])?\s*$"
+)
 
 
 class GateError(RuntimeError):
@@ -169,9 +172,15 @@ def require_field(fields: Mapping[str, str], name: str) -> str:
     value = fields.get(name, "").strip()
     if not value:
         raise GateError(f"required field is empty: {name}")
-    if any(marker.lower() in value.lower() for marker in PLACEHOLDER_MARKERS):
+    if contains_placeholder(value):
         raise GateError(f"required field still contains a placeholder: {name}")
     return value
+
+
+def contains_placeholder(value: str) -> bool:
+    return any(
+        marker.lower() in value.lower() for marker in PLACEHOLDER_MARKERS
+    ) or ELLIPSIS_PLACEHOLDER.search(value) is not None
 
 
 def require_https_url(
@@ -243,9 +252,7 @@ def require_section(body: str, heading: str) -> None:
         raise GateError(f"work evidence is missing section: ## {heading}")
     content = match.group("body").strip()
     compact = re.sub(r"\s+", "", content)
-    if len(compact) < 12 or any(
-        marker.lower() in content.lower() for marker in PLACEHOLDER_MARKERS
-    ):
+    if len(compact) < 12 or contains_placeholder(content):
         raise GateError(
             f"work evidence section is empty or placeholder-only: ## {heading}"
         )

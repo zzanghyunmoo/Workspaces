@@ -2,7 +2,7 @@
 workflow_schema: compound-work/v1
 ticket_id: ZZA-100
 ticket_url: https://linear.app/zzanghyunmoo/issue/ZZA-100/my-desk-setup-크로스플랫폼-개발-환경-bootstrap-구현
-ticket_status: In Progress
+ticket_status: In Review
 ticket_completion: pending
 remaining_prs:
 ideation_status: complete
@@ -13,9 +13,9 @@ plan_status: complete
 plan_path: docs/plans/2026-07-29-ZZA-100-my-desk-setup-plan.md
 plan_notion_url: https://app.notion.com/p/3acef22ad4fc81a08204d8022f962bcb
 plan_waiver_reason:
-work_status: in_progress
+work_status: complete
 work_notion_url: https://app.notion.com/p/3acef22ad4fc81f0b3dad0814f0cee1a
-pr_url:
+pr_url: https://github.com/zzanghyunmoo/my-desk-setup/pull/1
 closeout_status: pending
 merged_pr_url:
 merge_commit:
@@ -411,11 +411,288 @@ resolver로 지원하고, 인증은 자동화하지 않고 사용자가 직접 �
     - `git bundle verify`: complete history, 5 refs, 통과
     - 별도 clone에서 `git fsck --full --strict`, exact HEAD와
       최종 `go.mod` byte 비교 통과
+  - U11 final PR hardening을 최신 PR staging snapshot에 적용했다.
+    - bootstrap privilege allowlist를 절대 경로로 고정하고, guest binary와
+      owner marker를 archive/binary SHA-256 및 durable transaction marker로
+      결합해 중단 뒤 재시도에서도 기존 또는 다음 정확한 binary만 허용한다.
+    - metadata/npm 요청은 redirect를 계속 거부하고, checksum-pinned GitHub
+      Release와 guest bootstrap만 credential-free HTTPS redirect를 최대 3회
+      허용하도록 네트워크 계약과 테스트를 분리했다.
+    - WSL/Lima image identity를 root-owned
+      `/etc/mds/image-identity-v1`에서 관측하고 embedded catalog와 일치할 때만
+      certification에 사용해, 기대값을 실제값처럼 합성하지 않도록 했다.
+    - guest lifecycle을 `preparing` → `committed` 소유권 상태로 바꿔
+      late success 또는 같은 이름의 외부 guest를 자동 채택하지 않도록 했다.
+      최종 review에서 발견한 stale committed receipt 경계도
+      `mds.guest-ownership/v3`의 무작위 creation nonce와 root-owned image
+      marker를 결속해 닫았다. live marker의 nonce가 다르거나 기존 guest가
+      stopped여서 mutation 없이 검증할 수 없으면 start/bootstrap을 수행하지
+      않는다.
+    - catalog YAML과 lock을 runtime에서도 checked-in JSON Schema와 semantic
+      규칙으로 검증하고, mise lock/config는 두 목적지를 모두 preflight한 뒤
+      lock-first 순서로 게시한다.
+    - Unix process group과 관측 가능한 descendant, Windows Job Object를
+      cancellation에 연결하고 CLI entrypoint의 첫 signal은 unwind, 두 번째
+      signal은 강제 종료가 되도록 했다. double-fork/reparented daemon과 원격
+      WSL/Lima 자식은 보장 범위가 아님을 운영 문서에 명시했다.
+    - update intent/receipt publication을 공용 durable primitive로 통합하고,
+      certification의 최초·반복 apply receipt와 publication 실패 테스트를
+      강화했다.
+    - privilege validator가 `sudo`, `/bin/sudo`와 shell wrapper를 transport
+      전에 거부하도록 해 `/usr/bin/sudo` exact allowlist 우회를 차단했다.
+    - target별 installer enum과 명시적 empty field를 published JSON Schema가
+      semantic validator와 동일하게 거부하도록 raw JSON parity test를 추가했다.
+    - Windows downloader는 하나의 10분 cancellation token을 redirect/header와
+      비동기 body read 전체에 적용해 headers 뒤 stalled body도 bounded하게
+      중단한다.
+  - U11 staging snapshot에서 다음 검증을 통과했다.
+    - `git diff --cached --check`
+    - `go test ./...`
+    - `go test -race ./...`
+    - `go vet ./...`
+    - `golangci-lint run ./...` — `0 issues`
+    - `actionlint`
+    - `shellcheck bootstrap/macos.sh internal/adapters/host/guest-bootstrap.sh scripts/*.sh`
+    - darwin/linux/windows × amd64/arm64의 `go build ./cmd/...`
+    - windows/amd64·windows/arm64의 전체 test package cross-compile
+    - 같은 synthetic release identity의 deterministic release build/verify
+    - Gitleaks `8.30.1` source history와 release directory scan — leak 0
+  - PR #1은 orphan bootstrap baseline부터 하나의 end-to-end control-plane
+    계약을 처음 게시하는 변경이라 현재 197개 파일 규모다. 구현은 U1–U11의 작은
+    local commit으로 검증했지만, 지금 PR을 다시 나누면 중간 commit이 buildable
+    repository transition을 나타내지 못하고 bootstrap/catalog/plan/apply/
+    evidence/release 계약의 상호 검증을 깨뜨린다. 따라서 이 첫 baseline PR에
+    한해 대형 PR 분리를 `waived`하고, 후속 기능은 작은 티켓/PR로 분리한다.
+  - staging snapshot의 `ce-code-review`는
+    `/tmp/compound-engineering/ce-code-review/20260730-163000-final2`에서
+    P1 한 건과 고유 P2 세 건을 확인했다.
+    - relative/alternate `sudo`와 shell wrapper의 privilege allowlist 우회
+    - committed ownership receipt가 same-name replacement guest를 채택하는 문제
+    - published target schema의 empty/incompatible installer 허용
+    - Windows `ResponseHeadersRead` 뒤 stalled body의 timeout 누락
+    - 위 blocker는 모두 코드와 회귀 테스트로 수정했다.
+  - 후속 canonical snapshot
+    `/tmp/compound-engineering/ce-code-review/20260730-173000-final4`
+    (`full.diff` SHA-256
+    `18fb32ae584b2d0f788c8e6bf5f0f005acb6cafdfb30f6b355d9315a4a57a15f`)
+    리뷰에서 다음 blocker와 품질 문제를 추가로 확인했다.
+    - catalog-originated verification이 privileged installer allowlist나
+      interpreter를 통해 root mutation을 우회할 수 있는 문제
+    - WSL 최초 기본 사용자가 root여도 준비 완료로 판단하는 문제
+    - guest certification이 parsed creation nonce를 host committed ownership
+      record와 대조하거나 evidence fingerprint에 결속하지 않는 문제
+    - 내부 명령 최대 예산 합과 같은 180분 job timeout으로 후처리 여유가 없는
+      문제
+    - guest runtime 단일 파일 1,000줄 초과와 Observe의 ownership marker 이중
+      probe
+    - 이를 해결해 catalog verification을 별도 non-privileged v1 probe
+      계약으로 분리했다. 후속 final5 보안 리뷰에서 executable-only allowlist도
+      임의 Python/Bun file, Git shell alias, `gh auth token`과 대체 executable
+      path를 허용할 수 있음을 확인해, embedded catalog의 component별
+      `command`·`functional` 전체 argv exact match와 Docker guest-local endpoint
+      exact 변형만 허용하도록 다시 닫았다.
+    - WSL 기본 UID·passwd home·`$HOME`을 확인해 root이면 bootstrap 전에
+      `action-required`로 중단한다.
+    - 최초 구현은 workflow dispatcher가 host committed record의 creation
+      nonce를 입력했으나 final5 리뷰에서 그 값의 authority가 caller에게 있음을
+      확인했다. dispatcher input을 제거하고 target별 전용 runner service의
+      root-owned `MDS_EXPECTED_GUEST_CREATION_NONCE`만 사용해 live marker와
+      대조하며, 관측 nonce를 guest target facts, plan fingerprint와
+      certification bundle identity에 포함한다.
+    - actual-target job timeout을 240분으로 늘려 내부 최대 명령 예산 180분과
+      checkout·compile·verify·upload 사이에 60분 여유를 뒀다.
+    - guest lifecycle을 `runtime.go`, `guest_handoff.go`,
+      `guest_ownership.go`로 분리하고 Observe의 marker read를 한 번으로 줄였다.
+    - 각 수정은 직접 privilege escape, exact catalog argv, runner-local nonce,
+      replacement nonce, root-default WSL, workflow margin, single marker read
+      회귀 테스트로 고정했다. guest runtime과 1,000줄을 넘은 test file도 역할별
+      파일로 분리했다.
+  - final6 code snapshot은
+    `/tmp/compound-engineering/ce-code-review/20260730-184500-final6`
+    (`full.diff` SHA-256
+    `d6cecc1d37b6e924bac1f820e2012b6e183fb09b77b2e1e2005af9787c1b0f8e`)
+    이다. 정확성·보안·테스트 reviewer는 P1/P2/P3 0건으로 판정했다.
+    - `go test ./...`, `go test -race ./...`, `go vet ./...`,
+      `golangci-lint run ./...`, `actionlint`, `shellcheck`, `git diff --check`
+      통과
+    - darwin/linux/windows × amd64/arm64 `go build ./cmd/...`와
+      windows/amd64·windows/arm64 전체 test package cross-compile 통과
+    - 같은 synthetic identity의 release 두 번이 byte-identical하고 두 bundle의
+      strict verify 및 Gitleaks `8.30.1` source/release scan 통과
+    - 문서 적대적 검토에서 최신 U11 head의 actual macOS evidence 부재 표현,
+      final snapshot 증빙과 Lima 수동 certification nonce 인자를 지적받아
+      README·bootstrap·target evidence 문서와 이 work evidence를 수정했다.
+  - final7 doc review는 위 세 수정은 확인했지만 actual-target runner의 외부
+    trust boundary를 실제로 준비할 runbook이 없고 work evidence도 final7
+    identity를 반영하지 않았다고 판정했다.
+    - `docs/operations/target-certification-runner.md`에 네 target별 전용
+      account/work directory/exact label, protected ref/environment와 reviewer,
+      host committed ownership record 위치·schema/provider/name/image/nonce
+      검증, guest systemd service의 root-owned nonce 주입, dispatch preflight와
+      guest 재생성 시 nonce rotation 순서를 추가했다.
+    - 최신 canonical snapshot은
+      `/tmp/compound-engineering/ce-code-review/20260730-200000-final12`
+      (`full.diff` SHA-256
+      `975842daf9fc474a4129a1d201307b054c9c2d51d70813f886a5b4222e9b5f3f`)
+      이며 final6 이후 child 변경은 운영 문서 정정과 runner runbook 추가뿐이다.
+      runner 계정의 Docker group을 전면 금지하면 guest Docker probe가 불가능한
+      모순도 final9 전에 제거했다. blanket admin/passwordless sudo는 금지하되
+      prompt 없는 system/Docker prerequisite는 dispatch 전 준비하고 reviewed
+      target-local Docker group membership만 허용한다.
+    - final9 doc review에서 개인 repository에 존재하지 않는 runner group을
+      전제한 절차와 Windows host의 WSL ownership record를 POSIX path/mode로
+      검사한 절차를 발견했다. final10은 repository-level runner 직접 등록으로
+      정정하고, PowerShell에서 user profile path·non-reparse regular file·owner
+      및 NTFS ACL·JSON identity를 확인한 뒤 `wsl.exe --user root`로 live marker와
+      대조하는 별도 WSL 절차를 추가했다. final11은 live marker를 읽기 전에
+      WSL 안에서 regular/non-symlink와 root owner/group 및 허용 mode까지 검사한다.
+      final11 correctness review가 shell AND-list의 실패 arm 누락을 발견해
+      final12에서 비정규/reparse marker가 명시적 `exit 74`로 fail closed하도록
+      고정했다.
+    - final12의 `correctness.json`, `security.json`, `testing.json`,
+      `doc-review.json`은 모두 최신 snapshot SHA를 확인했고 P1/P2/P3 0건으로
+      pass/ready-to-merge 판정했다. PowerShell runbook snippet의 native Windows
+      dry run과 네 actual target 인증은 미실행 잔여위험으로 유지한다.
+    - canonical Notion 계획과 티켓 문서도 final12 path/hash, 네 reviewer pass,
+      runner trust boundary와 현재-head 네 actual target 미실행 상태로
+      동기화하고 재조회해 확인했다.
+    - final12 reviewed tree를 child commit
+      `2f087b69b4113054468f6eff29552cc51e50ecc7`
+      (`fix(review): harden bootstrap and certification boundaries`)로 고정했다.
+      push 전 복구 bundle
+      `/Users/gurumee92/Workspaces/.recovery/my-desk-setup/2026-07-30/my-desk-setup-final-u12-2f087b6-2026-07-30.bundle`
+      (SHA-256
+      `b969093ea357ee810c660507d44038a4520e8673c09f6e3d788e3413526a3ce0`,
+      mode `0600`)을 만들고 complete history 7 refs, 독립 clone
+      `git fsck --full --strict`, exact HEAD와 `go.mod` byte 비교를 통과했다.
+  - final12를 PR에 push한 뒤 처음 실행된 Windows native `go test ./...`가
+    Windows 이식성 경계를 드러냈다.
+    - read-only handle의 `File.Sync`가 `Access is denied`를 반환하던 durable
+      publication은 Windows에서 write-capable handle로 flush하도록 수정했다.
+    - 종료 뒤 비어 있는 Windows Job Object를 다시 terminate해 정상 명령을
+      `invalid argument` 실패로 바꾸던 경로는 active process count를 확인하고
+      종료 race 뒤 empty job만 명시적으로 정상 처리하도록 수정했다.
+    - checkout CRLF가 embedded `mise.toml`·`mise.lock` identity를 바꾸지 않도록
+      loader의 LF normalization과 `.gitattributes`를 추가했다.
+    - POSIX guest bootstrap shell 및 executable mode assertion은 POSIX에서
+      계속 실행하고, Windows에서는 같은 content·ownership·non-regular path
+      계약과 native PowerShell cancellation을 검증하도록 경계를 명시했다.
+    - PowerShell cancellation test는 `MethodInvocationException`의 inner
+      `OperationCanceledException`까지 확인하고, HTTP success response가
+      pipeline으로 출력되지 않도록 했다.
+  - 위 수정을 child commit
+    `a403984392a52b0e744a3874ff63d583f9dacbe1`
+    (`fix(windows): make native verification portable`)로 push했다.
+    - canonical snapshot:
+      `/tmp/compound-engineering/ce-code-review/20260730-213000-final13`
+    - `full.diff` SHA-256:
+      `bbca7bfc26c23cca824d832b645f205abb95f65ddc400cbfc579431d89b5f3ad`
+    - local `go test ./...`, `go test -race ./...`, `go vet ./...`,
+      `golangci-lint run ./...`, `actionlint`, `shellcheck`, `git diff --check`
+      통과
+    - Windows amd64·arm64 전체 package cross-compile 통과
+    - GitHub Actions run `30531180807`: hosted `verify`와
+      `windows-verify`의 native `go test ./...` 및 Windows CLI build 통과
+    - fixture contract 통과, PR actual-target job은 설계대로 skipped
+    - final13 document review가 이 work evidence의 final12 stale 표현과
+      계획·catalog 문서의 raw exact-byte 표현을 지적해, 최신 head/검증과
+      LF-normalized exact-content 계약으로 바로잡았다.
+  - final13 push 직후 complete-history 복구 bundle을 별도로 보존했다.
+    - 경로:
+      `/Users/gurumee92/Workspaces/.recovery/my-desk-setup/2026-07-30/my-desk-setup-final-u13-a403984-2026-07-30.bundle`
+    - SHA-256:
+      `2f8899928bbb2198b35a383a31f33d0e137ae91579209aed8e656d2b908e4d69`
+    - 권한: `0600`
+    - complete history 7 refs, 독립 clone `git fsck --full --strict`,
+      exact HEAD와 `go.mod` byte 비교 통과
+  - final13 correctness review는 empty Job Object 처리에서 attach 실패 경로를
+    구분하지 못한 P2를 발견했다.
+    - Windows process tree가 `CREATE_SUSPENDED` root를 만든 뒤
+      `AssignProcessToJobObject` 전에 실패하면 job의 active process는 0이지만
+      root는 살아 있다. `attached` 상태를 atomic하게 추적하고 attach 전에는
+      root process를 직접 종료한 뒤 wait하도록 수정했다.
+    - 실제 Windows에서 unattached suspended root가 2초 안에 종료되는 전용
+      회귀 테스트를 추가했다.
+    - testing review의 비차단 P3였던 Node 20 action 경고도 공식 Node 24 기반
+      `actions/checkout v7.0.1`과 `actions/setup-go v7.0.0`의 exact commit
+      pin으로 갱신하고 workflow pin 계약 테스트를 함께 수정했다.
+    - final13 document review의 raw exact-byte 문서 드리프트는 계획과 child
+      catalog 문서를 LF-normalized exact-content 계약으로 동기화해 해결했다.
+  - 위 review 수정을 child commit
+    `6f79d4fbfe1703737ac46b4dcb55c26d3fb9b6ca`
+    (`fix(review): close Windows process and workflow gaps`)로 push했다.
+    - canonical snapshot:
+      `/tmp/compound-engineering/ce-code-review/20260730-220000-final14`
+    - `full.diff` SHA-256:
+      `5ae1200a0a21b686d7c37a374829b50fd237b124dd5cfe11177f39b599e8bffc`
+    - local `go test ./...`, focused `go test -race`, `go vet ./...`,
+      `golangci-lint run ./...`, `actionlint`, `shellcheck`, `git diff --check`
+      통과
+    - Windows amd64·arm64 전체 package cross-compile 통과
+    - GitHub Actions run `30531997719`의 hosted `verify`,
+      `windows-verify`, Node 24 action runtime과 새 suspended-root test는
+      통과했다. 이후 correctness 재리뷰가 아래 동시성 P2를 발견했다.
+  - final14 correctness 재리뷰는 `terminateRootProcess`가 `Cmd.ProcessState`를
+    읽는 동안 `Wait`가 같은 값을 쓰는 data race 가능성을 발견했다.
+    - `ProcessState` 읽기를 완전히 제거하고 Go의 thread-safe `Process.Kill`
+      상태만 사용한다. 이미 wait/release된 Windows process의
+      `os.ErrProcessDone`과 `ERROR_INVALID_PARAMETER`만 정상 종료로 정규화한다.
+    - 실제 `command.Run`/wait 완료 뒤 terminate를 호출하는 Windows 전용
+      released-root 회귀 테스트를 추가했다.
+  - 위 수정은 child commit
+    `5ca2b52013f070e482cbdeac7e00e45b637e3bc6`
+    (`fix(review): remove Windows process-state race`)로 push했다.
+    - canonical snapshot:
+      `/tmp/compound-engineering/ce-code-review/20260730-223000-final15`
+    - `full.diff` SHA-256:
+      `c4d5c55f96a89d66f96d514bc45b94b99201b13bce5e2aa6ebbb9dcb0edb8bb9`
+    - local 전체 test/vet/lint/action/shell/diff 검증과 Windows
+      amd64·arm64 전체 package cross-compile 통과
+    - GitHub Actions run `30532338650`에서 Ubuntu verify는 통과했지만,
+      Windows native released-root test가 `invalid argument`를 반환해
+      `windows-verify`는 실패했다.
+  - final15 실패 로그로 Go Windows `os.Process`가 wait 뒤 handle을 release한
+    상태에서는 kernel `ERROR_INVALID_PARAMETER`가 아니라 별도
+    `syscall.EINVAL`을 반환함을 확인했다.
+    - `os.ErrProcessDone`, `syscall.EINVAL`, kernel
+      `ERROR_INVALID_PARAMETER`의 이미 종료된 세 상태만 정상화한다.
+    - 위 수정은 child commit
+      `cb85413beca723873e883cfc0e5ca324756630a0`
+      (`fix(windows): normalize released process errors`)로 push했다.
+    - canonical snapshot:
+      `/tmp/compound-engineering/ce-code-review/20260730-230000-final16`
+    - `full.diff` SHA-256:
+      `d8a664ae1441d49c7a6e6fc0b9aae5102f09d6dec9b6f9275a2b1cb83cb5640b`
+    - focused test/vet/lint, Windows amd64 compile와 diff 검증 통과
+    - GitHub Actions run `30532557502`: exact head의 hosted `verify`와
+      `windows-verify` 전체 test 및 Windows CLI build 통과, annotation 0
+    - target certification run `30532557506`의 fixture contract 통과,
+      PR actual-target job은 설계대로 skipped
+    - final16 `correctness.json`, `security.json`, `testing.json`,
+      `doc-review.json`은 snapshot SHA와 exact head/base를 확인했고
+      P1/P2/P3 0건으로 pass/ready-to-merge 판정했다.
+    - GitHub OWNER `zzanghyunmoo`가 exact head에 code/doc review marker를
+      각각 게시했고, API 재조회로 `author_association: OWNER`와 marker
+      본문을 확인했다.
+      - code review:
+        [comment 5129390806](https://github.com/zzanghyunmoo/my-desk-setup/pull/1#issuecomment-5129390806)
+      - doc review:
+        [comment 5129392239](https://github.com/zzanghyunmoo/my-desk-setup/pull/1#issuecomment-5129392239)
+  - final16 complete-history 복구 bundle을 영구 경로에 보존했다.
+    - 경로:
+      `/Users/gurumee92/Workspaces/.recovery/my-desk-setup/2026-07-30/my-desk-setup-final-u16-cb85413-2026-07-30.bundle`
+    - SHA-256:
+      `f8c2fa411386ff53079f2243d01390b703f62fa179d28e44a78e8aebacac69df`
+    - 권한: `0600`
+    - complete history 7 refs, 독립 clone `git fsck --full --strict`,
+      exact HEAD와 `go.mod` byte 비교 통과
 - 미실행:
-  - 저장소 rename, orphan default force-push, 원격 브랜치 정리와 root
-    submodule 전환은 현재 turn의 명시적 파괴적 승인 전이므로 실행하지 않았다.
-  - 실제 Windows/WSL target 인증은 현재 macOS 실행 환경에서 수행할 수 없어
-    미실행이다.
+  - PR merge와 merge closeout은 아직 실행하지 않았다. 실제 merge는 exact
+    approval packet을 현재 turn에서 별도로 승인받은 뒤 guarded merge로만
+    수행한다.
+  - 현재 final review head의 실제 macOS/Windows/WSL/Lima target 인증은
+    모두 미실행이다. `80f866a`의 macOS `blocked` bundle은 역사적 진단이며
+    현재 head evidence가 아니다.
   - Lima `2.1.4`에는 `home-ai-infra`라는 별도 stopped Ubuntu guest만 있고,
     제품이 소유할 `mds` guest는 없다. 사용자 소유 VM을 시작하거나 변경하지
     않았으며 `lima-guest:mds` 인증은 저장소 전환과 명시적 apply 뒤 실행한다.
@@ -425,11 +702,16 @@ resolver로 지원하고, 인증은 자동화하지 않고 사용자가 직접 �
 ## 외부 동기화
 
 - Linear: [ZZA-100](https://linear.app/zzanghyunmoo/issue/ZZA-100/my-desk-setup-크로스플랫폼-개발-환경-bootstrap-구현)
-  — `In Progress`
+  — `In Review`
 - Notion 계획:
   [My Desk Setup 구현 계획](https://app.notion.com/p/3acef22ad4fc81a08204d8022f962bcb)
 - Notion 구현 기록:
   [ZZA-100 My Desk Setup 구현 기록](https://app.notion.com/p/3acef22ad4fc81f0b3dad0814f0cee1a)
+- GitHub PR:
+  [#1 my-desk-setup bootstrap](https://github.com/zzanghyunmoo/my-desk-setup/pull/1)
+- GitHub latest-head review marker:
+  [code](https://github.com/zzanghyunmoo/my-desk-setup/pull/1#issuecomment-5129390806),
+  [doc](https://github.com/zzanghyunmoo/my-desk-setup/pull/1#issuecomment-5129392239)
 
 ## Merge closeout
 
