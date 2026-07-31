@@ -2,7 +2,7 @@
 workflow_schema: compound-work/v1
 ticket_id: ZZA-101
 ticket_url: https://linear.app/zzanghyunmoo/issue/ZZA-101/my-desk-setup-실제-4-target-인증-및-release-promotion
-ticket_status: In Progress
+ticket_status: In Review
 ticket_completion: pending
 remaining_prs:
 ideation_status: waived
@@ -13,9 +13,9 @@ plan_status: complete
 plan_path: docs/plans/2026-07-31-ZZA-101-my-desk-setup-actual-target-certification-plan.md
 plan_notion_url: https://app.notion.com/p/3aeef22ad4fc814a99f8e377987be5a8
 plan_waiver_reason:
-work_status: in_progress
+work_status: complete
 work_notion_url: https://app.notion.com/p/3aeef22ad4fc8183a530d3e72ef3e62c
-pr_url:
+pr_url: https://github.com/zzanghyunmoo/my-desk-setup/pull/2
 closeout_status: pending
 merged_pr_url:
 merge_commit:
@@ -93,7 +93,9 @@ closed_at:
 
 - Linear:
   [ZZA-101](https://linear.app/zzanghyunmoo/issue/ZZA-101/my-desk-setup-실제-4-target-인증-및-release-promotion)
-  — `In Progress`
+  — `In Review`
+- Project PR:
+  [my-desk-setup#2](https://github.com/zzanghyunmoo/my-desk-setup/pull/2)
 - Canonical plan:
   [Notion](https://app.notion.com/p/3aeef22ad4fc814a99f8e377987be5a8)
 - Canonical ticket:
