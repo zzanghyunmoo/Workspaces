@@ -47,6 +47,10 @@ closed_at:
   exactly-one과 manifest capture 완료 기준 24시간 freshness를 검증한다.
 - Control plane/release: protected branch/tag, reviewer-gated secret-free
   environment, one-job ephemeral runner와 verified draft release를 사용한다.
+- 구현 commit:
+  - U1 `6f83fc7` — 실제 target certification 경로 도달성 복구
+  - U2 `290aeb7` — 동일 release archive의 apply-only guest 전달과 nonce commitment
+  - U3 `09a665e` — commit-bound 4-target cohort와 verified-only draft publication
 
 ## 검증
 
@@ -56,10 +60,18 @@ closed_at:
   - Canonical Notion ticket을 `In Progress`로 갱신했다.
   - `origin/main` 기준 `zza-101/actual-target-certification` branch를 만들었다.
   - Local plan에 대한 `git diff --check`를 통과했다.
+  - U1–U3의 focused test와 `go test ./...`, `go vet ./...`,
+    Windows amd64 cross-build를 통과했다.
+  - `actionlint`, 변경 shell script의 `shellcheck`, `git diff --cached --check`를
+    통과했다.
+  - `go test -race ./internal/evidence`와
+    `go test -race ./internal/adapters/host ./tests/contracts`를 통과했다.
 - 진행 중:
-  - U1–U3 구현의 focused test와 전체 Go/Actions/shell quality gate
+  - 구현 diff 단순화와 PR 전 code/doc review
   - PR 최신 head의 `ce-code-review`와 `ce-doc-review`
 - 미실행:
+  - `internal/release` race test는 cross-build fixture가 장시간 종료되지 않아
+    완료하지 못했다. 동일 package의 일반 test와 전체 suite는 통과했다.
   - macOS/Lima와 Windows/WSL actual certification은 fix merge commit과
     control plane이 준비된 뒤 실행한다.
   - Browser test는 UI가 없는 CLI/automation 변경이므로 해당하지 않는다.
