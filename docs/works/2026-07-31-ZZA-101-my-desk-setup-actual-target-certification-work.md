@@ -44,13 +44,20 @@ closed_at:
   domain-separated commitment만 남긴다. Upload 전 file set, checksum과
   credential/nonce/path leak를 검사한다.
 - Retry/promotion: immutable certification cohort 안에서 target kind별
-  exactly-one과 manifest capture 완료 기준 24시간 freshness를 검증한다.
+  exactly-one, manifest capture 완료 기준 24시간 freshness, cohort timestamp
+  기준 4시간 capture window를 검증하고 target별 capture 시각을 영구 report에 남긴다.
 - Control plane/release: protected branch/tag, reviewer-gated secret-free
-  environment, one-job ephemeral runner와 verified draft release를 사용한다.
+  environment, 기본 `self-hosted` label을 유지한 one-job ephemeral runner,
+  Windows checksum-pinned Gitleaks와 verified draft release를 사용한다.
 - 구현 commit:
   - U1 `6f83fc7` — 실제 target certification 경로 도달성 복구
   - U2 `290aeb7` — 동일 release archive의 apply-only guest 전달과 nonce commitment
   - U3 `09a665e` — commit-bound 4-target cohort와 verified-only draft publication
+  - 단순화 `c8c52fd` — 중복 identity parsing과 artifact 검증 흐름 정리
+  - 리뷰 수정 `dd67276` — Windows scan, fail-closed publication, cohort window,
+    archive input error와 runner label 계약 보완
+  - Windows preflight `07b1943` — Git for Windows/Bash prerequisite와
+    Windows PowerShell 5.1 scanner 경로 명시
 
 ## 검증
 
@@ -62,16 +69,22 @@ closed_at:
   - Local plan에 대한 `git diff --check`를 통과했다.
   - U1–U3의 focused test와 `go test ./...`, `go vet ./...`,
     Windows amd64 cross-build를 통과했다.
-  - `actionlint`, 변경 shell script의 `shellcheck`, `git diff --cached --check`를
-    통과했다.
-  - `go test -race ./internal/evidence`와
-    `go test -race ./internal/adapters/host ./tests/contracts`를 통과했다.
+  - 리뷰 수정 뒤 `go test ./...`, `go test -race ./...`, `go vet ./...`를
+    통과했다. `internal/release` race test도 372.213초에 정상 완료됐다.
+  - Windows amd64의 host/release/evidence/contracts test package compile-only와
+    `cmd/mds`, `cmd/mds-evidence`, `cmd/mds-release` cross-build를 통과했다.
+  - `actionlint`, 전체 shell script의 `shellcheck`, PowerShell parser,
+    `git diff --check`를 통과했다.
+  - Fake `gh`/`git` executable로 API 500 fail-closed, 404 draft-first
+    create→upload→download→byte verify→publish, 기존 published release 무변경 검증,
+    remote byte mismatch 미게시를 실행 검증했다.
+  - 공개 GitHub release의 실제 `gh api --include --jq` 출력이 HTTP status header와
+    tag/draft TSV 순서임을 대조했다.
+  - 최신 head `07b1943`의 PR 전 `ce-code-review`에서 correctness/API,
+    release/reliability/cohort, Windows runner/security 관점 모두 PASS했다.
 - 진행 중:
-  - 구현 diff 단순화와 PR 전 code/doc review
   - PR 최신 head의 `ce-code-review`와 `ce-doc-review`
 - 미실행:
-  - `internal/release` race test는 cross-build fixture가 장시간 종료되지 않아
-    완료하지 못했다. 동일 package의 일반 test와 전체 suite는 통과했다.
   - macOS/Lima와 Windows/WSL actual certification은 fix merge commit과
     control plane이 준비된 뒤 실행한다.
   - Browser test는 UI가 없는 CLI/automation 변경이므로 해당하지 않는다.
