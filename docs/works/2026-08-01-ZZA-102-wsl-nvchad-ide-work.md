@@ -45,7 +45,13 @@ WSL guest에서 C++, Go, Python용 NvChad IDE를 `mds apply --profile nvim-ide`�
 - 깨끗한 Ubuntu 26.04 WSL에서 `mds apply --profile nvim-ide`가 완료됐다.
 - plan digest는 `sha256:d300d9e275712047a01a84e179f550b3c0b33349490594f9c802e1c54e53d6c3`이다.
 - base CLI, C toolchain, mise, Go 1.26.5, Neovim 0.11.5, pinned NvChad, Bun 1.3.14, Pyright 1.1.411, Python 3.14.6와 `nvim-ide-tools`가 `ready`로 확인됐다.
-- PR #2 merge 뒤 최신 main을 PR #3 branch에 통합하고 전체 Go test/race/vet, actionlint, shellcheck, code/doc review와 GitHub CI를 최신 head에서 다시 실행해야 한다.
+- PR #2 merge commit `61ede4860a9a2484a03693e4feed3cccc32c01c2`를 PR #3
+  branch에 merge했다. `--adopt-nvchad`와 `--guest-bootstrap-archive` option을 함께
+  보존하고 WSL/Lima certification profile에 새 IDE tool graph를 포함했다.
+- 통합 head `ab073ab439d9a5976f355ec7a5fa0076576388ff`에서 `go test ./...`,
+  영향 범위 `go test -race`, `go vet ./...`, 세 command build, actionlint, 전체 shell
+  shellcheck와 `git diff --check`를 통과했다.
+- 최신 head의 GitHub CI와 code/doc review는 진행 중이다.
 
 ## 외부 동기화
 
