@@ -416,8 +416,9 @@ flowchart LR
 
 ### Research and Sources
 
-- `projects/my-desk-setup/.github/workflows/target-certification.yml` — current
-  `--all`, protected-ref, environment와 exact runner-label contract
+- `projects/my-desk-setup/.github/workflows/target-certification.yml` — target별
+  `certification-*` profile/`--profile`, protected-ref, environment와 exact
+  runner-label contract
 - `projects/my-desk-setup/.github/workflows/release.yml` — pre-tag build와
   tag-only promotion/publish contract
 - `projects/my-desk-setup/internal/evidence/certify.go` — first apply, repeat
