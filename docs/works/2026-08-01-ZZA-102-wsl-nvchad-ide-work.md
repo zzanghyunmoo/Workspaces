@@ -34,9 +34,11 @@ WSL guest에서 C++, Go, Python용 NvChad IDE를 `mds apply --profile nvim-ide`�
 ## 주요 변경 지점
 
 - `catalog/components/guest.yaml`: IDE capability와 검증 가능한 C++, Go, Python language tool 설치 계약을 추가했다.
-- `catalog/profiles/guest.yaml`: desktop 및 agent component 없이 WSL IDE graph만 선택하는 `nvim-ide` profile을 추가했다.
+- `catalog/profiles/nvim-ide.yaml`: desktop 및 agent component 없이 Linux guest IDE graph만 선택하는 `nvim-ide` profile을 추가했다.
 - `catalog/locks/versions.lock.yaml`: Pyright를 포함한 reviewed artifact identity를 고정했다.
 - `internal/adapters/guest/editor.go`: user-owned `~/.config/nvim`의 기본 refusal과 timestamp backup을 남기는 explicit adoption을 구현했다.
+- `internal/adapters/guest/ide.go`, `editor_config.go`: NvChad starter와 IDE 설정의 선택 경계를 분리하고, 기존 managed tree의 누락·drift를 복구하며 lazy.nvim/NvChad/전체 plugin graph를 exact commit으로 고정했다.
+- `internal/adapters/packages/functional.go`: clang-format, clang-tidy, lldb-dap, dlv, ruff, debugpy까지 IDE tool 실행 검증을 확장했다.
 - `internal/cli/apply.go`: `--adopt-nvchad`를 apply 경로에만 연결했다.
 - `tests/`와 golden plan: ownership, catalog resolution, managed tool behavior와 profile contract를 고정했다.
 
@@ -48,9 +50,16 @@ WSL guest에서 C++, Go, Python용 NvChad IDE를 `mds apply --profile nvim-ide`�
 - PR #2 merge commit `61ede4860a9a2484a03693e4feed3cccc32c01c2`를 PR #3
   branch에 merge했다. `--adopt-nvchad`와 `--guest-bootstrap-archive` option을 함께
   보존하고 WSL/Lima certification profile에 새 IDE tool graph를 포함했다.
-- 통합 head `ab073ab439d9a5976f355ec7a5fa0076576388ff`에서 `go test ./...`,
-  영향 범위 `go test -race`, `go vet ./...`, 세 command build, actionlint, 전체 shell
-  shellcheck와 `git diff --check`를 통과했다.
+- 통합 head `ab073ab439d9a5976f355ec7a5fa0076576388ff`의 최종 리뷰에서 selection boundary,
+  기존 managed tree migration, plugin graph pin, tool probe와 문서 구조 누락을 발견했다.
+- 수정 head `1999833d5264bf24ec3cb9daaa79c403d310d642`에서 NvChad starter와 IDE 설정을
+  별도 action으로 분리하고, exact plugin lock과 IDE 전체 tool probe를 추가했다. 중복 child
+  plan/solution은 제거하고 canonical Notion·워크스페이스 문서로 통합했다.
+- 수정 head에서 `go test ./...`, 영향 범위 `go test -race`, `go vet ./...`, `mds`,
+  `mds-evidence`, `mds-release` build, actionlint, 전체 shell shellcheck와
+  `git diff --check`를 통과했다.
+- 깨끗한 WSL 실제 apply 증빙은 최초 기능 head에서 수행했다. 수정 head의 exact plugin lock은
+  자동 테스트로 검증했으며 clean WSL 재실행은 수행하지 않았다.
 - 최신 head의 GitHub CI와 code/doc review는 진행 중이다.
 
 ## 외부 동기화
