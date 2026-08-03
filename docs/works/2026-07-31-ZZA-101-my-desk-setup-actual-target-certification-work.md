@@ -38,17 +38,23 @@ closed_at:
 
 - Catalog/workflow: 네 target별 certification profile과 fail-closed
   target→profile mapping을 추가하고 actual evidence는 `verified`만 허용한다.
+  네 profile 모두 target에서 자동 설치 가능한 v1 catalog 전체를 포함하며 Lima
+  arm64의 공식 artifact가 없는 Flutter만 명시 제외한다.
 - Guest bootstrap: apply-only exact archive 입력을 한 번 연 handle과 bounded
   snapshot으로 검증·전달해 첫 release asset 부재를 안전하게 우회한다.
-- Evidence security: raw guest nonce는 runtime에서만 비교하고 plan/evidence에는
-  domain-separated commitment만 남긴다. Upload 전 file set, checksum과
-  credential/nonce/path leak를 검사한다.
+- Evidence security: `mds.release/v2` manifest가 OS/architecture별 released
+  `mds-evidence` asset과 SHA-256을 고정한다. Wrapper는 target 고정 path의 certifier를
+  private snapshot으로 복사·hash한 뒤 read-only `prepare`/capture/verify를 실행하며
+  Go toolchain을 인증 authority로 쓰지 않는다. Raw nonce는 owner-only host
+  ownership record에만 남고 public guest marker v3에는 domain-separated commitment만
+  기록한다. Upload 전 file set, checksum, credential/nonce/path와 Gitleaks를 검사한다.
 - Retry/promotion: immutable certification cohort 안에서 target kind별
   exactly-one, manifest capture 완료 기준 24시간 freshness, cohort timestamp
   기준 4시간 capture window를 검증하고 target별 capture 시각을 영구 report에 남긴다.
 - Control plane/release: protected branch/tag, reviewer-gated secret-free
   environment, 기본 `self-hosted` label을 유지한 one-job ephemeral runner,
-  Windows checksum-pinned Gitleaks와 verified draft release를 사용한다.
+  target별 고정 production binary/certifier path, Windows checksum-pinned Gitleaks와
+  verified draft release를 사용한다.
 - 구현 commit:
   - U1 `6f83fc7` — 실제 target certification 경로 도달성 복구
   - U2 `290aeb7` — 동일 release archive의 apply-only guest 전달과 nonce commitment
@@ -58,6 +64,12 @@ closed_at:
     archive input error와 runner label 계약 보완
   - Windows preflight `07b1943` — Git for Windows/Bash prerequisite와
     Windows PowerShell 5.1 scanner 경로 명시
+  - Windows 안정화 `95c4fdc`, `bf20c7c`, `a37fe97`, `25ffb7b` —
+    PowerShell/Bash/CRLF, verified-only와 deterministic golden 계약 보완
+  - 최종 인증 계약 `2326b30` — read-only preparation, public commitment,
+    고정 production path와 guest 전체 automatable catalog 보완
+  - 최신 리뷰 수정 `b1761f3` — Windows download bound 호환, public marker v3,
+    released certifier authority와 네 target 전체 automatable profile 보완
 
 ## 검증
 
@@ -69,21 +81,32 @@ closed_at:
   - Local plan에 대한 `git diff --check`를 통과했다.
   - U1–U3의 focused test와 `go test ./...`, `go vet ./...`,
     Windows amd64 cross-build를 통과했다.
-  - 리뷰 수정 뒤 `go test ./...`, `go test -race ./...`, `go vet ./...`를
-    통과했다. `internal/release` race test도 372.213초에 정상 완료됐다.
-  - Windows amd64의 host/release/evidence/contracts test package compile-only와
-    `cmd/mds`, `cmd/mds-evidence`, `cmd/mds-release` cross-build를 통과했다.
-  - `actionlint`, 전체 shell script의 `shellcheck`, PowerShell parser,
-    `git diff --check`를 통과했다.
+  - 최종 head `2326b30`에서 `go test ./...`, `go test -race ./...`,
+    `go vet ./...`를 통과했다. `internal/release` race test도 284.642초에
+    정상 완료됐다.
+  - macOS와 Windows amd64의 `cmd/mds`, `cmd/mds-evidence`,
+    `cmd/mds-release` 빌드를 통과했다.
+  - `actionlint`, 전체 shell script의 `shellcheck`, `git diff --check`를
+    통과했다.
+  - Deterministic `v0.1.0` release를 두 번 빌드·검증해 byte-identical임을
+    확인했고 Gitleaks source-history와 release artifact scan을 통과했다.
   - Fake `gh`/`git` executable로 API 500 fail-closed, 404 draft-first
     create→upload→download→byte verify→publish, 기존 published release 무변경 검증,
     remote byte mismatch 미게시를 실행 검증했다.
   - 공개 GitHub release의 실제 `gh api --include --jq` 출력이 HTTP status header와
     tag/draft TSV 순서임을 대조했다.
-  - 최신 head `07b1943`의 PR 전 `ce-code-review`에서 correctness/API,
-    release/reliability/cohort, Windows runner/security 관점 모두 PASS했다.
+  - 이전 head 리뷰에서 Windows portability, golden drift, subset guest coverage,
+    prepare producer와 raw nonce runner 환경 문제를 찾아 모두 수정했다.
+- 현재 diff에서 `go test ./...`, `go test -race ./...`(`internal/release`
+  290.548초), `go vet ./...`를 통과했다.
+- Darwin/Linux/Windows amd64·arm64의 `mds`, `mds-evidence`, `mds-release`
+  18개 교차 빌드와 `actionlint`, 전체 shell `shellcheck`, `git diff --check`를
+  통과했다.
+- `mds.release/v2` release를 두 번 빌드·검증해 전체 file set이 byte-identical임을
+  확인했고 Gitleaks 8.30.1 history/worktree/release scan을 통과했다.
 - 진행 중:
-  - PR 최신 head의 `ce-code-review`와 `ce-doc-review`
+  - PR 최신 head `b1761f3d6880a3294eb1bfe29c8c97706ba5459d`의
+    `ce-code-review`와 `ce-doc-review`
 - 미실행:
   - macOS/Lima와 Windows/WSL actual certification은 fix merge commit과
     control plane이 준비된 뒤 실행한다.
