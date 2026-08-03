@@ -2,8 +2,8 @@
 workflow_schema: compound-work/v1
 ticket_id: ZZA-102
 ticket_url: https://linear.app/zzanghyunmoo/issue/ZZA-102/make-the-wsl-nvchad-cgopython-ide-reproducible-with-mds-apply
-ticket_status: In Review
-ticket_completion: pending
+ticket_status: Done
+ticket_completion: complete
 remaining_prs:
 ideation_status: waived
 ideation_path:
@@ -16,13 +16,13 @@ plan_waiver_reason:
 work_status: complete
 work_notion_url: https://app.notion.com/p/3b1ef22ad4fc813d954be68816256def
 pr_url: https://github.com/zzanghyunmoo/my-desk-setup/pull/3
-closeout_status: pending
-merged_pr_url:
-merge_commit:
-kb_paths:
-notion_feature_status_url:
+closeout_status: complete
+merged_pr_url: https://github.com/zzanghyunmoo/my-desk-setup/pull/3
+merge_commit: 157566d34d60a8dc3680fad68fa5bb3cf4d46b83
+kb_paths: docs/kb/developer-environments/2026-08-03-ZZA-102-wsl-nvchad-ide.md
+notion_feature_status_url: https://app.notion.com/p/3acef22ad4fc81e0813ff060d2fdd436
 notion_ticket_url: https://app.notion.com/p/3b1ef22ad4fc813d954be68816256def
-closed_at:
+closed_at: 2026-08-03T17:35:30+09:00
 ---
 
 # ZZA-102 WSL NvChad IDE 작업 기록
@@ -80,14 +80,24 @@ WSL guest에서 C++, Go, Python용 NvChad IDE를 `mds apply --profile nvim-ide`�
   checkout으로 restore하고 `checkhealth`까지 완료하는 opt-in network smoke를 통과했다.
 - 깨끗한 WSL 실제 apply 증빙은 최초 기능 head에서 수행했다. 최종 head는 자동·실제 Neovim
   smoke로 검증했으며 clean WSL 전체 apply 재실행은 수행하지 않았다.
-- 최신 head `fb57c3d9cde044a7d345a9249b2337d848ea9228`의 GitHub CI와 code/doc review는
-  진행 중이다.
+- 최신 head `fb57c3d9cde044a7d345a9249b2337d848ea9228`의 Linux/Windows GitHub CI와
+  fixture scanner가 통과했고, code/doc review는 모두 PASS marker를 게시했다.
 
 ## 외부 동기화
 
-- Linear [ZZA-102](https://linear.app/zzanghyunmoo/issue/ZZA-102/make-the-wsl-nvchad-cgopython-ide-reproducible-with-mds-apply)는 `In Review` 상태다.
+- Linear
+  [ZZA-102](https://linear.app/zzanghyunmoo/issue/ZZA-102/make-the-wsl-nvchad-cgopython-ide-reproducible-with-mds-apply)는
+  PR merge와 함께 `Done`으로 전환됐다.
 - canonical Notion [계획](https://app.notion.com/p/3b1ef22ad4fc81048ec9ee92fedf0be9)과 [티켓 구현 문서](https://app.notion.com/p/3b1ef22ad4fc813d954be68816256def)를 생성하고 이 문서와 같은 범위·검증 경계를 기록했다.
+- Notion [기능 현황](https://app.notion.com/p/3acef22ad4fc81e0813ff060d2fdd436)과
+  티켓 구현 문서에 merge commit, 운영 경계, KB와 최종 검증 결과를 동기화했다.
 
 ## Merge closeout
 
-PR #3 merge 후 KB, Notion 기능 현황·티켓 결과, merge commit과 Linear `Done` 전환을 기록한다.
+PR #3은 squash merge commit `157566d34d60a8dc3680fad68fa5bb3cf4d46b83`으로 병합됐다.
+현재 기능 상태와 검증 경계는
+`docs/kb/developer-environments/2026-08-03-ZZA-102-wsl-nvchad-ide.md`에 정리했고,
+계층형 runtime repair의 재사용 가능한 지식은
+`docs/solutions/architecture-patterns/managed-neovim-runtime-repair-boundaries.md`에 남겼다.
+Notion 기능 현황·티켓 결과를 갱신했으며 Linear ZZA-102는 `Done`이다. 로컬
+`projects/my-desk-setup`은 `main`의 merge commit과 `origin/main`이 일치하도록 fast-forward했다.
