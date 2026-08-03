@@ -37,9 +37,9 @@ WSL guest에서 C++, Go, Python용 NvChad IDE를 `mds apply --profile nvim-ide`�
 - `catalog/profiles/nvim-ide.yaml`: desktop 및 agent component 없이 Linux guest IDE graph만 선택하는 `nvim-ide` profile을 추가했다.
 - `catalog/locks/versions.lock.yaml`: Pyright를 포함한 reviewed artifact identity를 고정했다.
 - `internal/adapters/guest/editor.go`: user-owned `~/.config/nvim`의 기본 refusal과 timestamp backup을 남기는 explicit adoption을 구현했다.
-- `internal/adapters/guest/ide.go`, `editor_config.go`: NvChad starter와 IDE 설정의 선택 경계를 분리하고, 기존 managed tree의 누락·drift를 복구하며 lazy.nvim/NvChad/전체 plugin graph를 exact commit으로 고정했다.
-- `internal/adapters/packages/functional.go`: clang-format, clang-tidy, lldb-dap, dlv, ruff, debugpy까지 IDE tool 실행 검증을 확장했다.
-- `internal/cli/apply.go`: `--adopt-nvchad`를 apply 경로에만 연결했다.
+- `internal/adapters/guest/ide.go`, `editor_config.go`, `plugin_tree.go`: NvChad starter와 IDE 설정의 선택 경계를 분리하고, 기존 managed tree의 누락·drift를 복구하며 lazy.nvim/NvChad/31개 plugin graph를 exact commit과 content-addressed runtime으로 고정했다. 실행 전후 실제 checkout HEAD와 실행 코드 clean 상태를 검사하고 final config를 headless restore/health로 로드한다.
+- `internal/adapters/packages/functional.go`: clang-format, clang-tidy, lldb-dap, dlv, ruff, system Python debugpy와 C++ compile/run까지 실행 검증을 확장했다.
+- `internal/cli/apply.go`, `root.go`: `--adopt-nvchad`를 apply 경로에만 연결하고 성공하는 WSL apply에서 production adapter option까지 전달되는 test seam을 추가했다.
 - `tests/`와 golden plan: ownership, catalog resolution, managed tool behavior와 profile contract를 고정했다.
 
 ## 검증
@@ -55,11 +55,18 @@ WSL guest에서 C++, Go, Python용 NvChad IDE를 `mds apply --profile nvim-ide`�
 - 수정 head `1999833d5264bf24ec3cb9daaa79c403d310d642`에서 NvChad starter와 IDE 설정을
   별도 action으로 분리하고, exact plugin lock과 IDE 전체 tool probe를 추가했다. 중복 child
   plan/solution은 제거하고 canonical Notion·워크스페이스 문서로 통합했다.
-- 수정 head에서 `go test ./...`, 영향 범위 `go test -race`, `go vet ./...`, `mds`,
+- 최종 head `7ce2838f18e54a82433ffce8d1ecc3cf4447cb84`에서 moving code 실행 전 pinned
+  config/lazy.nvim을 게시하고, 실제 31개 plugin checkout의 SHA와 clean 상태를 검증하며,
+  최종 IDE config의 headless restore/health와 Neovim zero-exit 초기화 오류 탐지를 추가했다.
+  config-only repair는 ready package 설치를 반복하지 않고, system Python debugpy와 C/C++
+  compile/run probe, 성공하는 `--adopt-nvchad` CLI wiring 테스트를 포함한다.
+- 최종 head에서 `go test ./...`, 영향 범위 `go test -race`, `go vet ./...`, `mds`,
   `mds-evidence`, `mds-release` build, actionlint, 전체 shell shellcheck와
   `git diff --check`를 통과했다.
-- 깨끗한 WSL 실제 apply 증빙은 최초 기능 head에서 수행했다. 수정 head의 exact plugin lock은
-  자동 테스트로 검증했으며 clean WSL 재실행은 수행하지 않았다.
+- 로컬 Neovim 0.11.1의 격리된 임시 home에서 base와 IDE 31개 plugin graph를 실제 GitHub
+  checkout으로 restore하고 `checkhealth`까지 완료하는 opt-in network smoke를 통과했다.
+- 깨끗한 WSL 실제 apply 증빙은 최초 기능 head에서 수행했다. 최종 head는 자동·실제 Neovim
+  smoke로 검증했으며 clean WSL 전체 apply 재실행은 수행하지 않았다.
 - 최신 head의 GitHub CI와 code/doc review는 진행 중이다.
 
 ## 외부 동기화
