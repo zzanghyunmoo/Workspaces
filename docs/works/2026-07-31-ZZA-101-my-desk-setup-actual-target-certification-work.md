@@ -70,6 +70,11 @@ closed_at:
     고정 production path와 guest 전체 automatable catalog 보완
   - 최신 리뷰 수정 `b1761f3` — Windows download bound 호환, public marker v3,
     released certifier authority와 네 target 전체 automatable profile 보완
+  - 최종 문서·구조 수정 `4ac44f0` — host doctor→released prepare→certify 재검증으로
+    guest commitment source를 실행 가능하게 통일하고 certifier release 로직을
+    `internal/release/certifier.go`로 분리
+  - JSON 계약 정정 `4c05c79` — preparation의 실제 top-level
+    `guest_creation_nonce_commitment`를 운영 문서와 계약 테스트에 고정
 
 ## 검증
 
@@ -97,16 +102,22 @@ closed_at:
     tag/draft TSV 순서임을 대조했다.
   - 이전 head 리뷰에서 Windows portability, golden drift, subset guest coverage,
     prepare producer와 raw nonce runner 환경 문제를 찾아 모두 수정했다.
-- 현재 diff에서 `go test ./...`, `go test -race ./...`(`internal/release`
-  290.548초), `go vet ./...`를 통과했다.
+- head `4ac44f0ca747b021149f4f325750d2bedb6acd04`에서 `go test ./...`,
+  focused `go test -race ./internal/release ./tests/contracts ./cmd/mds-evidence`
+  (`internal/release` 294.259초), `go vet ./...`와 `go build ./cmd/mds
+  ./cmd/mds-evidence`를 통과했다.
+- 최신 docs/test-only head `4c05c7960bc2c490da89699c98e79bce46af1487`에서 `go test ./tests/contracts
+  ./internal/evidence ./internal/release`, `go vet ./tests/contracts`와
+  `git diff --check`를 통과했다.
 - Darwin/Linux/Windows amd64·arm64의 `mds`, `mds-evidence`, `mds-release`
   18개 교차 빌드와 `actionlint`, 전체 shell `shellcheck`, `git diff --check`를
   통과했다.
 - `mds.release/v2` release를 두 번 빌드·검증해 전체 file set이 byte-identical임을
   확인했고 Gitleaks 8.30.1 history/worktree/release scan을 통과했다.
-- 진행 중:
-  - PR 최신 head `b1761f3d6880a3294eb1bfe29c8c97706ba5459d`의
-    `ce-code-review`와 `ce-doc-review`
+- PR 최신 head `4c05c7960bc2c490da89699c98e79bce46af1487`의 Linux verify,
+  Windows verify와 두 fixture contract가 모두 통과했고 actual-target job은 PR에서
+  의도대로 skip됐다.
+- 같은 최신 head의 `ce-code-review`와 `ce-doc-review`에서 P0-P2 없이 PASS했다.
 - 미실행:
   - macOS/Lima와 Windows/WSL actual certification은 fix merge commit과
     control plane이 준비된 뒤 실행한다.
