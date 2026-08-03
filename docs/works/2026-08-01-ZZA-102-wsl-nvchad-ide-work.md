@@ -60,14 +60,20 @@ WSL guest에서 C++, Go, Python용 NvChad IDE를 `mds apply --profile nvim-ide`�
   최종 IDE config의 headless restore/health와 Neovim zero-exit 초기화 오류 탐지를 추가했다.
   config-only repair는 ready package 설치를 반복하지 않고, system Python debugpy와 C/C++
   compile/run probe, 성공하는 `--adopt-nvchad` CLI wiring 테스트를 포함한다.
-- 최종 head에서 `go test ./...`, 영향 범위 `go test -race`, `go vet ./...`, `mds`,
+- 보강 head `bd0eee4832750c37e58a6d4225dd34e418938fa4`에서 clangd만 존재하는 부분 설치도
+  full package verify 실패 후 apply로 복구하고, IDE 설치 뒤 base plugin drift도 다시 감지한다.
+  관리 Neovim launcher는 검증한 절대 경로로 실행하며 ownership marker와 config/runtime
+  경로의 모든 중간 symlink를 거부한다. 최종 IDE runtime은 lock 밖 checkout을 제거하고
+  디렉터리 이름 집합이 lock의 31개와 정확히 일치해야 ready가 된다.
+- 최종 head에서 `go test ./...`, `go test -race ./...`, `go vet ./...`, `mds`,
   `mds-evidence`, `mds-release` build, actionlint, 전체 shell shellcheck와
   `git diff --check`를 통과했다.
 - 로컬 Neovim 0.11.1의 격리된 임시 home에서 base와 IDE 31개 plugin graph를 실제 GitHub
   checkout으로 restore하고 `checkhealth`까지 완료하는 opt-in network smoke를 통과했다.
 - 깨끗한 WSL 실제 apply 증빙은 최초 기능 head에서 수행했다. 최종 head는 자동·실제 Neovim
   smoke로 검증했으며 clean WSL 전체 apply 재실행은 수행하지 않았다.
-- 최신 head의 GitHub CI와 code/doc review는 진행 중이다.
+- 최신 head `bd0eee4832750c37e58a6d4225dd34e418938fa4`의 GitHub CI와 code/doc review는
+  진행 중이다.
 
 ## 외부 동기화
 
