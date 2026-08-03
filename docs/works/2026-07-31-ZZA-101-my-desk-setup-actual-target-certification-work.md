@@ -4,7 +4,7 @@ ticket_id: ZZA-101
 ticket_url: https://linear.app/zzanghyunmoo/issue/ZZA-101/my-desk-setup-실제-4-target-인증-및-release-promotion
 ticket_status: In Review
 ticket_completion: pending
-remaining_prs:
+remaining_prs: https://github.com/zzanghyunmoo/my-desk-setup/pull/4
 ideation_status: waived
 ideation_path:
 ideation_notion_url:
@@ -16,13 +16,13 @@ plan_waiver_reason:
 work_status: complete
 work_notion_url: https://app.notion.com/p/3aeef22ad4fc8183a530d3e72ef3e62c
 pr_url: https://github.com/zzanghyunmoo/my-desk-setup/pull/2
-closeout_status: pending
-merged_pr_url:
-merge_commit:
-kb_paths:
-notion_feature_status_url:
+closeout_status: complete
+merged_pr_url: https://github.com/zzanghyunmoo/my-desk-setup/pull/2
+merge_commit: 61ede4860a9a2484a03693e4feed3cccc32c01c2
+kb_paths: docs/kb/developer-environments/2026-08-03-ZZA-101-my-desk-setup-certification-control-plane.md
+notion_feature_status_url: https://app.notion.com/p/3acef22ad4fc81e0813ff060d2fdd436
 notion_ticket_url: https://app.notion.com/p/3aeef22ad4fc8183a530d3e72ef3e62c
-closed_at:
+closed_at: 2026-08-03T05:59:49Z
 ---
 
 # ZZA-101 실제 4-target 인증 및 첫 release promotion 작업 기록
@@ -139,5 +139,9 @@ closed_at:
 
 ## Merge closeout
 
-Pending. PR merge 뒤 KB, Notion 기능 현황·ticket, merge commit, release identity와
-Linear `Done` 전환 결과를 기록한다.
+PR #2는 squash merge commit
+`61ede4860a9a2484a03693e4feed3cccc32c01c2`로 병합됐다. 현재 기능 상태와 운영
+경계를 `docs/kb/developer-environments/2026-08-03-ZZA-101-my-desk-setup-certification-control-plane.md`와
+Notion 기능 현황·ticket에 동기화했다. 실제 네 target certification과
+`v0.1.0` promotion은 merge commit 뒤에만 실행할 수 있어 draft PR #4로 넘겼고,
+Linear ZZA-101은 `In Review`와 `ticket_completion: pending`을 유지한다.
