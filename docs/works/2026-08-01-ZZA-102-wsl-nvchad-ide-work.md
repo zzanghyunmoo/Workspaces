@@ -65,6 +65,11 @@ WSL guest에서 C++, Go, Python용 NvChad IDE를 `mds apply --profile nvim-ide`�
   관리 Neovim launcher는 검증한 절대 경로로 실행하며 ownership marker와 config/runtime
   경로의 모든 중간 symlink를 거부한다. 최종 IDE runtime은 lock 밖 checkout을 제거하고
   디렉터리 이름 집합이 lock의 31개와 정확히 일치해야 ready가 된다.
+- 최종 head `d90d4c9b23978af652404710aeb94da1be37672d`에서 Editor는 base checkout만
+  소유하고 IDE-only drift는 IDE action이 복구하도록 action 경계를 고정했다. runtime root는
+  ownership marker를 포함한 staging directory를 durable publish해 중단 시 빈 unowned root를
+  남기지 않는다. Windows에서는 regular launcher를 확인하되 POSIX 실행 비트는 비-Windows에서만
+  요구하고, editor/runtime 테스트를 별도 파일로 분리했다.
 - 최종 head에서 `go test ./...`, `go test -race ./...`, `go vet ./...`, `mds`,
   `mds-evidence`, `mds-release` build, actionlint, 전체 shell shellcheck와
   `git diff --check`를 통과했다.
@@ -72,7 +77,7 @@ WSL guest에서 C++, Go, Python용 NvChad IDE를 `mds apply --profile nvim-ide`�
   checkout으로 restore하고 `checkhealth`까지 완료하는 opt-in network smoke를 통과했다.
 - 깨끗한 WSL 실제 apply 증빙은 최초 기능 head에서 수행했다. 최종 head는 자동·실제 Neovim
   smoke로 검증했으며 clean WSL 전체 apply 재실행은 수행하지 않았다.
-- 최신 head `bd0eee4832750c37e58a6d4225dd34e418938fa4`의 GitHub CI와 code/doc review는
+- 최신 head `d90d4c9b23978af652404710aeb94da1be37672d`의 GitHub CI와 code/doc review는
   진행 중이다.
 
 ## 외부 동기화
