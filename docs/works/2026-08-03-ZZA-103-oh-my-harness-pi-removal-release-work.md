@@ -2,7 +2,7 @@
 workflow_schema: compound-work/v1
 ticket_id: ZZA-103
 ticket_url: https://linear.app/zzanghyunmoo/issue/ZZA-103/host-agent-harness-%EA%B8%B0%EB%B3%B8-%EC%84%A4%EC%B9%98-%EB%B0%8F-pi-%EC%99%84%EC%A0%84-%EC%A0%9C%EA%B1%B0
-ticket_status: In Progress
+ticket_status: In Review
 ticket_completion: pending
 remaining_prs: my-desk-setup-host-harness
 ideation_status: waived
@@ -13,9 +13,9 @@ plan_status: complete
 plan_path: docs/plans/2026-08-03-ZZA-103-host-agent-harness-pi-removal-plan.md
 plan_notion_url: https://app.notion.com/p/3b1ef22ad4fc8197842cc7b8a27d6660
 plan_waiver_reason:
-work_status: in_progress
+work_status: complete
 work_notion_url: https://app.notion.com/p/3b1ef22ad4fc816299bbc1445da68856
-pr_url:
+pr_url: https://github.com/zzanghyunmoo/oh-my-harness/pull/37
 closeout_status: pending
 merged_pr_url:
 merge_commit:
@@ -124,7 +124,8 @@ release artifact를 만든다.
 
 ## 외부 동기화
 
-- Linear ZZA-103: `In Progress`
+- Linear ZZA-103: `In Review`
+- Pull request: <https://github.com/zzanghyunmoo/oh-my-harness/pull/37>
 - Canonical plan: <https://app.notion.com/p/3b1ef22ad4fc8197842cc7b8a27d6660>
 - Notion 구현 문서: <https://app.notion.com/p/3b1ef22ad4fc816299bbc1445da68856>
 
