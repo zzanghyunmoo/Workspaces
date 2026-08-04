@@ -54,8 +54,9 @@ surface를 완전히 제거한다.
   있어야 한다.
 - **R3.** OpenCode OMO Ultimate와 Codex LazyCodex OMO Light를 exact provenance와
   digest로 설치해야 한다.
-- **R4.** Claude Code, OpenCode, Codex의 공통 workflow contract를 runtime-native
-  surface에 적용해야 한다.
+- **R4.** Claude Code, OpenCode, Codex의 runtime-native surface에 exact 공통 workflow
+  `{goal, deep-research, ideation, brainstorm, plan, code-review, doc-review, skill-creator,
+  ralph-loop, security-guidance}`를 적용해야 한다.
 - **R5.** `oh-my-harness` maintained tree에는 Pi product, compatibility, migration,
   dependency, documentation 또는 test contract가 남지 않아야 한다.
 - **R6.** 기존 사용자 소유 설정과 plugin registration을 보존하고 불일치 충돌은 첫
@@ -72,8 +73,8 @@ surface를 완전히 제거한다.
 
 ### Acceptance Examples
 
-- **AE1.** 깨끗한 macOS host에서 기본 profile을 plan/apply하면 세 agent, 공통
-  workflow, OMO와 LazyCodex가 exact pin으로 준비된다.
+- **AE1.** 깨끗한 macOS host에서 기본 profile을 plan/apply하면 세 agent와 R4의 exact
+  workflow 10개, OMO와 LazyCodex가 exact pin으로 준비된다.
 - **AE2.** 깨끗한 Windows host에서 같은 profile을 적용하면 macOS와 같은 logical
   inventory가 native path와 launcher로 준비된다.
 - **AE3.** harness만 선택한 plan은 agent executable을 임의로 추가하지 않는다.
@@ -152,7 +153,10 @@ MDS의 `oh-my-harness` component는 기존 `cli` kind를 재사용하고 agent c
 workflow 10개와 caller-supplied agent 집합만 합성한다. selected agents가 없으면 action과
 native registration이 비어 있는 canonical empty child plan과 stable digest를 반환한다.
 MDS는 agent executable의 유일한 owner이며 OMH child는 executable acquisition을 하지 않고
-MDS가 제공한 executable identity만 preflight한다.
+MDS가 제공한 executable identity만 preflight한다. MDS의 세 agent lock은 OMH release의
+adapter와 동일한 native release archive, version, platform executable SHA-256을 사용한다.
+Plan-time child preview 전에 선택된 agent artifact도 검증된 temporary snapshot으로
+materialize해, apply가 설치할 동일 bytes를 OMH가 검사하도록 한다.
 
 #### KTD6. One approval digest spans the child preview
 
@@ -167,11 +171,13 @@ composer를 사용하며 child나 preimage가 달라지면 stale-plan으로 중�
 #### KTD7. Fail closed at ownership and update boundaries
 
 user-owned native registration이 source/version/content/registration 기준으로 다르면
-overwrite하지 않는다. 기존 action별 실행기 앞에 plan-wide read-only preflight phase를 두어
-모든 action의 artifact, target, ownership과 child collision 검사를 마친 뒤에만 Apply를
-시작한다. `mds update`가 child composition을 안전하게 지원하기 전까지 OMH version 이동은
-reviewed catalog/lock PR에서만 허용하고 일반 update 경로는 명시적으로 실패한다. auth,
-login, provider, model, telemetry consent는 child argv와 evidence에 포함하지 않는다.
+overwrite하지 않는다. OMH child preview는 Claude, OpenCode, Codex의 native registration을
+read-only로 검사하고 충돌 시 action을 전혀 만들지 않는다. MDS apply 앞의 plan-wide
+read-only phase는 OMH child artifact, digest, native registration과 ownership 충돌을 먼저
+재검증한 뒤에만 Apply를 시작하며, OMH와 무관한 adapter의 기존 preflight lifecycle은
+변경하지 않는다. `mds update`가 child composition을 안전하게 지원하기 전까지 OMH version
+이동은 reviewed catalog/lock PR에서만 허용하고 일반 update 경로는 명시적으로 실패한다.
+auth, login, provider, model, telemetry consent는 child argv와 evidence에 포함하지 않는다.
 
 ### System-Wide Impact
 
@@ -180,8 +186,9 @@ login, provider, model, telemetry consent는 child argv와 evidence에 포함하
   runtime identity를 포함한다.
 - **Planning:** I/O 없는 base resolver 위에 verified read-only child preview composition
   계층이 생기고 outer digest input이 확장된다.
-- **Execution:** runner에 plan-wide read-only preflight가 추가되고 host router는 OMH에만
-  custom wrapper를 사용한다. 기존 package adapters의 install behavior는 유지한다.
+- **Execution:** runner의 plan-wide read-only phase는 OMH child/native 경계만 선검증하고
+  host router는 OMH에만 custom wrapper를 사용한다. 기존 package adapters의 preflight와
+  install behavior는 유지한다.
 - **State:** outer receipt와 evidence가 child digest/identity를 추적하지만 secret이나
   개인 absolute path는 저장하지 않는다.
 - **Release:** MDS schema/composer는 OMH local release fixture와 병행 개발할 수 있지만
@@ -209,15 +216,21 @@ login, provider, model, telemetry consent는 child argv와 evidence에 포함하
   후 full OMO/native registration suites를 실행한다.
 - **Version drift/collision:** package/plugin/marketplace/MCP/native registration version을
   한 source에서 파생하고 coherence test를 둔다.
+- **Agent artifact drift:** MDS agent lock과 OMH adapter의 native archive/version/executable
+  SHA-256을 cross-repository fixture와 actual-target 검사로 결합한다.
 - **Two-digest TOCTOU:** child preview와 preimage를 outer digest에 포함하고 apply 직전에
   재구성한다.
-- **Release asset mutation:** workflow non-overwrite와 consumer SHA-256/provenance pin을
-  함께 사용한다.
+- **Release asset mutation/partial publish:** workflow는 current source SHA marker가 있는
+  draft만 recoverable staging으로 취급하고 모든 asset/manifest/digest를 검증한 뒤 한 번의
+  publish transition을 수행한다. published release는 overwrite/delete하지 않고 consumer
+  SHA-256/provenance pin을 함께 사용한다.
 - **Supply-chain first publish:** workflow 기본 권한은 비우고 release job에만
   `contents: write`를 부여한다. checkout credential persistence를 끄고 third-party actions를
   full commit SHA에 고정하며 tag가 reviewed main merge commit을 가리키지 않으면 실패한다.
 - **Dependency closure:** release archive는 exact shrinkwrap의 production dependency와 전체
   file manifest를 포함하고 empty npm cache와 network-disabled smoke를 통과해야 한다.
+- **Hung child:** child process별 hard timeout과 전체 preview deadline을 두고 timeout이면
+  process tree를 종료한 뒤 mutation 없는 deterministic blocker를 반환한다.
 - **Windows path divergence:** shell-neutral executable/argv, `.exe`/verified shim과 actual
   Windows evidence를 요구한다.
 - **Scope drift:** OMO/LazyCodex upgrade, Linux guest redesign, auth automation과 user-home
@@ -241,10 +254,12 @@ login, provider, model, telemetry consent는 child argv와 evidence에 포함하
   - Delete: `projects/oh-my-harness/src/migration/v1.ts`
   - Rewrite only: `projects/oh-my-harness/docs/solutions/architecture-patterns/one-cli-policy-multiple-agent-surfaces.md`
     and `projects/oh-my-harness/docs/solutions/workflow/fixed-native-runtime-installation.md`
+  - Modify: `projects/oh-my-harness/docs/solutions/conventions/cross-platform-node-harness-boundaries.md`
+  - Modify: `projects/oh-my-harness/docs/solutions/workflow/unified-preview-first-management-cli.md`
   - Delete: every other Pi-matching legacy profile, blueprint, brainstorm, ideation, plan,
     solution and work document under `projects/oh-my-harness/docs/`
 - **Approach:** active v2 compile/package call graph 밖의 extension bundle, v1 inspection과
-  removal preview, Pi package/profile/history corpus를 제거한다. 위 두 allowlisted solution의
+  removal preview, Pi package/profile/history corpus를 제거한다. 위 네 allowlisted solution의
   immutable snapshot과 single-CLI 원칙만 3-runtime neutral pattern으로 다시 쓰고, 그 밖의
   matching document는 preservation 판단 없이 삭제한다. current contract는 retired runtime
   migration/removal 기능을 제공하지 않으며 사용자 local state를 추정하지 않는다.
@@ -276,11 +291,14 @@ login, provider, model, telemetry consent는 child argv와 evidence에 포함하
   provenance, native collision와 recovery 경로는 유지한다. `mds-host` profile은 CLI
   packages를 빈 집합으로, capabilities를 exact workflow 10개로 고정하며 agents를 caller
   override로 받는다. composition-only mode에서는 runtime acquisition을 금지하고 MDS가
-  제공한 executable identity만 검사한다. 빈 agent 집합에는 action/registration이 없는
-  canonical child plan과 stable digest를 반환한다.
+  제공한 executable identity만 검사한다. child preview는 선택된 세 runtime 각각의
+  source/version/content/registration identity를 read-only 검사하고 malformed, partial,
+  duplicate 또는 user-owned collision이면 action 없는 blocked result를 반환한다. 빈 agent
+  집합에는 action/registration이 없는 canonical child plan과 stable digest를 반환한다.
 - **Test scenarios:** unknown runtime rejection, exact three-runtime descriptors, all version
   surfaces coherent, OMO/LazyCodex acquisition and registration suites green, empty child stable
-  digest, composition-only runtime ownership, repeat no-op.
+  digest, composition-only runtime ownership, Claude/OpenCode/Codex conflict fixtures의 null plan,
+  zero mutation command와 zero managed-state mutation, repeat no-op.
 - **Traceability:** R3-R6 / AE4-AE6 / KTD1, KTD2.
 - **Dependencies:** U1.
 
@@ -290,7 +308,10 @@ login, provider, model, telemetry consent는 child argv와 evidence에 포함하
   한다.
 - **Files:**
   - Create: `projects/oh-my-harness/.github/workflows/release.yml`
+  - Modify: `projects/oh-my-harness/scripts/release.mjs`
   - Modify: `projects/oh-my-harness/src/catalog/release.ts`
+  - Create: `projects/oh-my-harness/src/catalog/release-command.ts`
+  - Create: `projects/oh-my-harness/src/types/tar-stream.d.ts`
   - Modify: `projects/oh-my-harness/harness/catalog/release.json` and its schema
   - Modify: `projects/oh-my-harness/tests/release/release-manifest.test.ts`
   - Modify: `projects/oh-my-harness/tests/release/package-contents.test.ts`
@@ -300,11 +321,15 @@ login, provider, model, telemetry consent는 child argv와 evidence에 포함하
   full file manifest와 SHA-256 provenance를 기록한다. workflow 기본 permissions는 비우고
   publish job에만 `contents: write`를 부여한다. checkout credential persistence를 끄고 모든
   action을 full commit SHA로 고정하며 reviewed main merge commit이 아닌 tag와 기존
-  release/asset overwrite를 거부한다. empty npm cache와 network-disabled clean location에서
-  version/preview, arbitrary-CWD와 platform launcher를 검사한다.
+  published release/asset overwrite를 거부한다. asset은 source SHA marker가 있는 draft에
+  모두 staging하고 API에서 exact filename/size/content digest를 재검증한 뒤 한 번의 publish
+  transition을 수행한다. publish 전 실패나 취소 뒤에는 같은 source SHA의 draft만 폐기하고
+  재시도하며 published release는 변경하지 않는다. empty npm cache와 network-disabled clean
+  location에서 version/preview, arbitrary-CWD와 platform launcher를 검사한다.
 - **Test scenarios:** tag/version mismatch failure, duplicate asset failure, exact checksum,
   safe self-contained archive, full file manifest, network-disabled install/preview smoke,
-  least-privilege workflow, reviewed-main tag and source/package identity equality.
+  least-privilege workflow, reviewed-main tag and source/package identity equality, partial upload
+  draft cleanup/retry와 published release non-overwrite.
 - **Traceability:** R7, R8, R10 / F4 / KTD4.
 - **Dependencies:** U2.
 
@@ -319,11 +344,14 @@ login, provider, model, telemetry consent는 child argv와 evidence에 포함하
   - Modify: `projects/my-desk-setup/internal/catalog/resolve.go`
   - Modify: `projects/my-desk-setup/internal/planning/resolver.go`
   - Modify: `projects/my-desk-setup/internal/cli/arguments.go`
-- **Approach:** 기존 `cli` kind의 OMH fixture와 `build` kind의 Node fixture를 만들고 component
+- **Approach:** 기존 `cli` kind의 OMH fixture와 `build` kind의 Node fixture, 세 agent의 exact
+  native archive/version/executable SHA-256 fixture를 만들고 component
   selection policy에 `dependency-only`를 추가한다. dependency-only component는 direct
   selection, interactive roots와 `--all` root selection에서는 거부/제외하지만 OMH dependency
   closure에는 포함한다. fixture는 U3의 local self-contained archive와 exact Node checksum을
-  사용하고 production embedded catalog/lock/profile 값은 U8에서 U7 release identity로 넣는다.
+  사용한다. Plan-time에는 선택된 agent fixture도 verified temporary snapshot으로 materialize해
+  child가 apply 예정 bytes를 검사한다. production embedded catalog/lock/profile 값은 U8에서
+  U7 release identity와 동일한 adapter identity로 넣는다.
 - **Test scenarios:** schema/fixture validation, dependency-only direct selection rejected,
   all/interactive roots hide Node, OMH-only closure includes Node but excludes agent executables,
   guest plan excludes host harness.
@@ -344,9 +372,13 @@ login, provider, model, telemetry consent는 child argv와 evidence에 포함하
   - Modify: `projects/my-desk-setup/internal/adapters/host/adapter.go`
   - Modify: `projects/my-desk-setup/internal/adapters/router.go`
   - Modify: `projects/my-desk-setup/internal/transport/port.go`
-- **Approach:** plan-time에 exact Node와 self-contained OMH archive를 verified temporary
-  snapshot으로 acquire/extract하고 fixed argv, bounded output, strict JSON, credential-reduced
-  environment로 `mds-host` child preview를 실행한다. resolver-selected agents와 MDS-owned
+- **Approach:** plan-time에 exact Node, self-contained OMH archive와 선택된 native agent
+  artifact를 verified temporary snapshot으로 acquire/extract하고 fixed argv, bounded output,
+  strict JSON으로 `mds-host` child preview를 실행한다. child environment는 deny-by-default로
+  구성하고 platform별 system/temp/locale/home/config-root와 검증된 executable만 포함한 trusted
+  `PATH`만 allowlist한다. token, key, cloud/repository credential 변수는 전달하지 않는다.
+  process별 hard timeout과 전체 preview deadline을 적용하고 timeout이면 process tree를
+  종료한 뒤 mutation 없는 deterministic blocker를 반환한다. resolver-selected agents와 MDS-owned
   executable identity만 전달하고 exact 10 workflow, agent-scoped OMO/LazyCodex, secret-free
   config digest/ownership summary와 child digest를 outer action inputs에 넣는다. 빈 agent
   집합도 canonical empty child digest를 받는다. custom host adapter는 approved digest만
@@ -354,8 +386,9 @@ login, provider, model, telemetry consent는 child argv와 evidence에 포함하
   observe/verify한다.
 - **Test scenarios:** plan snapshot leaves managed state unchanged, deterministic sorted inputs,
   selected-agent-only/empty child plans, child/config digest changes alter outer digest, raw secret
-  and absolute path never serialize, shell/auth argv absent, collision before mutation, apply exact
-  child digest.
+  and absolute path never serialize, shell/auth argv absent, sentinel token/key environment가 child에
+  없음, hung child의 process-tree 종료와 deterministic blocker, 세 runtime collision before
+  mutation, apply exact child digest.
 - **Traceability:** R1-R7, R9 / F1-F3 / AE1-AE5 / KTD5-KTD7.
 - **Dependencies:** U4.
 
@@ -374,11 +407,12 @@ login, provider, model, telemetry consent는 child argv와 evidence에 포함하
   - Modify: `projects/my-desk-setup/internal/update/plan.go`
 - **Approach:** root plan, apply, doctor와 update의 직접 `planning.Build` 호출을 공용
   `plan_builder`/composer로 교체한다. existing execution preflight를 모든 selected action의
-  read-only observe/artifact/ownership/child validation을 먼저 완료하는 plan-wide phase로
-  확장한 뒤 apply loop를 시작한다. outer/inner digest와 action outcome은 secret-free
+  전역 lifecycle로 확장하지 않고, OMH action에 한해 child artifact/digest/native registration/
+  ownership validation을 먼저 완료하는 plan-wide phase를 둔 뒤 apply loop를 시작한다.
+  outer/inner digest와 action outcome은 secret-free
   receipt/evidence로 남기고 unsupported OMH update는 fail closed한다. crash 뒤 observation
   기반 수렴과 exact repeat no-op을 기존 runner recovery 모델에 연결한다.
-- **Test scenarios:** any late-action conflict gives zero apply calls, stale child gives zero apply
+- **Test scenarios:** any OMH child/native conflict gives zero apply calls, stale child gives zero apply
   calls, first apply then repeat no-op, crash recovery, conflict preserves files, every CLI entry
   uses one composer, receipt retains plan identity, update cannot bypass child approval, token-bearing
   fixture and absolute-home-path scan green.
@@ -392,13 +426,15 @@ login, provider, model, telemetry consent는 child argv와 evidence에 포함하
   - `docs/works/2026-08-03-ZZA-103-oh-my-harness-pi-removal-release-work.md`
   - OMH PR comments/checks/release manifest and actual-target evidence
 - **Approach:** project branch에서 U1-U3을 구현하고 최신 head에 `ce-code-review`와
-  `ce-doc-review`를 수행한다. passing marker와 guarded merge evidence를 준비한 뒤 별도
+  `ce-doc-review`를 수행한다. U4-U6의 local release fixture로 MDS child preview/apply 계약이
+  green인 것을 tag 생성 전에 확인한다. passing marker와 guarded merge evidence를 준비한 뒤 별도
   current-turn approval packet을 받아 merge한다. merge commit에 tag를 만들고 release
   workflow 결과의 asset/provenance를 MDS lock handoff로 기록한다.
-- **Test scenarios:** all canonical suites on macOS/Ubuntu/Windows, packed release clean
-  verification, exact OMO/LazyCodex native discovery, release asset digest match.
+- **Test scenarios:** all canonical suites on macOS/Ubuntu/Windows, U4-U6 local MDS consumer
+  contract, packed release clean verification, exact OMO/LazyCodex native discovery, draft-stage
+  recovery와 release asset digest match.
 - **Traceability:** R3-R10 / AE4-AE6.
-- **Dependencies:** U1-U3.
+- **Dependencies:** U1-U6.
 
 ### U8. MDS PR과 actual macOS/Windows certification
 
@@ -406,13 +442,17 @@ login, provider, model, telemetry consent는 child argv와 evidence에 포함하
 - **Files/evidence:**
   - `docs/works/2026-08-03-ZZA-103-my-desk-setup-host-harness-work.md`
   - Create: `projects/my-desk-setup/catalog/components/host-harness.yaml`
+  - Modify: `projects/my-desk-setup/catalog/components/agents.yaml`
   - Modify: `projects/my-desk-setup/catalog/locks/versions.lock.yaml`
   - Modify: `projects/my-desk-setup/catalog/profiles/{owner,certification-macos-host,certification-windows-host}.yaml`
   - Modify: `projects/my-desk-setup/catalog/schema/lock.schema.json`
+  - Modify: `projects/my-desk-setup/internal/adapters/host/{adapter,agents}.go`
   - `projects/my-desk-setup/.github/workflows/{ci,target-certification}.yml`
   - target evidence produced by `projects/my-desk-setup/scripts/certify-target.sh`
 - **Approach:** U7의 published asset URL, SHA-256, source commit/tree, catalog revision과 exact
-  Node patch/checksums을 embedded production lock에 넣고 owner/all/certification host가 세
+  Node patch/checksums을 embedded production lock에 넣는다. 세 agent는 OMH `0.3.0` adapter와
+  동일한 native release archive, version과 platform executable SHA-256으로 lock하고
+  owner/all/certification host가 세
   agents와 OMH를 선택하도록 한다. dependency-only Node는 OMH closure로만 포함한다. 이어
   macOS/Windows clean certification account에서 owner/default, harness-only, first apply,
   repeat apply, conflict preservation와 doctor readiness를 실행한다. evidence는 outer/inner
@@ -466,7 +506,8 @@ retired runtime directory, dependency, adapter, migration/removal contract, prof
 key, test fixture, script or product-document reference. The packed archive must contain the exact
 production dependency closure and full file manifest, and must run version/preview with an empty npm
 cache and network disabled. The publishing workflow uses least privilege, full-SHA actions, a
-reviewed-main tag check and non-overwrite semantics.
+reviewed-main tag check, recoverable draft staging, verified single publish transition and published
+release non-overwrite semantics.
 
 ### MDS canonical gates
 
@@ -491,7 +532,8 @@ controlled fixtures or verified local artifacts; canonical unit/contract gates d
 - **Windows:** the same logical inventory through native executable/path handling and Windows CI
   plus actual certification runner evidence.
 - **Security/evidence:** no auth/login command, credential-shaped material or personal absolute home
-  path in plan, receipt, logs and evidence.
+  path in plan, receipt, logs and evidence. Sentinel credentials are absent from the child environment;
+  hung children are terminated within the process/overall deadlines without mutation.
 - **Release:** downloaded `0.3.0` asset SHA-256 and provenance match MDS lock; source-checkout-only
   success is insufficient.
 
@@ -516,7 +558,7 @@ controlled fixtures or verified local artifacts; canonical unit/contract gates d
 - [ ] MDS default/all/profile/component flows가 단일 resolver와 approval digest를 사용하며
   harness-only는 agent executable을 추가하지 않고 stable empty child digest를 사용한다.
 - [ ] Node는 OMH dependency-only runtime으로만 노출되고 MDS가 agent executable acquisition의
-  유일한 owner다.
+  유일한 owner이며 세 agent bytes/version/SHA-256은 OMH adapter identity와 일치한다.
 - [ ] user-owned config conflict는 mutation 전에 실패하고 auth와 기존 Pi home data는
   untouched이다.
 - [ ] macOS와 Windows actual certification evidence가 first apply, repeat no-op, conflict
