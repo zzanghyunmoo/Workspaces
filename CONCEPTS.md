@@ -41,6 +41,62 @@ Submodule.
 Updating a Standalone Project does not update the Workspace Container until the
 Submodule Pointer is advanced and committed in the container repository.
 
+## Development Environment
+
+### Environment Intent Graph
+
+The canonical declaration of development-environment components, profiles,
+dependencies, target eligibility, version policy, state ownership, and
+verification contracts.
+
+Full and selective installation resolve through the same Environment Intent
+Graph. `all` is a preset over the graph, not a separate installation path.
+
+### Host Target
+
+A macOS or Windows execution surface that owns GUI applications, platform-only
+tools, host-side coding agents, and integration with a Linux Guest Target.
+
+A Host Target may orchestrate development work, but it is not the default owner
+of project checkout, build, test, or the primary editor toolchain.
+
+### Guest Target
+
+A WSL or Lima Linux execution surface that owns project checkout, CLI tools,
+language and build toolchains, Neovim configuration, Docker CLI, and guest-side
+coding agents.
+
+Desktop applications remain owned by the Host Target even when a service's CLI,
+such as Notion CLI, is installed in the Guest Target.
+
+### Target-eligible Component
+
+A component whose declared platform, architecture, execution surface, installer,
+and verification contract match the selected target.
+
+The `all` preset includes every Target-eligible Component for that target and
+reports unsupported or manual-action components explicitly rather than
+pretending that every component belongs on every machine.
+
+### Offline Runtime Add-on Snapshot
+
+A content-addressed local package tree that contains a reviewed runtime add-on,
+its executable entry point, and the complete exact dependency closure needed to
+load it without a registry, network, or ambient package manager.
+
+Archive identity alone is insufficient. Installation verifies the source
+archive, closed package and dependency manifests, and the full materialized tree
+before registering the local entry point on an agent's native surface.
+
+### Preserved Release Draft
+
+A source-commit-bound GitHub Release draft kept after a pre-publish failure so
+an operator can inspect the exact staged assets and retry safely.
+
+Preservation does not grant overwrite authority. The publisher must revalidate
+the draft, tag, source marker, asset identity, and downloaded bytes before the
+single publish transition, and never mutates an already published release.
+
 ## Notion Documentation
 
 ### Ticket-scoped Documentation

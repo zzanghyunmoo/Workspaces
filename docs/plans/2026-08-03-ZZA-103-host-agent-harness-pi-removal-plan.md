@@ -28,6 +28,7 @@ target_repositories:
 - **Tracking:**
   [Linear ZZA-103](https://linear.app/zzanghyunmoo/issue/ZZA-103/host-agent-harness-%EA%B8%B0%EB%B3%B8-%EC%84%A4%EC%B9%98-%EB%B0%8F-pi-%EC%99%84%EC%A0%84-%EC%A0%9C%EA%B1%B0)
   · [Notion ticket](https://app.notion.com/p/3b1ef22ad4fc8171ae2fe9b74843f4fb)
+  · [OMH canonical implementation](https://app.notion.com/p/3b1ef22ad4fc816299bbc1445da68856)
 - **Execution order:** `oh-my-harness` Pi purge와 self-contained release contract → local
   release fixture를 이용한 `my-desk-setup` 통합 → OMH `0.3.0` release → exact production
   lock과 macOS/Windows actual certification → 두 PR closeout과 root submodule pointer 갱신.
@@ -121,11 +122,16 @@ vocabulary를 제거한다. 삭제 사실을 기록하는 티켓·계획·work·
 Notion에 두어 OMH product tree에 새 Pi 유지 surface를 만들지 않는다. Git history와
 사용자 home state는 건드리지 않는다.
 
-#### KTD2. Preserve reviewed add-on pins
+#### KTD2. Preserve pins through complete offline snapshots
 
 OMO Ultimate와 LazyCodex OMO Light의 현재 검증 pin `4.19.2`와 immutable provenance
-검사를 보존한다. 이 작업에서 upstream 최신 버전을 추종하면 physical purge, release,
-host integration의 회귀 원인이 섞이므로 별도 reviewed lock update로 미룬다.
+검사를 보존한다. OpenCode OMO는 mutable registry spec을 설치 identity로 사용하지 않고
+reviewed tarball과 실행에 필요한 exact dependency closure(`zod@4.4.3`)를 함께
+content-addressed local snapshot으로 materialize한다. source archive, package/dependency
+manifest, entry point와 전체 snapshot tree digest가 모두 맞은 뒤에만 local `file:` spec을
+등록한다. exact prior reviewed remote spec만 upgrade 대상으로 분류하고 user-owned,
+duplicate, malformed 또는 foreign registration은 충돌로 보존한다. 이 작업에서 upstream
+최신 버전을 추종하는 것은 별도 reviewed lock update로 미룬다.
 
 #### KTD3. Run OMH on an internal Node dependency
 
@@ -143,6 +149,9 @@ staging tree를 만들고 canonical build 뒤 그 tree를 `.tgz`로 pack한다. 
 `src/catalog/release.ts`와 `harness/catalog/release.json`을 확장해 전체 file manifest,
 checksum, source commit/tree, catalog revision과 package version의 단일 authority로 삼아
 GitHub Release에 non-overwrite로 발행한다. MDS는 URL, SHA-256과 provenance를 함께 pin한다.
+publish 전 실패는 source SHA로 소유권이 증명된 draft와 업로드 자산을 보존해 운영자가
+검사·재시도할 수 있게 한다. 실패 경로에서 draft를 자동 삭제하거나 published release를
+overwrite/delete하지 않는다.
 
 #### KTD5. Selection does not invent agents
 
@@ -190,7 +199,10 @@ auth, login, provider, model, telemetry consent는 child argv와 evidence에 포
   host router는 OMH에만 custom wrapper를 사용한다. 기존 package adapters의 preflight와
   install behavior는 유지한다.
 - **State:** outer receipt와 evidence가 child digest/identity를 추적하지만 secret이나
-  개인 absolute path는 저장하지 않는다.
+  개인 absolute path는 저장하지 않는다. OMH receipt는 canonical resolution 뒤 실제로
+  변경한 native config target을 기록하고, interrupted apply recovery는 당시 selection을
+  묶어 다른 profile/agent/state root로 복구가 drift하지 않게 한다. 이전 selection-less
+  OpenCode source-verification record는 호환 복구만 허용한다.
 - **Release:** MDS schema/composer는 OMH local release fixture와 병행 개발할 수 있지만
   production lock, actual certification과 landing은 OMH release 뒤에 수행한다. 최종 landing은
   OMH → MDS → root submodule pointer 순서를 지킨다.
@@ -222,13 +234,16 @@ auth, login, provider, model, telemetry consent는 child argv와 evidence에 포
   재구성한다.
 - **Release asset mutation/partial publish:** workflow는 current source SHA marker가 있는
   draft만 recoverable staging으로 취급하고 모든 asset/manifest/digest를 검증한 뒤 한 번의
-  publish transition을 수행한다. published release는 overwrite/delete하지 않고 consumer
-  SHA-256/provenance pin을 함께 사용한다.
+  publish transition을 수행한다. 실패한 owned draft는 자동 삭제하지 않고 보존해 exact
+  draft ID와 검증 실패를 이용한 수동 점검·재시도를 가능하게 한다. published release는
+  overwrite/delete하지 않고 consumer SHA-256/provenance pin을 함께 사용한다.
 - **Supply-chain first publish:** workflow 기본 권한은 비우고 release job에만
   `contents: write`를 부여한다. checkout credential persistence를 끄고 third-party actions를
   full commit SHA에 고정하며 tag가 reviewed main merge commit을 가리키지 않으면 실패한다.
 - **Dependency closure:** release archive는 exact shrinkwrap의 production dependency와 전체
-  file manifest를 포함하고 empty npm cache와 network-disabled smoke를 통과해야 한다.
+  file manifest를 포함한다. 각 runtime add-on snapshot도 reviewed entry point가 요구하는
+  exact transitive runtime dependency까지 포함하고, empty npm cache와 network-disabled
+  smoke를 통과해야 한다.
 - **Hung child:** child process별 hard timeout과 전체 preview deadline을 두고 timeout이면
   process tree를 종료한 뒤 mutation 없는 deterministic blocker를 반환한다.
 - **Windows path divergence:** shell-neutral executable/argv, `.exe`/verified shim과 actual
@@ -288,12 +303,16 @@ auth, login, provider, model, telemetry consent는 child argv와 evidence에 포
   파생하고 manifest, native registration과 release catalog를 `0.3.0`으로 동기화한다.
   Pi-only tests를 unknown runtime, exact `{claude,opencode,codex}` set, package allowlist와
   version coherence positive assertions로 교체한다. OMO/LazyCodex `4.19.2` acquisition,
-  provenance, native collision와 recovery 경로는 유지한다. `mds-host` profile은 CLI
+  provenance, native collision와 recovery 경로는 유지한다. OpenCode는 reviewed tarball과
+  exact dependency closure를 content-addressed local snapshot으로 만들고 그 entry point를
+  `file:` spec으로 등록한다. exact prior remote spec은 안전하게 upgrade하되 다른 사용자
+  plugin과 충돌 registration은 보존한다. `mds-host` profile은 CLI
   packages를 빈 집합으로, capabilities를 exact workflow 10개로 고정하며 agents를 caller
   override로 받는다. composition-only mode에서는 runtime acquisition을 금지하고 MDS가
   제공한 executable identity만 검사한다. child preview는 선택된 세 runtime 각각의
-  source/version/content/registration identity를 read-only 검사하고 malformed, partial,
-  duplicate 또는 user-owned collision이면 action 없는 blocked result를 반환한다. 빈 agent
+  source/version/content/registration identity와 local snapshot identity를 read-only 검사하고
+  malformed, partial, duplicate 또는 user-owned collision이면 action 없는 blocked result를
+  반환한다. 빈 agent
   집합에는 action/registration이 없는 canonical child plan과 stable digest를 반환한다.
 - **Test scenarios:** unknown runtime rejection, exact three-runtime descriptors, all version
   surfaces coherent, OMO/LazyCodex acquisition and registration suites green, empty child stable
@@ -323,13 +342,14 @@ auth, login, provider, model, telemetry consent는 child argv와 evidence에 포
   action을 full commit SHA로 고정하며 reviewed main merge commit이 아닌 tag와 기존
   published release/asset overwrite를 거부한다. asset은 source SHA marker가 있는 draft에
   모두 staging하고 API에서 exact filename/size/content digest를 재검증한 뒤 한 번의 publish
-  transition을 수행한다. publish 전 실패나 취소 뒤에는 같은 source SHA의 draft만 폐기하고
-  재시도하며 published release는 변경하지 않는다. empty npm cache와 network-disabled clean
+  transition을 수행한다. publish 전 실패나 취소 뒤에는 owned draft를 보존하고 exact draft
+  ID를 오류에 포함해 수동 검사·재시도를 지원하며 published release는 변경하지 않는다.
+  empty npm cache와 network-disabled clean
   location에서 version/preview, arbitrary-CWD와 platform launcher를 검사한다.
 - **Test scenarios:** tag/version mismatch failure, duplicate asset failure, exact checksum,
   safe self-contained archive, full file manifest, network-disabled install/preview smoke,
   least-privilege workflow, reviewed-main tag and source/package identity equality, partial upload
-  draft cleanup/retry와 published release non-overwrite.
+  preserved draft inspection/retry와 published release non-overwrite.
 - **Traceability:** R7, R8, R10 / F4 / KTD4.
 - **Dependencies:** U2.
 
