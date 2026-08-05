@@ -1,4 +1,12 @@
 ---
+title: ZZA-103 OMH Pi-free release 기반 상태
+ticket: ZZA-103
+merged_pr: https://github.com/zzanghyunmoo/oh-my-harness/pull/38
+merge_commit: 95882328d339e7336e8a60a90f3e2640c1244da3
+work_evidence: docs/works/2026-08-05-ZZA-103-oh-my-harness-release-followup-work.md
+notion_feature_status: https://app.notion.com/p/3acef22ad4fc81e0813ff060d2fdd436
+notion_ticket: https://app.notion.com/p/3b1ef22ad4fc8171ae2fe9b74843f4fb
+last_verified: 2026-08-05
 module: oh-my-harness-release
 tags:
   - zza-103
@@ -28,7 +36,7 @@ caller-owned agent executable을 exact digest로 검증한 뒤 공통 workflow 1
 OMO/LazyCodex add-on을 runtime-native surface에 합성한다. agent가 없으면 mutation 없는
 stable empty plan을 만든다.
 
-## 릴리스와 운영 경계
+## 주요 동작과 경계
 
 - v0.3.0 builder는 reviewed main source commit/tree, exact production dependency closure,
   full file manifest와 sidecar를 검증하는 self-contained artifact를 만든다.
@@ -56,10 +64,19 @@ stable empty plan을 만든다.
 
 ## 후속 작업
 
-v0.3.0 tag 전 실제 OMH merge commit 기준으로 MDS local release fixture의 source
-commit/tree, archive, sidecar와 digest를 재생성하고 child preview/apply를 다시 통과시켜야
-한다. 이 교차 저장소 gate가 green이 아니면 릴리스하지 않는다. MDS host harness PR도 남아
-있어 Linear ZZA-103은 `In Review`를 유지한다.
+실제 OMH merge commit 기준으로 MDS local release fixture의 source commit/tree, archive,
+sidecar와 digest를 재생성했고 child preview/exact-digest apply를 통과했다. 후속 MDS host
+harness PR [#6](https://github.com/zzanghyunmoo/my-desk-setup/pull/6)이 남아 있어 Linear
+ZZA-103은 `In Review`를 유지한다.
+
+## 운영 및 사용 시 주의사항
+
+- v0.3.0 릴리스는 tag가 가리키는 reviewed merge commit과 MDS에서 검증한 archive digest가
+  일치할 때만 발행한다.
+- OMH는 인증 정보를 만들거나 갱신하지 않는다. Claude Code, OpenCode와 Codex 인증은
+  사용자가 각 runtime에서 직접 수행한다.
+- 기존 user-owned native registration 충돌은 자동 덮어쓰기하지 않는다. JSON/text 결과의
+  stable blocker code와 수동 복구 안내를 확인한 뒤 사용자가 정리한다.
 
 Canonical Notion 기능 상태는
 [기능 현황](https://app.notion.com/p/3acef22ad4fc81e0813ff060d2fdd436), 구현 설명은

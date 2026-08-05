@@ -4,7 +4,7 @@ ticket_id: ZZA-103
 ticket_url: https://linear.app/zzanghyunmoo/issue/ZZA-103/host-agent-harness-%EA%B8%B0%EB%B3%B8-%EC%84%A4%EC%B9%98-%EB%B0%8F-pi-%EC%99%84%EC%A0%84-%EC%A0%9C%EA%B1%B0
 ticket_status: In Review
 ticket_completion: pending
-remaining_prs: my-desk-setup-host-harness
+remaining_prs: https://github.com/zzanghyunmoo/my-desk-setup/pull/6
 ideation_status: waived
 ideation_path:
 ideation_notion_url:
@@ -83,14 +83,15 @@ reviewed main merge commit에서 릴리스한다. 인증은 사용자가 직접 
 - Green: PR latest-head code review와 doc review를 별도 댓글로 게시했고 두 passing marker가
   `3d60130d47f36cf593ccfade0df3332c6c3073fa`에 결합됐다.
 - Green: GitHub Actions latest-head macOS, Ubuntu, Windows jobs 모두 통과했다.
-- Release precondition: OMH merge 뒤 tag 전에 merge commit 기준 MDS local release fixture를
-  재생성하고 source commit/tree, archive, sidecar, digest가 tag 대상과 같은 상태에서 child
-  preview/apply를 다시 검증한다. 이 gate가 green이 아니면 v0.3.0을 발행하지 않는다.
+- Green: OMH merge commit 기준 MDS local release fixture의 source commit/tree, archive,
+  sidecar와 digest를 재생성했고, 실제 v0.3.0 아카이브로 child preview와 exact-digest apply를
+  통과했다. MDS 전체 test/race/vet와 macOS/Windows build도 통과했다.
 
 ## 외부 동기화
 
 - Linear ZZA-103은 dependent MDS PR이 남아 있어 `In Review`를 유지한다.
 - Pull request: https://github.com/zzanghyunmoo/oh-my-harness/pull/38
+- Dependent MDS pull request: https://github.com/zzanghyunmoo/my-desk-setup/pull/6
 - Canonical Notion 구현 문서를 v0.3.0 follow-up branch, offline dependency closure, exact
   predecessor migration, actual receipt target, legacy recovery와 preserved draft 계약으로
   갱신했다: https://app.notion.com/p/3b1ef22ad4fc816299bbc1445da68856
