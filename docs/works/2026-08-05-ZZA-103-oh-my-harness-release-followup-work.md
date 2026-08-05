@@ -42,7 +42,7 @@ reviewed main merge commit에서 릴리스한다. 인증은 사용자가 직접 
   고정한다. 새 필드는 legacy catalog parse 호환을 위해 optional type로 읽되 embedded
   v0.3.0 catalog load에서는 반드시 검증한다.
 - `src/install/runtime-addon-acquisition.ts`: reviewed OMO tarball과 OMH의 exact
-  `zod@4.4.3` dependency tree를 staging에서 결합하고, package/dependency manifests와 전체
+  `zod@4.1.8` dependency tree를 staging에서 결합하고, package/dependency manifests와 전체
   tree digest를 검증한 뒤 content-addressed root로 원자 발행한다. 검증 실패는 native
   config mutation 전에 끝나며 staging은 정상 오류 경로에서 정리된다.
 - `src/environment/native-registration.ts`, `src/environment/orchestrator.ts`: snapshot과
@@ -63,13 +63,17 @@ reviewed main merge commit에서 릴리스한다. 인증은 사용자가 직접 
 
 ## 검증
 
-- Green: `npm run typecheck`, `npm run build --silent`.
+- Commit: `7f1588f fix(release): close v0.3.0 runtime safety gaps`.
+- Green: typecheck/build, unit 58/58, contracts 26/26, integration 98/98.
+- Runtime: Claude Code 8/8, OpenCode 13/13, Codex 10/10.
+- Harness: 86 pass, Windows-only fixture 3 skip. Descriptor verify와 `git diff --check` 통과.
+- Package/release: 36/36. exact committed HEAD에서 self-contained artifact를 만들고 임의
+  CWD offline install 뒤 help와 read-only `mds-host --agents none` preview를 실행했다.
 - Green: OpenCode snapshot direct offline import, exact predecessor upgrade, native collision,
   add-on preview/apply와 embedded archive identity focused tests.
 - 재현: raw upstream OMO tarball은 Bun `--no-install`에서 `zod` 부재로 실패했다. complete
   managed snapshot은 Node file-URL import로 외부 설치 없이 성공한다.
-- Pending: full catalog/unit/contracts/integration/runtime/harness/package matrices,
-  `git diff --check`, PR latest-head code/doc review와 CI.
+- Pending: PR latest-head code/doc review와 macOS/Ubuntu/Windows CI.
 
 ## 외부 동기화
 

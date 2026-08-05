@@ -126,7 +126,7 @@ Notion에 두어 OMH product tree에 새 Pi 유지 surface를 만들지 않는�
 
 OMO Ultimate와 LazyCodex OMO Light의 현재 검증 pin `4.19.2`와 immutable provenance
 검사를 보존한다. OpenCode OMO는 mutable registry spec을 설치 identity로 사용하지 않고
-reviewed tarball과 실행에 필요한 exact dependency closure(`zod@4.4.3`)를 함께
+reviewed tarball과 실행에 필요한 exact dependency closure(`zod@4.1.8`)를 함께
 content-addressed local snapshot으로 materialize한다. source archive, package/dependency
 manifest, entry point와 전체 snapshot tree digest가 모두 맞은 뒤에만 local `file:` spec을
 등록한다. exact prior reviewed remote spec만 upgrade 대상으로 분류하고 user-owned,
