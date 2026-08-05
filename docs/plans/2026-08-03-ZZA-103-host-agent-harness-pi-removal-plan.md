@@ -126,7 +126,7 @@ Notion에 두어 OMH product tree에 새 Pi 유지 surface를 만들지 않는�
 
 OMO Ultimate와 LazyCodex OMO Light의 현재 검증 pin `4.19.2`와 immutable provenance
 검사를 보존한다. OpenCode OMO는 mutable registry spec을 설치 identity로 사용하지 않고
-reviewed tarball과 실행에 필요한 exact dependency closure(`zod@4.1.8`)를 함께
+reviewed tarball이 요구하는 exact dependency closure(`zod@4.4.3`)를 함께
 content-addressed local snapshot으로 materialize한다. source archive, package/dependency
 manifest, entry point와 전체 snapshot tree digest가 모두 맞은 뒤에만 local `file:` spec을
 등록한다. exact prior reviewed remote spec만 upgrade 대상으로 분류하고 user-owned,
@@ -202,7 +202,9 @@ auth, login, provider, model, telemetry consent는 child argv와 evidence에 포
   개인 absolute path는 저장하지 않는다. OMH receipt는 canonical resolution 뒤 실제로
   변경한 native config target을 기록하고, interrupted apply recovery는 당시 selection을
   묶어 다른 profile/agent/state root로 복구가 drift하지 않게 한다. 이전 selection-less
-  OpenCode source-verification record는 호환 복구만 허용한다.
+  PR #37 이전 형식의 selection-less environment recovery journal은 기존 operation과
+  target identity를 그대로 검증하는 호환 복구만 허용하며, 새 journal은 selection을
+  필수로 기록한다.
 - **Release:** MDS schema/composer는 OMH local release fixture와 병행 개발할 수 있지만
   production lock, actual certification과 landing은 OMH release 뒤에 수행한다. 최종 landing은
   OMH → MDS → root submodule pointer 순서를 지킨다.
@@ -306,7 +308,9 @@ auth, login, provider, model, telemetry consent는 child argv와 evidence에 포
   provenance, native collision와 recovery 경로는 유지한다. OpenCode는 reviewed tarball과
   exact dependency closure를 content-addressed local snapshot으로 만들고 그 entry point를
   `file:` spec으로 등록한다. exact prior remote spec은 안전하게 upgrade하되 다른 사용자
-  plugin과 충돌 registration은 보존한다. `mds-host` profile은 CLI
+  plugin과 충돌 registration은 보존한다. 충돌 preview는
+  `native-registration:<runtime>` stable blocker code와 관련 없는 사용자 설정을 보존하는
+  secret-free 수동 복구 안내를 JSON 결과와 text renderer에 함께 제공한다. `mds-host` profile은 CLI
   packages를 빈 집합으로, capabilities를 exact workflow 10개로 고정하며 agents를 caller
   override로 받는다. composition-only mode에서는 runtime acquisition을 금지하고 MDS가
   제공한 executable identity만 검사한다. child preview는 선택된 세 runtime 각각의
@@ -317,8 +321,9 @@ auth, login, provider, model, telemetry consent는 child argv와 evidence에 포
 - **Test scenarios:** unknown runtime rejection, exact three-runtime descriptors, all version
   surfaces coherent, OMO/LazyCodex acquisition and registration suites green, empty child stable
   digest, composition-only runtime ownership, Claude/OpenCode/Codex conflict fixtures의 null plan,
-  zero mutation command와 zero managed-state mutation, repeat no-op.
-- **Traceability:** R3-R6 / AE4-AE6 / KTD1, KTD2.
+  stable blocker code와 수동 복구 안내, zero mutation command와 zero managed-state mutation,
+  repeat no-op.
+- **Traceability:** R3-R7 / AE3-AE6 / KTD1, KTD2, KTD5.
 - **Dependencies:** U1.
 
 ### U3. OMH immutable GitHub Release artifact
@@ -369,8 +374,11 @@ auth, login, provider, model, telemetry consent는 child argv와 evidence에 포
   selection policy에 `dependency-only`를 추가한다. dependency-only component는 direct
   selection, interactive roots와 `--all` root selection에서는 거부/제외하지만 OMH dependency
   closure에는 포함한다. fixture는 U3의 local self-contained archive와 exact Node checksum을
-  사용한다. Plan-time에는 선택된 agent fixture도 verified temporary snapshot으로 materialize해
-  child가 apply 예정 bytes를 검사한다. production embedded catalog/lock/profile 값은 U8에서
+  사용한다. OMH head가 바뀌면 source commit/tree, archive, sidecar와 digest를 모두
+  재생성하며 fixture source commit이 release/tag 대상 commit과 같지 않으면
+  cross-repository gate를 실패시킨다. Plan-time에는 선택된 agent fixture도 verified
+  temporary snapshot으로 materialize해 child가 apply 예정 bytes를 검사한다. production
+  embedded catalog/lock/profile 값은 U8에서
   U7 release identity와 동일한 adapter identity로 넣는다.
 - **Test scenarios:** schema/fixture validation, dependency-only direct selection rejected,
   all/interactive roots hide Node, OMH-only closure includes Node but excludes agent executables,
@@ -408,7 +416,8 @@ auth, login, provider, model, telemetry consent는 child argv와 evidence에 포
   selected-agent-only/empty child plans, child/config digest changes alter outer digest, raw secret
   and absolute path never serialize, shell/auth argv absent, sentinel token/key environment가 child에
   없음, hung child의 process-tree 종료와 deterministic blocker, 세 runtime collision before
-  mutation, apply exact child digest.
+  mutation, native config의 bounded regular-file-or-missing 검사와 symlink 거부 및 atomic
+  write, apply exact child digest.
 - **Traceability:** R1-R7, R9 / F1-F3 / AE1-AE5 / KTD5-KTD7.
 - **Dependencies:** U4.
 
@@ -446,8 +455,10 @@ auth, login, provider, model, telemetry consent는 child argv와 evidence에 포
   - `docs/works/2026-08-03-ZZA-103-oh-my-harness-pi-removal-release-work.md`
   - OMH PR comments/checks/release manifest and actual-target evidence
 - **Approach:** project branch에서 U1-U3을 구현하고 최신 head에 `ce-code-review`와
-  `ce-doc-review`를 수행한다. U4-U6의 local release fixture로 MDS child preview/apply 계약이
-  green인 것을 tag 생성 전에 확인한다. passing marker와 guarded merge evidence를 준비한 뒤 별도
+  `ce-doc-review`를 수행한다. OMH merge 뒤 tag 생성 전에 merge commit 기준으로 U4-U6 local
+  release fixture의 source commit/tree, archive, sidecar와 digest를 재생성하고, fixture
+  source commit이 tag 대상과 같음을 확인한 상태에서 MDS child preview/apply 계약을 다시
+  green으로 만든다. passing marker와 guarded merge evidence를 준비한 뒤 별도
   current-turn approval packet을 받아 merge한다. merge commit에 tag를 만들고 release
   workflow 결과의 asset/provenance를 MDS lock handoff로 기록한다.
 - **Test scenarios:** all canonical suites on macOS/Ubuntu/Windows, U4-U6 local MDS consumer
@@ -552,7 +563,9 @@ controlled fixtures or verified local artifacts; canonical unit/contract gates d
 - **Windows:** the same logical inventory through native executable/path handling and Windows CI
   plus actual certification runner evidence.
 - **Security/evidence:** no auth/login command, credential-shaped material or personal absolute home
-  path in plan, receipt, logs and evidence. Sentinel credentials are absent from the child environment;
+  path in plan, receipt, logs and evidence. Native config는 bounded regular-file-or-missing으로
+  읽고 symlink/non-file을 거부하며, apply 직전 같은 preimage를 재검증한 뒤 atomic write한다.
+  Sentinel credentials are absent from the child environment;
   hung children are terminated within the process/overall deadlines without mutation.
 - **Release:** downloaded `0.3.0` asset SHA-256 and provenance match MDS lock; source-checkout-only
   success is insufficient.
