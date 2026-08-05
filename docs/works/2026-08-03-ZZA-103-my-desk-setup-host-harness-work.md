@@ -4,7 +4,7 @@ ticket_id: ZZA-103
 ticket_url: https://linear.app/zzanghyunmoo/issue/ZZA-103/host-agent-harness-%EA%B8%B0%EB%B3%B8-%EC%84%A4%EC%B9%98-%EB%B0%8F-pi-%EC%99%84%EC%A0%84-%EC%A0%9C%EA%B1%B0
 ticket_status: In Review
 ticket_completion: pending
-remaining_prs:
+remaining_prs: https://github.com/zzanghyunmoo/oh-my-harness/pull/39
 ideation_status: waived
 ideation_path:
 ideation_notion_url:
@@ -61,14 +61,19 @@ plan-wide preflight, repeat no-op와 actual-target evidence를 완성한다.
 - Release gate (`tests/contracts/host_harness_release_gate_test.go`): OMH PR #38 merge commit에서
   생성한 실제 v0.3.0 아카이브와 sidecar를 snapshotter로 검증한 뒤 빈 `mds-host` 선택의
   preview와 exact-digest apply를 실제 child process로 통과시킨다.
+- U8 production handoff (`catalog/components/{host-harness,agents}.yaml`,
+  `catalog/locks/versions.lock.yaml`, host profiles): 공개 v0.3.0 asset URL과 canonical CI
+  SHA-256, source commit, exact Node 22.19.0과 OMH가 검토한 세 native agent archive/executable
+  identity를 embedded catalog에 고정한다. owner와 macOS/Windows certification profile은
+  OMH를 선택하고 Node는 dependency closure로만 포함한다.
 
 ## 검증
 
 - Green: `go test ./...`, `go test -race ./...`, `go vet ./...`, macOS build와
   `GOOS=windows GOARCH=amd64` build, `git diff --check`가 통과했다.
 - Green: 실제 OMH v0.3.0 아카이브와 sidecar를 제공한
-  `TestHostHarnessReleaseArtifactDrivesRealPreviewAndApply`가 macOS에서 preview/apply를
-  9.04초에 통과했다.
+  `TestHostHarnessReleaseGateRunsActualMergedArtifactPreviewAndApply`가 macOS에서 CI canonical
+  archive의 preview/apply를 9.27초에 통과했다.
 - Green: artifact snapshot, isolated preview, exact-digest apply, failure recovery,
   plan composition, receipt/evidence와 dependency-only selection의 unit/contract/integration
   테스트가 통과했다.

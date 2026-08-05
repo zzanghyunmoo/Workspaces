@@ -57,13 +57,17 @@ stable empty plan을 만든다.
   runtime/harness 117 pass와 Windows fixture 3 skip, package/release 36/36이 통과했다.
 - merge commit `95882328d339e7336e8a60a90f3e2640c1244da3`은 PR #38의 reviewed latest
   head와 두 trusted review marker를 포함한다.
+- v0.3.0 release는 같은 commit을 target으로 공개됐고, canonical archive SHA-256은
+  `da805da0130e937913706f98ddb415f5e4b4bc12d04505b269f08bf66237ea73`이다. archive와
+  sidecar를 업로드 후 재다운로드해 원본 bytes와 일치함을 확인했다.
 
 ## 후속 작업
 
 실제 OMH merge commit 기준으로 MDS local release fixture의 source commit/tree, archive,
 sidecar와 digest를 재생성했고 child preview/exact-digest apply를 통과했다. 후속 MDS host
 harness PR [#6](https://github.com/zzanghyunmoo/my-desk-setup/pull/6)이 남아 있어 Linear
-ZZA-103은 `In Review`를 유지한다.
+ZZA-103은 `In Review`를 유지한다. 최초 publish에서 발견한 upload endpoint 구성 오류는
+후속 PR [#39](https://github.com/zzanghyunmoo/oh-my-harness/pull/39)에서 수정한다.
 
 ## 운영 및 사용 시 주의사항
 

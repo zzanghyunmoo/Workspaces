@@ -4,7 +4,7 @@ ticket_id: ZZA-103
 ticket_url: https://linear.app/zzanghyunmoo/issue/ZZA-103/host-agent-harness-%EA%B8%B0%EB%B3%B8-%EC%84%A4%EC%B9%98-%EB%B0%8F-pi-%EC%99%84%EC%A0%84-%EC%A0%9C%EA%B1%B0
 ticket_status: In Review
 ticket_completion: pending
-remaining_prs: https://github.com/zzanghyunmoo/my-desk-setup/pull/6
+remaining_prs: https://github.com/zzanghyunmoo/my-desk-setup/pull/6, https://github.com/zzanghyunmoo/oh-my-harness/pull/39
 ideation_status: waived
 ideation_path:
 ideation_notion_url:
@@ -92,6 +92,7 @@ reviewed main merge commit에서 릴리스한다. 인증은 사용자가 직접 
 - Linear ZZA-103은 dependent MDS PR이 남아 있어 `In Review`를 유지한다.
 - Pull request: https://github.com/zzanghyunmoo/oh-my-harness/pull/38
 - Dependent MDS pull request: https://github.com/zzanghyunmoo/my-desk-setup/pull/6
+- Release endpoint follow-up: https://github.com/zzanghyunmoo/oh-my-harness/pull/39
 - Canonical Notion 구현 문서를 v0.3.0 follow-up branch, offline dependency closure, exact
   predecessor migration, actual receipt target, legacy recovery와 preserved draft 계약으로
   갱신했다: https://app.notion.com/p/3b1ef22ad4fc816299bbc1445da68856
