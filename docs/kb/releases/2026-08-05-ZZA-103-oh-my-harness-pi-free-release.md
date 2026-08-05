@@ -8,11 +8,7 @@ notion_feature_status: https://app.notion.com/p/3acef22ad4fc81e0813ff060d2fdd436
 notion_ticket: https://app.notion.com/p/3b1ef22ad4fc8171ae2fe9b74843f4fb
 last_verified: 2026-08-05
 module: oh-my-harness-release
-tags:
-  - zza-103
-  - pi-free
-  - composition-profile
-  - immutable-release
+tags: zza-103, pi-free, composition-profile, immutable-release
 problem_type: feature-state
 ---
 
