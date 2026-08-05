@@ -13,7 +13,7 @@ plan_status: complete
 plan_path: docs/plans/2026-08-03-ZZA-103-host-agent-harness-pi-removal-plan.md
 plan_notion_url: https://app.notion.com/p/3b1ef22ad4fc8197842cc7b8a27d6660
 plan_waiver_reason:
-work_status: in_progress
+work_status: complete
 work_notion_url: https://app.notion.com/p/3b1ef22ad4fc816299bbc1445da68856
 pr_url: https://github.com/zzanghyunmoo/oh-my-harness/pull/38
 closeout_status: pending
@@ -69,7 +69,7 @@ reviewed main merge commit에서 릴리스한다. 인증은 사용자가 직접 
 - Commits: `7f1588f fix(release): close v0.3.0 runtime safety gaps`,
   `062871d fix(release): satisfy the reviewed OMO dependency range`,
   `3d60130 fix(cli): explain native registration conflicts`.
-- Green: typecheck/build, unit 58/58, contracts 26/26, integration 98/98.
+- Green: typecheck/build, unit 59/59, contracts 26/26, integration 98/98.
 - Runtime: Claude Code 8/8, OpenCode 13/13, Codex 10/10.
 - Harness: 86 pass, Windows-only fixture 3 skip. Descriptor verify와 `git diff --check` 통과.
 - Package/release: 36/36. exact committed HEAD에서 self-contained artifact를 만들고 임의
@@ -80,7 +80,9 @@ reviewed main merge commit에서 릴리스한다. 인증은 사용자가 직접 
   JSON 결과와 CLI text renderer에서 검증했다.
 - 재현: raw upstream OMO tarball은 Bun `--no-install`에서 `zod` 부재로 실패했다. complete
   managed snapshot은 Node file-URL import로 외부 설치 없이 성공한다.
-- Pending: PR latest-head code/doc review와 macOS/Ubuntu/Windows CI.
+- Green: PR latest-head code review와 doc review를 별도 댓글로 게시했고 두 passing marker가
+  `3d60130d47f36cf593ccfade0df3332c6c3073fa`에 결합됐다.
+- Green: GitHub Actions latest-head macOS, Ubuntu, Windows jobs 모두 통과했다.
 - Release precondition: OMH merge 뒤 tag 전에 merge commit 기준 MDS local release fixture를
   재생성하고 source commit/tree, archive, sidecar, digest가 tag 대상과 같은 상태에서 child
   preview/apply를 다시 검증한다. 이 gate가 green이 아니면 v0.3.0을 발행하지 않는다.
