@@ -16,13 +16,13 @@ plan_waiver_reason:
 work_status: complete
 work_notion_url: https://app.notion.com/p/3b1ef22ad4fc816299bbc1445da68856
 pr_url: https://github.com/zzanghyunmoo/oh-my-harness/pull/38
-closeout_status: pending
-merged_pr_url:
-merge_commit:
-kb_paths:
-notion_feature_status_url:
+closeout_status: complete
+merged_pr_url: https://github.com/zzanghyunmoo/oh-my-harness/pull/38
+merge_commit: 95882328d339e7336e8a60a90f3e2640c1244da3
+kb_paths: docs/kb/releases/2026-08-05-ZZA-103-oh-my-harness-pi-free-release.md
+notion_feature_status_url: https://app.notion.com/p/3acef22ad4fc81e0813ff060d2fdd436
 notion_ticket_url: https://app.notion.com/p/3b1ef22ad4fc8171ae2fe9b74843f4fb
-closed_at:
+closed_at: 2026-08-05T12:32:23+09:00
 ---
 
 # ZZA-103 OMH v0.3.0 release follow-up 작업 기록
@@ -97,5 +97,10 @@ reviewed main merge commit에서 릴리스한다. 인증은 사용자가 직접 
 
 ## Merge closeout
 
-Merge 뒤 OMH KB, Notion 기능 현황·티켓 문서, merge commit과 v0.3.0 release URL을 기록한다.
-MDS 후속 PR이 남아 있으므로 이 PR closeout에서도 Linear는 `In Review`를 유지한다.
+- PR #38은 `95882328d339e7336e8a60a90f3e2640c1244da3`로 squash merge됐다.
+- 현재 기능 상태, 운영 경계와 검증 결과를
+  `docs/kb/releases/2026-08-05-ZZA-103-oh-my-harness-pi-free-release.md`에 갱신했다.
+- Notion `디자인 문서 > 기능 현황`과 canonical 티켓 구현 문서에 merge 결과와 release 전
+  MDS fixture gate를 동기화했다.
+- MDS 후속 PR이 남아 있으므로 Linear ZZA-103은 `In Review`,
+  `ticket_completion: pending`을 유지한다.

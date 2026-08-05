@@ -17,6 +17,12 @@ merge commit `cb0bde5d727c1f7d08fc2f5d778ea92acc2f0978`로 병합됐다. maintai
 product와 release surface는 Claude Code, OpenCode, Codex 세 runtime만 포함하며 Pi/OMP
 product, compatibility, migration surface는 제거됐다.
 
+후속 PR [#38](https://github.com/zzanghyunmoo/oh-my-harness/pull/38)은 merge commit
+`95882328d339e7336e8a60a90f3e2640c1244da3`로 병합됐다. OpenCode OMO는 reviewed
+`4.19.2` tarball과 upstream `^4.4.3` range를 만족하는 exact `zod@4.4.3`을 하나의
+content-addressed offline snapshot으로 materialize한다. source archive, manifest, entry
+point와 전체 tree digest가 일치해야 native registration을 계획한다.
+
 `mds-host` composition profile은 package와 인증을 소유하지 않는다. MDS가 제공한
 caller-owned agent executable을 exact digest로 검증한 뒤 공통 workflow 10개와 reviewed
 OMO/LazyCodex add-on을 runtime-native surface에 합성한다. agent가 없으면 mutation 없는
@@ -29,22 +35,31 @@ stable empty plan을 만든다.
 - published release와 asset은 overwrite/delete하지 않는다.
 - auth, login, token과 provider credential은 자동화하지 않고 사용자가 직접 관리한다.
 - 기존 user-owned native registration과 config는 소유권/identity가 다르면 보존하고
-  mutation 전에 collision으로 중단한다.
+  mutation 전에 collision으로 중단한다. 충돌 결과는 `native-registration:<runtime>` stable
+  code와 관련 없는 사용자 설정을 보존하는 수동 복구 안내를 JSON/text에 함께 제공한다.
+- exact prior `oh-my-openagent@4.19.2` registration만 reviewed local snapshot으로 교체한다.
+- receipt는 canonical resolution 뒤 실제 변경 target을 기록한다. 새 recovery journal은
+  environment selection을 필수로 결합하고 PR #37 이전 selection-less journal은 기존
+  operation/target identity 안에서만 호환 복구한다.
+- publish 전 실패한 exact owned release draft는 자동 삭제하지 않고 수동 점검·재시도를
+  위해 보존한다.
 
 ## 검증 결과
 
 - PR latest head의 Node 22.19 macOS, Ubuntu, Windows GitHub Actions가 모두 성공했다.
 - local canonical gate에서 typecheck/build, catalog, unit, contracts, integration,
   Claude/OpenCode/Codex runtime, harness, package/release와 diff check가 통과했다.
-- merge commit은 PR #37의 reviewed latest head를 포함한다.
+- PR #38 latest head 기준 unit 59/59, contracts 26/26, integration 98/98,
+  runtime/harness 117 pass와 Windows fixture 3 skip, package/release 36/36이 통과했다.
+- merge commit `95882328d339e7336e8a60a90f3e2640c1244da3`은 PR #38의 reviewed latest
+  head와 두 trusted review marker를 포함한다.
 
 ## 후속 작업
 
-후속 actual/offline 검증에서 raw OpenCode OMO tarball이 runtime dependency를 자체 포함하지
-않는 문제를 재현했다. v0.3.0 발행 전 exact dependency closure를 포함한 content-addressed
-snapshot, exact prior registration upgrade, actual receipt target, legacy recovery와 preserved
-release draft 계약을 별도 OMH follow-up PR에서 닫는다. MDS host harness PR도 남아 있어
-Linear ZZA-103은 `In Review`를 유지한다.
+v0.3.0 tag 전 실제 OMH merge commit 기준으로 MDS local release fixture의 source
+commit/tree, archive, sidecar와 digest를 재생성하고 child preview/apply를 다시 통과시켜야
+한다. 이 교차 저장소 gate가 green이 아니면 릴리스하지 않는다. MDS host harness PR도 남아
+있어 Linear ZZA-103은 `In Review`를 유지한다.
 
 Canonical Notion 기능 상태는
 [기능 현황](https://app.notion.com/p/3acef22ad4fc81e0813ff060d2fdd436), 구현 설명은
