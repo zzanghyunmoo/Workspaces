@@ -52,9 +52,10 @@ plan-wide preflight, repeat no-op와 actual-target evidence를 완성한다.
   caller-owned agent executable을 검증하고 OMH child preview를 격리된 state root에서
   실행한다. preview digest 하나를 부모 계획에 결합하고 child blocker와 mutation target을
   plan-wide preflight로 승격한다.
-- U6 apply (`internal/harness/apply.go`, `internal/execution/runner.go`): 승인된 exact digest로만
-  OMH apply를 실행하고 agent 설치보다 먼저 harness readiness를 확정한다. apply 결과와 actual
-  target을 MDS receipt/evidence에 기록하며 동일 실행은 no-op으로 수렴한다.
+- U6 apply (`internal/harness/apply.go`, `internal/execution/runner.go`): 계획 전체 preflight에서
+  harness·Node·agent snapshot을 mutation 전에 고정하고, agent payload 준비 뒤 승인된 exact
+  digest로만 OMH apply를 실행한다. apply 결과와 actual target을 MDS receipt/evidence에 기록하며
+  동일 실행은 no-op으로 수렴한다.
 - U7 host/guest 경계 (`internal/adapters/host`, fixture profile): 호스트에는 OMH와 agent
   executable만 합성하고 guest에는 CLI·언어·Neovim·agent 도구를 유지한다. 인증은 자동화하지
   않고 사용자가 직접 수행한다.
@@ -66,6 +67,18 @@ plan-wide preflight, repeat no-op와 actual-target evidence를 완성한다.
   SHA-256, source commit, exact Node 22.19.0과 OMH가 검토한 세 native agent archive/executable
   identity를 embedded catalog에 고정한다. owner와 macOS/Windows certification profile은
   OMH를 선택하고 Node는 dependency closure로만 포함한다.
+- Windows CI 회귀 보완 (`de0ba50`, `internal/harness/preview_test.go`): fixture가 실행 중인
+  Windows에서는 Windows target과 `;` PATH 구분자를 사용하고, 비-Windows CI에서는 지원 대상인
+  macOS fixture를 유지해 실제 platform 환경 계약을 검증한다.
+- Native agent 발행 보완 (`41979fe`, `internal/adapters/{host,packages}`): macOS의 Bun 전용
+  agent wrapper를 host native 경로에서 제거하고, archive 내부 파일명과 무관하게 `claude`,
+  `opencode`, `codex`의 안정된 command path로 발행한다. 설치 시 archive뿐 아니라 extracted
+  executable SHA-256도 production lock과 다시 대조한다.
+- Identity drift gates (`a634ee8`, `ed7e930`, `tests/contracts/host_harness_*_test.go`):
+  production의 세 native agent version·플랫폼별 archive/executable identity를 fixture와
+  대조하고, 실제 공개 OMH archive의 adapter identity를 fixture와 다시 대조한다. 이 연쇄 gate로
+  발견한 Codex macOS x64 production digest 오타는 공개 v0.3.0 archive와 merge commit의
+  canonical 값으로 바로잡았다.
 
 ## 검증
 
@@ -77,6 +90,11 @@ plan-wide preflight, repeat no-op와 actual-target evidence를 완성한다.
 - Green: artifact snapshot, isolated preview, exact-digest apply, failure recovery,
   plan composition, receipt/evidence와 dependency-only selection의 unit/contract/integration
   테스트가 통과했다.
+- Green: 최신 head `ed7e930`에서 full `go test ./...`, `go test -race ./...`, `go vet ./...`,
+  macOS/Windows build, Windows package test cross-compile, native Codex stable-command/digest 회귀
+  테스트가 통과했다.
+- Green: 최신 head `ed7e930`의 GitHub Actions macOS/Linux `verify`, `windows-verify`, fixture
+  contract와 Windows scanner가 통과했다.
 - Node 22.19.0의 macOS arm64/x64와 Windows arm64/x64 archive SHA-256은 `nodejs.org`
   공식 `SHASUMS256.txt`와 대조했다.
 - 미실행: 실제 Windows/macOS 사용자 홈에 대한 destructive install과 각 agent의 auth/login은
