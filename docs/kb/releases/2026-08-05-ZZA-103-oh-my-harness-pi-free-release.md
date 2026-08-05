@@ -1,9 +1,12 @@
 ---
 title: ZZA-103 OMH Pi-free release 기반 상태
 ticket: ZZA-103
-merged_pr: https://github.com/zzanghyunmoo/oh-my-harness/pull/38
-merge_commit: 95882328d339e7336e8a60a90f3e2640c1244da3
-work_evidence: docs/works/2026-08-05-ZZA-103-oh-my-harness-release-followup-work.md
+merged_pr: https://github.com/zzanghyunmoo/oh-my-harness/pull/39
+merge_commit: ee38c2253d7151e7b31bd4354adfd90c69b54907
+release_pr: https://github.com/zzanghyunmoo/oh-my-harness/pull/38
+release_commit: 95882328d339e7336e8a60a90f3e2640c1244da3
+work_evidence: docs/works/2026-08-05-ZZA-103-oh-my-harness-release-upload-endpoint-work.md
+release_work_evidence: docs/works/2026-08-05-ZZA-103-oh-my-harness-release-followup-work.md
 notion_feature_status: https://app.notion.com/p/3acef22ad4fc81e0813ff060d2fdd436
 notion_ticket: https://app.notion.com/p/3b1ef22ad4fc8171ae2fe9b74843f4fb
 last_verified: 2026-08-05
@@ -26,6 +29,13 @@ product, compatibility, migration surface는 제거됐다.
 `4.19.2` tarball과 upstream `^4.4.3` range를 만족하는 exact `zod@4.4.3`을 하나의
 content-addressed offline snapshot으로 materialize한다. source archive, manifest, entry
 point와 전체 tree digest가 일치해야 native registration을 계획한다.
+
+release upload endpoint 후속 PR
+[#39](https://github.com/zzanghyunmoo/oh-my-harness/pull/39)는 merge commit
+`ee38c2253d7151e7b31bd4354adfd90c69b54907`로 병합됐다. GitHub asset upload는
+`uploads.github.com/repos/.../releases/.../assets` canonical full URL을 직접 사용하며,
+`gh --hostname` 정규화가 존재하지 않는 `api.uploads.github.com`으로 바꾸는 경로를
+회귀 테스트로 차단한다.
 
 `mds-host` composition profile은 package와 인증을 소유하지 않는다. MDS가 제공한
 caller-owned agent executable을 exact digest로 검증한 뒤 공통 workflow 10개와 reviewed
@@ -60,6 +70,8 @@ stable empty plan을 만든다.
 - v0.3.0 release는 같은 commit을 target으로 공개됐고, canonical archive SHA-256은
   `da805da0130e937913706f98ddb415f5e4b4bc12d04505b269f08bf66237ea73`이다. archive와
   sidecar를 업로드 후 재다운로드해 원본 bytes와 일치함을 확인했다.
+- PR #39 latest head의 macOS, Ubuntu, Windows GitHub Actions와 code/doc review marker가
+  모두 통과했고 canonical full upload URL 회귀 테스트가 merge commit에 포함됐다.
 
 ## 후속 작업
 
@@ -67,7 +79,7 @@ stable empty plan을 만든다.
 sidecar와 digest를 재생성했고 child preview/exact-digest apply를 통과했다. 후속 MDS host
 harness PR [#6](https://github.com/zzanghyunmoo/my-desk-setup/pull/6)이 남아 있어 Linear
 ZZA-103은 `In Review`를 유지한다. 최초 publish에서 발견한 upload endpoint 구성 오류는
-후속 PR [#39](https://github.com/zzanghyunmoo/oh-my-harness/pull/39)에서 수정한다.
+후속 PR [#39](https://github.com/zzanghyunmoo/oh-my-harness/pull/39) 병합으로 닫혔다.
 
 ## 운영 및 사용 시 주의사항
 
