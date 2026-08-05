@@ -2,9 +2,9 @@
 workflow_schema: compound-work/v1
 ticket_id: ZZA-103
 ticket_url: https://linear.app/zzanghyunmoo/issue/ZZA-103/host-agent-harness-%EA%B8%B0%EB%B3%B8-%EC%84%A4%EC%B9%98-%EB%B0%8F-pi-%EC%99%84%EC%A0%84-%EC%A0%9C%EA%B1%B0
-ticket_status: In Review
-ticket_completion: pending
-remaining_prs: my-desk-setup-host-harness
+ticket_status: Done
+ticket_completion: complete
+remaining_prs:
 ideation_status: waived
 ideation_path:
 ideation_notion_url:
@@ -160,5 +160,5 @@ release artifact를 만든다.
   `docs/kb/releases/2026-08-05-ZZA-103-oh-my-harness-pi-free-release.md`에 기록했다.
 - Notion `디자인 문서 > 기능 현황`과 canonical 티켓 구현 문서에 merge 결과와 v0.3.0
   후속 경계를 동기화했다.
-- OMH release follow-up과 MDS PR이 남아 있으므로 Linear ZZA-103은 `In Review`,
-  `ticket_completion: pending`을 유지한다.
+- OMH follow-up PR #38, endpoint fix PR #39와 MDS PR #6까지 모두 병합·closeout되어
+  Linear ZZA-103은 `Done`, `ticket_completion: complete` 상태다.

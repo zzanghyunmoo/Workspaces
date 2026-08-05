@@ -2,9 +2,9 @@
 workflow_schema: compound-work/v1
 ticket_id: ZZA-103
 ticket_url: https://linear.app/zzanghyunmoo/issue/ZZA-103/host-agent-harness-%EA%B8%B0%EB%B3%B8-%EC%84%A4%EC%B9%98-%EB%B0%8F-pi-%EC%99%84%EC%A0%84-%EC%A0%9C%EA%B1%B0
-ticket_status: In Review
-ticket_completion: pending
-remaining_prs: https://github.com/zzanghyunmoo/oh-my-harness/pull/39
+ticket_status: Done
+ticket_completion: complete
+remaining_prs:
 ideation_status: waived
 ideation_path:
 ideation_notion_url:
@@ -16,13 +16,13 @@ plan_waiver_reason:
 work_status: complete
 work_notion_url: https://app.notion.com/p/3b1ef22ad4fc81e990c2df7dc995ebfc
 pr_url: https://github.com/zzanghyunmoo/my-desk-setup/pull/6
-closeout_status: pending
-merged_pr_url:
-merge_commit:
-kb_paths:
-notion_feature_status_url:
+closeout_status: complete
+merged_pr_url: https://github.com/zzanghyunmoo/my-desk-setup/pull/6
+merge_commit: 7e29369364f7ae535688e6d379b43aedc91bba64
+kb_paths: docs/kb/developer-environments/2026-08-05-ZZA-103-host-agent-harness.md
+notion_feature_status_url: https://app.notion.com/p/3acef22ad4fc81e0813ff060d2fdd436
 notion_ticket_url: https://app.notion.com/p/3b1ef22ad4fc8171ae2fe9b74843f4fb
-closed_at:
+closed_at: 2026-08-05T13:55:17+09:00
 ---
 
 # ZZA-103 MDS Host Harness 통합 작업 기록
@@ -102,12 +102,18 @@ plan-wide preflight, repeat no-op와 actual-target evidence를 완성한다.
 
 ## 외부 동기화
 
-- Linear ZZA-103: `In Review`
+- Linear ZZA-103: `Done`
 - Pull request: <https://github.com/zzanghyunmoo/my-desk-setup/pull/6>
 - Canonical plan: <https://app.notion.com/p/3b1ef22ad4fc8197842cc7b8a27d6660>
 - Notion 구현 문서: <https://app.notion.com/p/3b1ef22ad4fc81e990c2df7dc995ebfc>
 
 ## Merge closeout
 
-마지막 PR merge 후 KB, 기능 현황·티켓 문서, merge commit, Linear Done과 root pointer를
-기록한다.
+- PR #6은 `7e29369364f7ae535688e6d379b43aedc91bba64`로 squash merge됐다.
+- OMH #37, #38, #39와 MDS #6의 최종 기능 상태·운영 경계·검증 결과를
+  `docs/kb/developer-environments/2026-08-05-ZZA-103-host-agent-harness.md`에 기록했다.
+- Notion `디자인 문서 > 기능 현황`, 티켓 문서와 MDS/OMH 구현 문서를 최종 merge 상태로
+  동기화했다.
+- root workspace의 OMH/MDS submodule pointer를 두 저장소의 최신 `main` merge commit으로
+  이동했다.
+- 남은 PR이 없으며 Linear ZZA-103은 GitHub 연동으로 `Done` 전환된 상태를 확인했다.

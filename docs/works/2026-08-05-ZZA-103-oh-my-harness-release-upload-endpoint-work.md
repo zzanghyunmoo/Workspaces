@@ -2,9 +2,9 @@
 workflow_schema: compound-work/v1
 ticket_id: ZZA-103
 ticket_url: https://linear.app/zzanghyunmoo/issue/ZZA-103/host-agent-harness-%EA%B8%B0%EB%B3%B8-%EC%84%A4%EC%B9%98-%EB%B0%8F-pi-%EC%99%84%EC%A0%84-%EC%A0%9C%EA%B1%B0
-ticket_status: In Review
-ticket_completion: pending
-remaining_prs: https://github.com/zzanghyunmoo/my-desk-setup/pull/6
+ticket_status: Done
+ticket_completion: complete
+remaining_prs:
 ideation_status: waived
 ideation_path:
 ideation_notion_url:
@@ -59,7 +59,7 @@ v0.3.0 release publish job이 존재하지 않는 `api.uploads.github.com`에 �
 
 - Pull request: https://github.com/zzanghyunmoo/oh-my-harness/pull/39
 - Release: https://github.com/zzanghyunmoo/oh-my-harness/releases/tag/v0.3.0
-- Linear ZZA-103은 MDS PR #6과 이 후속 리뷰가 남아 있어 `In Review`를 유지한다.
+- Linear ZZA-103은 MDS PR #6까지 병합·closeout되어 `Done`이다.
 - Canonical Notion 구현 문서:
   https://app.notion.com/p/3b1ef22ad4fc816299bbc1445da68856
 
@@ -70,5 +70,5 @@ v0.3.0 release publish job이 존재하지 않는 `api.uploads.github.com`에 �
   `docs/kb/releases/2026-08-05-ZZA-103-oh-my-harness-pi-free-release.md`에 갱신했다.
 - Notion `디자인 문서 > 기능 현황`, 티켓 문서와 OMH 구현 문서에 merge 결과를
   동기화했다.
-- MDS PR #6이 남아 있으므로 Linear ZZA-103은 `In Review`,
-  `ticket_completion: pending`을 유지한다.
+- MDS PR #6까지 병합·closeout되어 Linear ZZA-103은 `Done`,
+  `ticket_completion: complete` 상태다.

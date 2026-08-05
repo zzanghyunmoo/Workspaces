@@ -97,6 +97,18 @@ Preservation does not grant overwrite authority. The publisher must revalidate
 the draft, tag, source marker, asset identity, and downloaded bytes before the
 single publish transition, and never mutates an already published release.
 
+### Published Release Consumer Contract
+
+A cross-repository identity record that tells a consumer exactly which immutable
+producer release, source tree, catalog revision, archive bytes, and embedded
+runtime identities it is allowed to install.
+
+The contract is verified as a chain: downloaded release bytes and sidecar must
+match the consumer fixture, identities extracted from those bytes must match the
+fixture, and the production lock must match the same fixture. Copying values into
+both fixture and production configuration without an independent producer-byte
+comparison does not establish this contract.
+
 ## Notion Documentation
 
 ### Ticket-scoped Documentation

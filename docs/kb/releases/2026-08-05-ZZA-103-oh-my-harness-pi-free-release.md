@@ -73,13 +73,14 @@ stable empty plan을 만든다.
 - PR #39 latest head의 macOS, Ubuntu, Windows GitHub Actions와 code/doc review marker가
   모두 통과했고 canonical full upload URL 회귀 테스트가 merge commit에 포함됐다.
 
-## 후속 작업
+## 소비자 통합 상태
 
 실제 OMH merge commit 기준으로 MDS local release fixture의 source commit/tree, archive,
-sidecar와 digest를 재생성했고 child preview/exact-digest apply를 통과했다. 후속 MDS host
-harness PR [#6](https://github.com/zzanghyunmoo/my-desk-setup/pull/6)이 남아 있어 Linear
-ZZA-103은 `In Review`를 유지한다. 최초 publish에서 발견한 upload endpoint 구성 오류는
-후속 PR [#39](https://github.com/zzanghyunmoo/oh-my-harness/pull/39) 병합으로 닫혔다.
+sidecar와 digest를 재생성했고 child preview/exact-digest apply를 통과했다. MDS host
+harness PR [#6](https://github.com/zzanghyunmoo/my-desk-setup/pull/6)은 merge commit
+`7e29369364f7ae535688e6d379b43aedc91bba64`로 병합됐다. 최초 publish에서 발견한 upload
+endpoint 구성 오류도 후속 PR [#39](https://github.com/zzanghyunmoo/oh-my-harness/pull/39)
+병합으로 닫혔으며 Linear ZZA-103은 `Done`이다.
 
 ## 운영 및 사용 시 주의사항
 
