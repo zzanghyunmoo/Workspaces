@@ -16,13 +16,13 @@ plan_waiver_reason: User requested Linear and Notion external updates be deferre
 work_status: complete
 work_notion_url: https://app.notion.com/p/3b3ef22ad4fc81ad8942d6fc4fe3bc99?pvs=204
 pr_url: https://github.com/zzanghyunmoo/oh-my-harness/pull/40
-closeout_status: pending
-merged_pr_url:
-merge_commit:
-kb_paths:
-notion_feature_status_url:
-notion_ticket_url:
-closed_at:
+closeout_status: complete
+merged_pr_url: https://github.com/zzanghyunmoo/oh-my-harness/pull/40
+merge_commit: d30e42113c0a589d11f8505b4afff55c643e62ed
+kb_paths: docs/kb/developer-environments/2026-08-07-ZZA-104-omh-runtime-identity-composition.md
+notion_feature_status_url: https://app.notion.com/p/3acef22ad4fc81e0813ff060d2fdd436?pvs=204
+notion_ticket_url: https://app.notion.com/p/3b3ef22ad4fc81ad8942d6fc4fe3bc99?pvs=204
+closed_at: 2026-08-06T21:23:32Z
 ---
 
 # ZZA-104 MDS runtime ownership 작업 기록
@@ -51,4 +51,4 @@ Linear ZZA-104는 In Progress 상태다. 사용자가 요청한 대로 Notion �
 
 ## Merge closeout
 
-PR 생성과 review marker 갱신 후 작성한다.
+OMH PR #40은 squash merge commit `d30e42113c0a589d11f8505b4afff55c643e62ed`로 병합됐다. 기능 현황과 티켓 Notion 문서, local KB를 갱신했다. MDS PR #7과 release-lock follow-up이 남아 Linear는 In Review를 유지한다.
