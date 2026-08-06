@@ -11,10 +11,10 @@ ideation_notion_url:
 ideation_waiver_reason: Existing installation blocker and explicit runtime-ownership decision were sufficiently bounded.
 plan_status: complete
 plan_path: docs/plans/2026-08-06-ZZA-104-runtime-ownership-plan.md
-plan_notion_url:
+plan_notion_url: https://app.notion.com/p/3b3ef22ad4fc8130b011e4567db4d0ab?pvs=204
 plan_waiver_reason: User requested Linear and Notion external updates be deferred.
 work_status: complete
-work_notion_url:
+work_notion_url: https://app.notion.com/p/3b3ef22ad4fc81ad8942d6fc4fe3bc99?pvs=204
 pr_url: https://github.com/zzanghyunmoo/oh-my-harness/pull/40
 closeout_status: pending
 merged_pr_url:
