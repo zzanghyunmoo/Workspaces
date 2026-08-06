@@ -2,9 +2,9 @@
 workflow_schema: compound-work/v1
 ticket_id: ZZA-104
 ticket_url: https://linear.app/zzanghyunmoo/issue/ZZA-104
-ticket_status: In Progress
+ticket_status: In Review
 ticket_completion: pending
-remaining_prs: MDS runtime identity handoff, OMH mds-host validation
+remaining_prs: https://github.com/zzanghyunmoo/my-desk-setup/pull/7
 ideation_status: waived
 ideation_path:
 ideation_notion_url:
@@ -13,9 +13,9 @@ plan_status: complete
 plan_path: docs/plans/2026-08-06-ZZA-104-runtime-ownership-plan.md
 plan_notion_url:
 plan_waiver_reason: User requested Linear and Notion external updates be deferred.
-work_status: in_progress
+work_status: complete
 work_notion_url:
-pr_url:
+pr_url: https://github.com/zzanghyunmoo/oh-my-harness/pull/40
 closeout_status: pending
 merged_pr_url:
 merge_commit:
