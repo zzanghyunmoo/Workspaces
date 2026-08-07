@@ -41,6 +41,11 @@ PR #44의 하네스 픽스처 수정을 포함하는 새 immutable OMH `v0.3.2` 
   `de31d918a4320eb56f791d53b87dbc64666e6e6f8c539877420fb3b905a2248b`로 갱신했다.
 - release, native registration, integration 및 harness fixture의 package identity를
   같은 version으로 동기화했다.
+- `src/environment/native-registration.ts#registerClaudeRuntime`: 이전 managed root는 receipt가
+  지정한 경로와 plugin bytes가 정확히 일치하면 predecessor로 인정하고, active root에는
+  계속 현재 `HARNESS_VERSION`과 exact bytes를 요구한다.
+- `tests/unit/native-registration.test.ts`: 실제 `0.3.1` predecessor가 제거·재설치된 뒤
+  `0.3.2` active root로 수렴하는 회귀 시나리오를 검증한다.
 
 ## 검증
 
@@ -54,10 +59,16 @@ PR #44의 하네스 픽스처 수정을 포함하는 새 immutable OMH `v0.3.2` 
 - PASS: `npm run test:runtime:codex` — 10 passed, 0 failed.
 - PASS: `npm run test:harness` — 86 passed, 3 platform fixture skipped, 0 failed.
 - PASS: `npm run package:verify` — 36 passed, 0 failed.
+- PASS: code review finding을 반영한 branch head
+  `cd56bc6a2d9be4f6b8dd224be451c9a291838b76`에서 위 canonical gate 전체를 재실행했다.
 - 최초 package gate는 release source materialization이 미커밋 working tree가 아니라 Git
   object를 사용해 이전 `0.3.1` archive를 만든다는 계약 때문에 1건 실패했다. 변경을
   branch commit `ddd9316525e6e6eee941434c1f7d369bf589e26b`에 고정한 뒤 같은 gate가
   36/36으로 통과해 source identity 경계를 확인했다.
+- `ce-code-review`가 이전 root fixture를 이미 `0.3.2`로 둬 실제 `0.3.1 → 0.3.2`
+  Claude managed upgrade 충돌을 숨기는 P1을 발견했고, 독립 validator가 확인했다. 소유권을
+  exact previous-root bytes에 결합하는 수정과 전환 회귀 테스트를 적용한 뒤 전체 gate를
+  재통과했다.
 - 미실행: 실제 `v0.3.2` GitHub Release publication, MDS catalog lock과 Windows apply는
   PR merge 이후 후속 검증이다.
 
