@@ -47,7 +47,9 @@ PR #44의 하네스 픽스처 수정을 포함하는 새 immutable OMH `v0.3.2` 
 - `src/environment/orchestrator.ts#claudeNativeRegistration`: root-specific version 계약을 CLI
   preflight, action 실행, native recovery capture, rollback, doctor에 동일하게 전달한다.
 - `tests/integration/omh-cli.test.ts`: 실제 receipt-owned `0.3.1` payload의 clean preview와
-  apply가 `0.3.2` native registration으로 수렴하는 orchestrator 회귀 시나리오를 검증한다.
+  apply가 `0.3.2` native registration으로 수렴하는 시나리오와, 그 뒤 후속 Codex 필수
+  action 실패 시 이전 root·`0.3.1`·receipt를 복원하고 recovery queue를 비우는 실제
+  orchestrator/journal rollback 시나리오를 검증한다.
 - `tests/unit/native-registration.test.ts`: `0.3.1 → 0.3.2`와 역방향 복구를 검증하고,
   exact predecessor bytes라도 reported version이 `9.9.9`이면 mutation 전에 거부한다.
 
@@ -64,7 +66,7 @@ PR #44의 하네스 픽스처 수정을 포함하는 새 immutable OMH `v0.3.2` 
 - PASS: `npm run test:harness` — 86 passed, 3 platform fixture skipped, 0 failed.
 - PASS: `npm run package:verify` — 36 passed, 0 failed.
 - PASS: 두 차례 code review finding을 반영한 최신 branch head
-  `2768c1a79a7febd2c1efe16ed7b74ef1851bcc40`에서 위 canonical gate 전체를 재실행했다.
+  `9b5d7f192bc1c26499351d4c78392732b451c61f`에서 위 canonical gate 전체를 재실행했다.
 - 최초 package gate는 release source materialization이 미커밋 working tree가 아니라 Git
   object를 사용해 이전 `0.3.1` archive를 만든다는 계약 때문에 1건 실패했다. 변경을
   branch commit `ddd9316525e6e6eee941434c1f7d369bf589e26b`에 고정한 뒤 같은 gate가
@@ -75,6 +77,10 @@ PR #44의 하네스 픽스처 수정을 포함하는 새 immutable OMH `v0.3.2` 
   `HARNESS_VERSION`을 요구하는 P1이 남아 있음을 최신-head 재리뷰와 독립 validator가 다시
   확인했다. root-specific version 계약과 실제 orchestrator 전환 회귀 테스트를 적용한 뒤
   전체 gate를 재통과했다.
+- 다음 최신-head testing/adversarial 리뷰에서 실제 transaction rollback lifecycle 증명이
+  저수준 역방향 등록 테스트에만 머문 P2를 확인했다. Claude upgrade 뒤 Codex action 실패를
+  주입해 prior root/version/receipt 복원과 journal recovery 정리를 검증한 뒤 전체 gate를
+  최신 head에서 다시 통과했다.
 - 미실행: 실제 `v0.3.2` GitHub Release publication, MDS catalog lock과 Windows apply는
   PR merge 이후 후속 검증이다.
 
