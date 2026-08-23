@@ -18,7 +18,7 @@ target_repositories:
 - **Objective:** MacBook의 Lima Ubuntu guest에서 NvChad 하나로 기존 C++·Go·Python과 Java·Kotlin·C# 프로젝트를 개발할 수 있는 재현 가능한 전체 IDE 환경을 제공한다.
 - **Product authority:** 이 Product Contract를 Notion `배경`의 canonical 요구사항 문서와 동기화해야 한다.
 - **Execution:** `projects/my-desk-setup`의 기존 plan/apply/doctor, exact pin, ownership, 실제 대상 검증 경계를 확장한다.
-- **Open blockers:** 기존 상위 ideation이 .NET·Razor·Blazor와 전체 IDE profile 결정을 포괄하지 않으므로 별도 `ce-ideate`, Linear 티켓과 canonical Notion 문서가 필요하다.
+- **Workflow exceptions:** 사용자의 2026-08-21 지시에 따라 별도 `ce-ideate` 산출물과 Linear 티켓은 면제하며 canonical Notion 요구사항, 로컬 계획·work evidence와 project PR 흐름은 유지한다.
 
 ---
 
@@ -38,8 +38,8 @@ Java·Kotlin·Gradle은 catalog와 lock에 존재하지만 Linux guest target에
 ### Key Decisions
 
 - **Lima first:** 1차 지원 대상은 macOS host가 아니라 Lima Ubuntu guest이며 WSL은 후속 범위로 둔다.
-- **Composable profiles:** JVM과 .NET을 각각 선택할 수 있고 전체 프로필이 기존 C++·Go·Python 지원과 두 신규 영역을 합성한다.
-- **Full by default:** `lima-guest` 기본 profile은 `nvim-ide-full`을 선택하되 언어별 profile도 유지한다.
+- **Composable profiles:** JVM과 .NET을 각각 선택할 수 있고 각 profile이 profile nesting 없이 필요한 component/capability root를 직접 합성한다.
+- **Full by default:** `lima-guest` 기본 profile은 `nvim-ide-full`과 동일한 full root closure를 직접 선택하되 언어별 profile도 유지한다.
 - **End-to-end IDE outcome:** 단순 LSP 연결이 아니라 편집, build, test, run, watch와 DAP debugging까지 완료 기준에 포함한다.
 - **Pinned experimental Kotlin:** 공식 Kotlin LSP의 Alpha 상태를 숨기지 않고 exact version과 실제 Gradle/Spring Boot 검증을 통과한 경우에만 ready로 판정한다.
 - **Bounded Kotlin Spring support:** Kotlin은 언어·Gradle·debug와 Spring 설정 파일 지원을 필수로 하되 Java Spring Tools와 동일한 bean·endpoint 인식은 완료 조건에서 제외한다.
@@ -48,10 +48,14 @@ Java·Kotlin·Gradle은 catalog와 lock에 존재하지만 Linux guest target에
 
 ```mermaid
 flowchart TB
-  Lima[lima-guest default] --> Full[nvim-ide-full]
-  Full --> Existing[Existing C++ / Go / Python IDE]
-  Full --> JVM[nvim-ide-jvm]
-  Full --> DotNet[nvim-ide-dotnet]
+  Lima["lima-guest default"] --> Shared[Shared IDE core]
+  Lima --> Existing[Existing C++ / Go / Python IDE]
+  Lima --> JVM[JVM / Spring slice]
+  Lima --> DotNet[.NET / Razor slice]
+  Full[nvim-ide-full] --> Shared
+  Full --> Existing
+  Full --> JVM
+  Full --> DotNet
   JVM --> Spring[Java and Kotlin / Gradle / Spring Boot]
   DotNet --> AspNet[C# / ASP.NET Core / Razor / Blazor]
 ```
@@ -61,10 +65,10 @@ flowchart TB
 **Profiles and target ownership**
 
 - R1. 1차 지원은 Lima Ubuntu guest에 한정하며 language runtime, build tool, language server, debugger와 NvChad configuration은 guest가 소유해야 한다.
-- R2. `nvim-ide-jvm`과 `nvim-ide-dotnet`은 독립 선택할 수 있어야 하며 `nvim-ide-full`은 두 profile과 기존 C++·Go·Python IDE capability를 합성해야 한다.
-- R3. `lima-guest` 기본 profile은 `nvim-ide-full`을 선택해야 한다.
+- R2. `nvim-ide-jvm`, `nvim-ide-dotnet`, `nvim-ide-full`은 profile nesting 없이 각각 shared core와 필요한 JVM, .NET, 기존 C++·Go·Python component/capability root 조합을 직접 선택해야 한다.
+- R3. `lima-guest` 기본 profile은 `nvim-ide-full`과 동일한 full root closure를 직접 선택해야 한다.
 - R4. 신규 runtime, build tool, language server, debugger와 plugin은 review 가능한 immutable identity로 고정되어야 하며 normal apply가 이를 몰래 갱신해서는 안 된다.
-- R5. 기존 사용자 소유 `~/.config/nvim`은 명시적인 adoption 없이 변경하지 않고, 기존 mds-managed configuration의 누락이나 drift만 안전하게 복구해야 한다.
+- R5. 기존 사용자 소유 `~/.config/nvim`은 명시적인 adoption 없이 변경하지 않고, 기존 mds-managed configuration의 누락이나 drift만 안전하게 복구해야 한다. Project-controlled import와 실행은 canonical root의 명시적 workspace trust 뒤에만 허용하며 사용자는 trust를 철회해 현재 NvChad instance가 해당 root에 대해 추적하는 process와 LSP를 즉시 종료할 수 있어야 한다.
 
 **JVM and Spring Boot**
 
@@ -80,7 +84,7 @@ flowchart TB
 - R12. .NET SDK는 C# console, library와 test project 및 ASP.NET Core Web API·MVC/Razor·Blazor project를 restore, build, test와 run할 수 있어야 한다.
 - R13. C# source에서 solution-aware navigation, completion, diagnostics, refactoring과 formatting이 동작해야 한다.
 - R14. `.cshtml`과 `.razor`의 C#·HTML 혼합 문서에서 completion, diagnostics, navigation과 formatting을 제공해야 한다.
-- R15. ASP.NET Core project는 `launchSettings.json` profile을 존중하는 run과 watch를 제공하고 사용자가 launch profile을 선택할 수 있어야 한다.
+- R15. ASP.NET Core project는 사용자가 선택한 `launchSettings.json` profile의 project와 environment를 존중하되 managed run/watch/debug의 최종 바인딩은 loopback으로 제한하고 non-loopback profile은 실행 전에 거부해야 한다.
 - R16. C# application, ASP.NET Core server와 test는 NvChad의 공통 debugging UI에서 breakpoint, continue, step-in, step-over와 variable inspection을 지원해야 한다.
 
 **Execution experience and verification**
@@ -94,7 +98,7 @@ flowchart TB
 
 - F1. Lima default provisioning
   - **Trigger:** 사용자가 MacBook의 Lima target에 기본 `lima-guest` profile을 plan한 뒤 reviewed digest로 apply한다.
-  - **Steps:** resolver가 `nvim-ide-full`과 전체 dependency closure를 계산하고 guest 안에 고정된 runtime, IDE tool과 managed NvChad configuration을 적용한다.
+  - **Steps:** resolver가 `nvim-ide-full`과 동일한 normalized shared-core·legacy·JVM·.NET root closure를 `lima-guest`에서 직접 계산하고 guest 안에 고정된 runtime, IDE tool과 managed NvChad configuration을 적용한다.
   - **Outcome:** 기존 언어와 JVM·.NET capability가 같은 ownership 및 verification 계약 아래 준비된다.
   - **Covered by:** R1-R5, R18-R20
 - F2. JVM project workflow
@@ -115,7 +119,7 @@ flowchart TB
 
 ### Acceptance Examples
 
-- AE1. 깨끗한 Apple Silicon Lima Ubuntu guest에서 기본 `lima-guest` profile을 plan하면 `nvim-ide-full`과 기존·JVM·.NET dependency closure가 포함되고, apply 후 repeat plan은 같은 identity를 유지한다.
+- AE1. 깨끗한 Apple Silicon Lima Ubuntu guest에서 기본 `lima-guest` profile을 plan하면 `nvim-ide-full`과 동일한 normalized shared-core·legacy·JVM·.NET root closure를 직접 resolve하고, apply 후 repeat plan은 같은 identity를 유지한다.
 - AE2. 사용자 소유 `~/.config/nvim`이 있는 Lima guest에서 일반 apply는 원본을 변경하지 않고 conflict를 보고하며, 명시적인 adoption만 기존 backup을 보존한 뒤 관리 상태로 전환한다.
 - AE3. Gradle Java Spring Boot fixture를 열면 Java navigation·completion·diagnostics, Spring bean·endpoint 및 설정 지원, format, build, test, run과 breakpoint debugging이 통과한다.
 - AE4. Gradle Kotlin Spring Boot fixture를 열면 Kotlin navigation·completion·diagnostics·format, Spring 설정 지원, build, test, run과 breakpoint debugging이 통과한다.
@@ -144,11 +148,10 @@ flowchart TB
 
 ### Outstanding Questions
 
-**Resolve Before Planning**
+**Resolved Before Planning**
 
-- 이번 변경의 Linear 티켓을 생성하거나 기존 티켓을 확정해야 한다.
-- Notion `배경`에 canonical 요구사항 문서를 생성하고 이 문서와 동기화해야 한다.
-- 기존 `docs/ideation/2026-07-29-cross-platform-development-environment-ideation.html`은 .NET·Razor·Blazor와 전체 IDE profile 결정을 포괄하지 않으므로 별도 `ce-ideate`를 선행해야 한다.
+- Linear 티켓과 별도 persistent ideation artifact는 사용자의 명시 지시로 면제했다.
+- Notion `배경`에 canonical 요구사항 문서를 생성하고 이 문서와 동기화했다.
 
 **Deferred to Planning**
 

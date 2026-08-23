@@ -26,7 +26,7 @@ workflow_waivers:
 - **Path ownership:** `docs/brainstorms/`, `docs/plans/`, `docs/works/`, `docs/solutions/`는 workspace repo 기준이다. `catalog/`, `internal/`, `tests/`, `.github/`, `scripts/`와 project `README.md`는 target repo `projects/my-desk-setup` 기준이다.
 - **Execution profile:** workspace evidence와 Notion 구현 문서를 먼저 연 뒤 project repo의 별도 branch에서 구현하고 PR을 생성한다. LFG는 PR과 green CI까지 소유하며 merge는 별도 사용자 승인 전 실행하지 않는다.
 - **Stop conditions:** exact upstream identity를 확정할 수 없거나 실제 Kotlin DAP, Spring, Razor/Blazor capability가 실패하면 placeholder나 fallback으로 우회하지 않고 해당 profile을 non-ready로 남긴다.
-- **Ownership boundary:** user-owned `~/.config/nvim`은 명시적 adoption 없이는 읽기 전용 conflict 대상이며 managed config, runtime tree, fixture cache만 수리한다.
+- **Ownership boundary:** user-owned `~/.config/nvim`은 명시적 adoption 없이는 읽기 전용 conflict 대상이며 managed config와 runtime tree만 수리한다. Fixture dependency는 guest-local ecosystem cache를 사용하되 readiness evidence에 cache 내용을 포함하지 않는다.
 - **Workflow exceptions:** Linear ticket과 별도 persistent ideation artifact는 frontmatter의 사용자 승인 사유로 면제한다. Notion dual publishing, work evidence, project branch/PR, review와 actual-target evidence는 유지한다.
 
 ---
@@ -51,10 +51,10 @@ Java·Kotlin·Gradle은 catalog와 lock에 일부 존재하지만 Lima target에
 **Profiles and target ownership**
 
 - R1. 1차 지원은 Lima Ubuntu guest에 한정하며 language runtime, build tool, language server, debugger와 NvChad configuration은 guest가 소유해야 한다.
-- R2. `nvim-ide-jvm`과 `nvim-ide-dotnet`은 독립 선택할 수 있어야 하며 `nvim-ide-full`은 두 profile과 기존 C++·Go·Python IDE capability를 합성해야 한다.
-- R3. `lima-guest` 기본 profile은 `nvim-ide-full`을 선택해야 한다.
+- R2. `nvim-ide-jvm`, `nvim-ide-dotnet`, `nvim-ide-full`은 profile nesting 없이 각각 shared core와 필요한 JVM, .NET, 기존 C++·Go·Python component/capability root 조합을 직접 선택해야 한다.
+- R3. `lima-guest` 기본 profile은 `nvim-ide-full`과 동일한 full root closure를 직접 선택해야 한다.
 - R4. 신규 runtime, build tool, language server, debugger와 plugin은 review 가능한 immutable identity로 고정되어야 하며 normal apply가 이를 몰래 갱신해서는 안 된다.
-- R5. 기존 사용자 소유 `~/.config/nvim`은 명시적인 adoption 없이 변경하지 않고, 기존 mds-managed configuration의 누락이나 drift만 안전하게 복구해야 한다.
+- R5. 기존 사용자 소유 `~/.config/nvim`은 명시적인 adoption 없이 변경하지 않고, 기존 mds-managed configuration의 누락이나 drift만 안전하게 복구해야 한다. Project-controlled import와 실행은 canonical root의 명시적 workspace trust 뒤에만 허용하며 사용자는 trust를 철회해 현재 NvChad instance가 해당 root에 대해 추적하는 process와 LSP를 즉시 종료할 수 있어야 한다.
 
 **JVM and Spring Boot**
 
@@ -70,7 +70,7 @@ Java·Kotlin·Gradle은 catalog와 lock에 일부 존재하지만 Lima target에
 - R12. .NET SDK는 C# console, library와 test project 및 ASP.NET Core Web API·MVC/Razor·Blazor project를 restore, build, test와 run할 수 있어야 한다.
 - R13. C# source에서 solution-aware navigation, completion, diagnostics, refactoring과 formatting이 동작해야 한다.
 - R14. `.cshtml`과 `.razor`의 C#·HTML mixed document에서 completion, diagnostics, navigation과 formatting을 제공해야 한다.
-- R15. ASP.NET Core project는 `launchSettings.json` profile을 존중하는 run과 watch를 제공하고 사용자가 launch profile을 선택할 수 있어야 한다.
+- R15. ASP.NET Core project는 사용자가 선택한 `launchSettings.json` profile의 project와 environment를 존중하되 managed run/watch/debug의 최종 바인딩은 loopback으로 제한하고 non-loopback profile은 실행 전에 거부해야 한다.
 - R16. C# application, ASP.NET Core server와 test는 NvChad의 공통 debugging UI에서 breakpoint, continue, step-in, step-over와 variable inspection을 지원해야 한다.
 
 **Execution experience and verification**
@@ -130,7 +130,7 @@ Java·Kotlin·Gradle은 catalog와 lock에 일부 존재하지만 Lima target에
 
 - JVM-only와 .NET-only profile은 공통 IDE core 외의 다른 language slice를 끌어오지 않으며 full closure는 legacy+JVM+.NET의 정확한 합집합이다.
 - normal apply는 exact production lock만 소비하고 moving feed, Mason install 또는 runtime latest resolution을 실행하지 않는다.
-- production doctor와 actual Lima certification은 동일 project-action 및 protocol probe authority를 사용한다.
+- production doctor와 actual Lima certification은 동일 embedded fixture와 capability probe authority를 사용하며 UI action은 별도 headless harness로 동등한 argv·선택·DAP 계약을 검증한다.
 - repository의 기존 four-target release promotion gate는 Lima-first feature acceptance 때문에 약화되지 않는다.
 
 ### Sources
@@ -162,7 +162,7 @@ Java·Kotlin·Gradle은 catalog와 lock에 일부 존재하지만 Lima target에
 - project action은 단일 NvChad palette에 `build`, `test`, `run`, `watch`, `debug-app`, `debug-test` 순서로 노출한다. 선택한 project가 지원하지 않는 action은 disabled reason을 표시하고, 취소는 부작용 없이 종료하며, 실패 결과는 동일 action이 연 terminal/diagnostic surface에 귀속한다.
 - Gradle wrapper/import, MSBuild target, launch profile, watch 또는 debugger처럼 project-controlled code를 실행하기 전 canonical project identity에 대한 explicit workspace trust를 요구한다. Untrusted workspace는 non-executing text editing만 허용한다.
 - managed server/debugger는 MDS exact identity를 따르며 user project의 Gradle wrapper, Java toolchain, `global.json`과 dependencies는 project authority로 존중한다.
-- build, test, run, watch, debug-app과 debug-test는 공통 action vocabulary를 사용하고 UI와 headless verification이 같은 resolved action을 소비한다.
+- build, test, run, watch, debug-app과 debug-test는 공통 action vocabulary를 사용한다. UI와 headless verification은 이를 독립적으로 실행하고 contract tests가 argv·cwd·환경·DAP 호출의 동등성을 검증한다.
 - 이 변경은 Lima actual evidence를 추가하지만 repository stable release의 기존 multi-target promotion breadth를 축소하지 않는다.
 - Spring Tools, .NET SDK와 Roslyn/Razor의 미확정 exact payload는 U2에서 producer metadata와 checksum을 고정한 뒤에만 production catalog에 들어간다.
 
@@ -173,10 +173,10 @@ Java·Kotlin·Gradle은 catalog와 lock에 일부 존재하지만 Lima target에
 - KTD3. **Multi-file tools publish as immutable runtime trees.** Existing `Snapshotter`의 bounded safe extraction을 재사용하되 archive identity, normalized tree manifest, canonical launcher, ownership marker와 atomic directory publication을 하나의 contract로 추가한다. `Vendor.Install`의 single-executable path는 그대로 유지한다.
 - KTD4. **Neovim and Razor form a compatibility epoch.** Neovim 0.12.4, NvChad/plugin commits, roslyn.nvim, Roslyn server, Razor payload와 delegated HTML language service는 partial upgrade할 수 없는 reviewed tuple로 다룬다. 기존 language regression과 `.cshtml`/`.razor`의 C#·HTML mixed-document probe가 모두 통과해야 epoch가 production lock이 된다.
 - KTD5. **Server runtimes and project runtimes are separate authorities.** JDT LS, Spring Tools와 Kotlin LSP는 pinned private launcher/runtime을 사용하고 project Java/Gradle toolchain은 project metadata로 선택한다. .NET action은 managed SDK와 project `global.json`의 resolution 결과를 함께 보고한다.
-- KTD6. **Project actions are typed, shell-free sessions.** Root detector가 executable, argv, cwd, bounded environment, timeout, output와 lifecycle을 가진 action을 만들고 NvChad palette와 production Verify가 함께 사용한다. Long-lived action은 `start`, bounded streamed I/O, `wait`, `cancel`, process-tree cleanup을 가진 companion session transport를 사용하고 `idle → selecting → running → succeeded|failed|cancelled`를 따른다. 같은 project의 long-lived action 재호출은 기존 task를 stop한 뒤 restart한다. Dynamic shell string, credential inheritance와 silent root/profile guessing을 허용하지 않는다.
+- KTD6. **Project actions are shell-free and behaviorally paired.** Generated NvChad Lua는 stable root/project/profile picker와 exact argv를 사용하고, production Verify는 같은 fixture family의 build/test/run/watch 결과를 독립된 bounded `transport.Command`로 확인한다. 두 경로는 공통 action vocabulary와 contract tests로 argv·cwd·환경·DAP 호출을 대조하지만 하나의 serialized execution model을 공유하지 않는다. Long-lived UI action은 `vim.system`과 process-group cleanup을 사용하며 재호출과 trust 철회 시 기존 task를 stop한다. Dynamic shell string, credential inheritance와 silent root/profile guessing을 허용하지 않는다.
 - KTD7. **Capability receipts fail closed without carrying secrets.** 각 planning action은 bounded expected capability ID set을 plan identity에 고정하고 doctor/evidence component check는 versioned `CapabilityCheck` collection으로 artifact, config/plugin, LSP/mixed-document, project action, DAP와 actual-target 결과를 담는다. missing, duplicate, unknown, failed, timeout, blocked와 not-run은 aggregate를 non-ready로 만든다. Persisted receipt에는 raw environment, source content, DAP variable value와 unbounded stdout/stderr를 넣지 않고 기존 redaction/scanner를 통과한 bounded attribution만 허용한다.
-- KTD8. **Fixtures and dependency caches are managed inputs, not user projects.** Source-controlled minimal fixtures, Gradle dependency-verification metadata, NuGet locked-mode files와 producer-built cache archives를 exact graph identity 아래 prepare한다. Cache는 content-addressed read-only manifest로 게시하며 Verify는 user-writable cache를 재사용하지 않고 network-disabled temporary fixture copy만 사용한다. Doctor는 user checkout을 수정하지 않는다.
-- KTD9. **Project execution requires explicit trust.** Canonical root identity에 대한 user trust가 없으면 LSP의 project import를 포함한 Gradle wrapper, restore/build target, launch profile, watch와 DAP process를 시작하지 않는다. Trust prompt 취소와 no-candidate path는 typed non-ready reason을 반환하고 project 파일이나 managed state를 바꾸지 않는다.
+- KTD8. **Fixtures are managed inputs, not user projects.** Source-controlled minimal fixtures는 exact dependency version을 선언하고 Verify는 격리된 temporary copy에서 managed Gradle wrapper와 dotnet SDK로 restore/build/test를 실행한다. Dependency download와 ecosystem cache는 guest-local project tool authority를 따르며 readiness receipt에는 cache 내용이나 credential을 포함하지 않는다. Doctor는 user checkout을 수정하지 않는다.
+- KTD9. **Project execution requires revocable trust.** Canonical root identity에 대한 user trust가 없으면 LSP의 project import를 포함한 Gradle wrapper, restore/build target, launch profile, watch와 DAP process를 시작하지 않는다. Trust 철회는 persisted grant를 삭제하고 현재 NvChad instance가 해당 root에 대해 추적하는 active action, watch, DAP와 project-import LSP를 즉시 종료한다. 이는 OS sandbox나 다른 NvChad instance의 process supervisor가 아니다. Trust prompt 취소와 no-candidate path는 typed non-ready reason을 반환하고 project 파일이나 managed state를 바꾸지 않는다.
 
 ### High-Level Technical Design
 
@@ -233,7 +233,9 @@ U1 opens durable workflow evidence before implementation.
 U2 fixes exact external identities and catalog contracts before any launcher depends on them.
 U3 publishes runtime trees before U4 renders absolute launcher paths.
 U5 establishes shared actions and probes before language slices specialize them.
-U6 and U7 may proceed independently after U3-U5, but U8 requires both and the legacy regression lane.
+U6와 U7은 `catalog/components/guest.yaml`, editor renderer와 capability probe를 함께
+수정하므로 U5 뒤 JVM slice를 먼저 안정화한 다음 .NET slice를 직렬로 통합한다. U8은
+두 slice와 legacy regression lane이 모두 완료된 뒤 실행한다.
 
 ### System-Wide Impact
 
@@ -250,7 +252,7 @@ U6 and U7 may proceed independently after U3-U5, but U8 requires both and the le
 - **One complete Lua config per profile:** rejected because duplicated final files drift and component action order can remove an earlier slice.
 - **Mason or moving package feeds during apply:** rejected because normal apply must not resolve new identity and doctor must verify reviewed bytes.
 - **One-file vendor extraction for language servers:** rejected because sibling JAR/DLL/runtime files are executable state and require whole-tree identity.
-- **Handshake-only LSP/DAP verification:** rejected because it cannot prove mixed-document responses, verified breakpoint stops, scopes or variables.
+- **Configuration-only editor verification:** rejected. LSP는 exact server initialize와 expected Neovim client/cohost attachment를 요구하고 DAP는 verified breakpoint stop, exact source line, stack, scopes, variable와 step/continue/terminate를 구조적으로 요구한다.
 
 ### Risks and Mitigations
 
@@ -259,10 +261,11 @@ U6 and U7 may proceed independently after U3-U5, but U8 requires both and the le
 | Kotlin Alpha DAP reports a breakpoint but never stops | JVM/full cannot meet required debugging | Require stopped event, stack/scopes/variables and step outcomes; preserve blocked evidence without fallback |
 | Roslyn/Razor feed cadence breaks the compatibility tuple | C# may work while `.cshtml`/`.razor` silently regress | Pin the complete epoch and gate any partial update with mixed-document fixtures |
 | Spring Tools payload provenance remains ambiguous | Unreviewed or incomplete JAR graph could ship | Resolve producer artifact, hash and extracted manifest in U2 before catalog eligibility changes |
-| Full doctor becomes slow or network-dependent | Routine readiness checks become unreliable | Prepare exact dependencies during apply, run offline temporary fixture copies and record bounded per-capability timing |
+| Full doctor becomes slow or network-dependent | Routine readiness checks become unreliable | Run isolated temporary fixture copies with guest-local ecosystem caches and record bounded per-capability timing |
 | Untrusted project executes wrapper, build target, launch profile or debugger code | Guest files, credentials or network authority may be abused before user intent is known | Bind explicit trust to canonical project identity and prohibit every project-controlled process while untrusted |
+| Trusted project code opens an additional external listener or child process | Workspace trust permits project-controlled code and is not an OS sandbox | Document the boundary explicitly; MDS guarantees loopback only for its managed ASP.NET launch argv/environment and terminates only work tracked by the current NvChad instance |
 | Action, diagnostic or DAP output leaks a secret into durable evidence | CI, doctor JSON or evidence archive can retain credentials | Persist only bounded redacted attribution and run canary-secret scans across every receipt surface |
-| ASP.NET launch profile binds outside loopback | A development server may be exposed through Lima networking or host forwarding | Default run/watch and certification fixtures to ephemeral loopback; require an explicit per-action override for non-loopback |
+| ASP.NET launch profile binds outside loopback | A development server may be exposed through Lima networking or host forwarding | Reject wildcard/non-loopback `applicationUrl` and `ASPNETCORE_URLS` before launch; force managed run/watch/debug to an ephemeral loopback URL |
 | Shared editor repair removes an adjacent slice | Independent profile and full config drift | Bind normalized slice set into each action and add all composition/repair matrix tests |
 | Multi-file extraction accepts unsafe or partial trees | Managed home paths or execution identity can be compromised | Reuse snapshot budgets/path checks, reject links/nonregular entries and atomically publish marker+manifest+tree |
 | Neovim 0.12 breaks existing plugins | Existing C++·Go·Python capability regresses | Treat upgrade as compatibility epoch and require full exact plugin plus real legacy smoke before default switch |
@@ -289,13 +292,13 @@ U6 and U7 may proceed independently after U3-U5, but U8 requires both and the le
 - **Requirements:** R1-R4, R11-R12, R18-R20; F1; AE1, AE8-AE9.
 - **Dependencies:** U1.
 - **Files:** `catalog/components/guest.yaml`, `catalog/locks/versions.lock.yaml`, `catalog/mise.toml`, `catalog/mise.lock`, `catalog/schema/environment.schema.json`, `catalog/schema/lock.schema.json`, `internal/catalog/types.go`, `internal/catalog/validate.go`, `internal/catalog/canonical.go`, `internal/catalog/mise.go`, `tests/contracts/catalog_test.go`, `internal/catalog/validate_test.go`.
-- **Approach:** Start from confirmed Neovim 0.12.4, JDT LS 1.60.0, java-debug 0.59.0, java-test 0.46.0, Kotlin LSP 262.9593.0 and NetCoreDbg 3.2.0-1092 identities. Resolve Spring Tools 5.2.0 payload, exact .NET 10 SDK arm64 patch, Roslyn/Razor tuple and delegated HTML language-server artifact from producer metadata, then store URL, checksum, layout, provenance and any independently verifiable signature/attestation. Add tree-publication metadata plus producer-built Gradle/NuGet fixture-cache archives and reject missing, floating or partial compatibility epochs. When an upstream exposes no signature, record the reviewed producer URL, release metadata and independently computed digest as the minimum provenance rather than implying signature verification.
+- **Approach:** Start from confirmed Neovim 0.12.4, JDT LS 1.60.0, java-debug 0.59.0, java-test 0.46.0, Kotlin LSP 262.9593.0 and NetCoreDbg 3.2.0-1092 identities. Resolve Spring Tools 5.2.0 payload, exact .NET 10 SDK arm64 patch, Roslyn/Razor tuple and delegated HTML language-server artifact from producer metadata, then store URL, checksum, layout, provenance and any independently verifiable signature/attestation. Reject missing, floating or partial compatibility epochs. Fixture dependency artifacts remain owned by the guest-local Gradle/NuGet ecosystem caches rather than the component catalog. When an upstream exposes no signature, record the reviewed producer URL, release metadata and independently computed digest as the minimum provenance rather than implying signature verification.
 - **Execution note:** This is supply-chain configuration; prove producer bytes and schema failure cases before enabling target eligibility.
 - **Patterns to follow:** `internal/catalog/validate.go` strict validation, `internal/planning/compose.go` artifact identity binding and the cross-repository release identity chain learning.
 - **Test scenarios:**
   - A complete Linux arm64 cohort validates and produces a deterministic canonical catalog revision independent of YAML ordering.
   - Missing tree manifest, launcher, checksum, platform artifact or one member of the Roslyn/Razor epoch fails catalog load before planning.
-  - A fixture-cache archive without dependency graph identity, read-only manifest or exact producer digest fails catalog load.
+  - Fixture dependency data is absent from component catalog entries and readiness receipts; source-controlled fixtures declare exact dependency versions.
   - `latest`, nightly or unreviewed feed references fail validation and normal apply inputs contain no update resolution.
   - Covers F1 / AE1. JVM-only, .NET-only and full profile candidates resolve only target-eligible exact dependencies.
 - **Verification:** Catalog contract tests bind every production entry to reviewed source bytes and no Lima-supported component has an incomplete identity.
@@ -315,7 +318,7 @@ U6 and U7 may proceed independently after U3-U5, but U8 requires both and the le
   - Absolute/traversal paths, symlink, hardlink, device, duplicate/case-collision and budget overflow are rejected without touching an external sentinel.
   - Interrupted replacement preserves the prior ready tree; drifted managed content becomes absent and reviewed apply restores it.
   - User-owned or unmarked destination is conflict and is never deleted or adopted implicitly.
-  - Producer-built Gradle/NuGet fixture caches publish through the same content-addressed tree path, expose a read-only manifest and reject a drifted or user-writable cache.
+  - Runtime-tree publication does not absorb Gradle/NuGet ecosystem caches; source-controlled fixture identity stays separate from guest-local dependency caches.
 - **Verification:** Runtime tree tests prove producer archive → extracted manifest → installed observation identity and safe recovery for every failure boundary.
 
 ### U4. Compose editor slices and move to the Neovim 0.12 epoch
@@ -337,24 +340,23 @@ U6 and U7 may proceed independently after U3-U5, but U8 requires both and the le
 
 ### U5. Add shared project actions and capability probes
 
-- **Goal:** Give NvChad UI and production verification one typed root/action/lifecycle contract and one source-controlled fixture authority.
+- **Goal:** Give NvChad UI and production verification a common action vocabulary, behaviorally paired contracts and one source-controlled fixture authority.
 - **Requirements:** R7, R10, R12, R15-R17, R19-R20; F2-F3; AE3-AE7, AE9.
 - **Dependencies:** U3-U4.
-- **Files:** `internal/transport/session.go`, `internal/transport/session_test.go`, `internal/transport/local.go`, `internal/transport/lima.go`, `internal/transport/wsl.go`, `internal/adapters/guest/project_actions.go`, `internal/adapters/guest/project_actions_test.go`, `internal/adapters/guest/capability_probe.go`, `internal/adapters/guest/capability_probe_test.go`, `internal/doctor/model.go`, `internal/evidence/model.go`, `internal/adapters/guest/editor_config.go`, `internal/adapters/guest/fixtures/`, `tests/adapters/guest_editor_runtime_test.go`.
-- **Approach:** Detect the nearest unique Gradle or .NET root and emit shell-free actions with bounded environment/output/timeout. A single candidate is automatic; multiple candidates use one stable picker, cancel is side-effect-free and no valid candidate is an attributable error. The palette uses the fixed common action order and publishes availability/reason state. Add a session-capable companion transport for long-lived local/Lima/WSL commands so production probes can stream, mutate a fixture, wait, cancel and clean the process tree while NvChad consumes the same serialized action definition. Require canonical-root workspace trust before every project-controlled process. Prepare exact fixture sources plus locked Gradle/NuGet caches during apply; Verify copies fixtures and content-addressed read-only caches to temporary workspaces, disables network and never reuses user caches.
+- **Files:** `internal/projectaction/action.go`, `internal/adapters/guest/editor_language_config.go`, `internal/adapters/guest/editor_slices_test.go`, `internal/adapters/guest/capability_probe.go`, `internal/adapters/guest/capability_probe_test.go`, `internal/doctor/model.go`, `internal/evidence/model.go`, `internal/adapters/guest/fixtures/`, `tests/adapters/guest_editor_runtime_test.go`.
+- **Approach:** Detect the nearest unique Gradle or .NET root and emit shell-free actions with bounded environment/output. A single candidate is automatic; multiple candidates use one stable picker, cancel is side-effect-free and no valid candidate is an attributable error. The generated palette uses the fixed common action order, `vim.system` for process lifecycle and process-group cleanup for long-lived work. Production Verify independently executes bounded commands against isolated source-controlled fixture copies, while contract tests compare the UI argv, project/profile selection, clean restore behavior and DAP invocation with the owning probe outcome. Require revocable canonical-root workspace trust before every project-controlled process. Existing WSL transport remains one-shot and WSL JVM/.NET session support stays deferred.
 - **Patterns to follow:** `transport.Command`, `internal/adapters/packages/functional.go`, read-only doctor Verify and managed runtime publication.
 - **Test scenarios:**
   - Unique roots resolve automatically while equal nested Gradle, solution/project or launch-profile candidates return a stable selectable list; cancel performs no mutation and no-candidate returns an attributable reason.
-  - Untrusted workspaces allow non-executing text editing but start no wrapper, import, restore, build target, launch profile, watch or DAP process; explicit trust is bound to the canonical root identity.
+  - Untrusted workspaces allow non-executing text editing but start no wrapper, import, restore, build target, launch profile, watch or DAP process; explicit trust is bound to the canonical root identity and revocation stops active work and LSP clients immediately.
   - The common palette orders build/test/run/watch/debug-app/debug-test, shows disabled reasons and directs each action outcome to its own terminal/diagnostic surface.
-  - Action sessions follow idle/selecting/running/succeeded|failed|cancelled; duplicate long-lived invocation stops and reaps the prior task before restart.
+  - Duplicate long-lived invocation stops and reaps the prior task before restart; cancellation and trust revocation terminate the process group.
   - build/test/run actions expose bounded exit/output and cwd; failure, timeout and cancellation terminate all managed children and remain attributable.
   - watch observes a deterministic rebuild or restart after fixture edit, suppresses browser launch and shuts down cleanly.
-  - UI commands and headless probe serialize/resolve the same action inputs and reject dynamic shell or inherited credential-bearing environment.
+  - UI action harness and headless probe independently prove equivalent project family outcomes and reject dynamic shell or inherited credential-bearing environment.
   - DAP probe requires breakpoint verified plus stopped source/line, stack, scopes, known variable presence, continue, step-in, step-over and clean termination.
   - Capability receipts reject missing/duplicate/unknown IDs and every non-pass status. Persisted results exclude raw environment, source content, DAP values and unbounded output, and canary secrets do not appear in doctor JSON or evidence archives.
-  - Gradle verification metadata, NuGet locked mode and read-only cache manifests pass offline; any missing/drifted dependency or attempted network access fails the owning capability.
-- **Verification:** Action contract tests and fixture probe characterization show the UI path and doctor path cannot disagree about command or capability outcome.
+- **Verification:** Action contract tests cover exact UI argv/selection/lifecycle while isolated production probes fail closed on the corresponding build/test/run/watch and DAP outcomes.
 
 ### U6. Implement the JVM and Spring Boot slice
 
@@ -363,11 +365,11 @@ U6 and U7 may proceed independently after U3-U5, but U8 requires both and the le
 - **Dependencies:** U2-U5.
 - **Files:** `catalog/components/guest.yaml`, `catalog/profiles/nvim-ide-jvm.yaml`, `internal/adapters/guest/editor_config.go`, `internal/adapters/guest/capability_probe.go`, `internal/adapters/guest/fixtures/jvm-java-spring/`, `internal/adapters/guest/fixtures/jvm-kotlin-spring/`, `internal/adapters/packages/functional.go`, `tests/adapters/guest_editor_runtime_test.go`, `tests/adapters/guest_jvm_ide_test.go`, `tests/contracts/catalog_test.go`.
 - **Approach:** Launch JDT LS, Spring Tools, java-debug/test and Kotlin LSP from verified runtime trees with per-project mutable workspaces. After workspace trust, use project Gradle wrapper/toolchain authority, keep server runtimes private, expose shared actions, and keep Kotlin Spring semantics bounded to the Product Contract. Kotlin DAP remains required for ready and has no silent fallback.
-- **Patterns to follow:** Absolute managed Neovim launcher verification, exact plugin/runtime observation and offline functional scenarios.
+- **Patterns to follow:** Absolute managed Neovim launcher verification, exact plugin/runtime observation and isolated temporary fixture scenarios.
 - **Test scenarios:**
-  - Covers F2 / AE3. Java Spring fixture imports and returns expected Java/Spring source plus properties/YAML navigation, completion, diagnostics, rename/refactoring, organize-import and formatting edits.
+  - Covers F2 / AE3. Java and Spring servers initialize against the trusted Gradle fixture, expected clients attach, and the managed configuration exposes the required navigation/completion/diagnostic/refactor/format capabilities.
   - Java Gradle build/test/bootRun succeeds, a deterministic failure reaches the output surface, and application/test DAP observes stop, variable presence, continue, step-in and step-over.
-  - Covers F2 / AE4. Kotlin Spring fixture imports and returns expected Kotlin navigation, completion, diagnostics, rename/refactoring, organize-import and format plus Spring config support.
+  - Covers F2 / AE4. Kotlin and Spring clients initialize and attach to the trusted Gradle fixture, and the managed configuration exposes the bounded Kotlin language/format and Spring config support.
   - Kotlin Gradle build/test/run succeeds and application/test DAP observes a real stopped event, variable presence, continue, step-in and step-over; handshake-only success fails the capability.
   - Covers AE5. Missing Java-equivalent Kotlin Spring bean/endpoint semantics does not fail the bounded contract, while missing Kotlin language/config/DAP capability does.
   - Kotlin LSP crash, stale workspace or Gradle import timeout stays isolated to the JVM slice and makes JVM/full non-ready.
@@ -377,16 +379,16 @@ U6 and U7 may proceed independently after U3-U5, but U8 requires both and the le
 
 - **Goal:** Provide C#, ASP.NET Core API/MVC/Razor/Blazor editing, actions and real application/test/server debugging on Lima arm64.
 - **Requirements:** R1-R5, R12-R20; F3; AE6-AE7, AE9.
-- **Dependencies:** U2-U5.
+- **Dependencies:** U2-U6.
 - **Files:** `catalog/components/guest.yaml`, `catalog/profiles/nvim-ide-dotnet.yaml`, `internal/adapters/guest/editor_config.go`, `internal/adapters/guest/capability_probe.go`, `internal/adapters/guest/fixtures/dotnet-console-test/`, `internal/adapters/guest/fixtures/dotnet-webapi/`, `internal/adapters/guest/fixtures/dotnet-mvc-razor/`, `internal/adapters/guest/fixtures/dotnet-blazor/`, `tests/adapters/guest_editor_runtime_test.go`, `tests/adapters/guest_dotnet_ide_test.go`, `tests/contracts/catalog_test.go`.
-- **Approach:** Run exact .NET SDK, Roslyn/Razor, delegated HTML language service and NetCoreDbg trees from absolute launchers. After workspace trust, resolve `global.json`, solution/project and `Project` launch profiles deterministically. Co-host Razor through Roslyn, delegate contained HTML requests to the pinned HTML service, exclude deprecated RZLS/OmniSharp paths, and exercise mixed documents with the same action/probe infrastructure. Managed run/watch accepts loopback application URLs by default; wildcard or non-loopback binding requires an explicit per-action override, while certification always uses an ephemeral loopback port with browser launch and host forwarding disabled.
+- **Approach:** Run exact .NET SDK, Roslyn/Razor, delegated HTML language service and NetCoreDbg trees from absolute launchers. After workspace trust, resolve `global.json`, solution/project and `Project` launch profiles deterministically. Co-host Razor through Roslyn, delegate contained HTML requests to the pinned HTML service, and exclude deprecated RZLS/OmniSharp paths. Managed run/watch/debug validates both `applicationUrl` and `ASPNETCORE_URLS`, removes inherited binding values, and applies an ephemeral loopback command-line URL; non-loopback profiles are rejected before launch. Trusted project code remains the explicit execution authority and certification disables browser launch and host forwarding.
 - **Patterns to follow:** Compatibility epoch validation, managed runtime trees, stable root picker and typed transport commands.
 - **Test scenarios:**
-  - C# console/library/test fixture resolves exact SDK and returns navigation, completion, diagnostics, rename and formatting edits.
-  - Covers F3 / AE6. Web API and MVC/Razor fixtures restore/build/test, honor selected launch profile, run/watch with clean lifecycle and return delegated C#·HTML `.cshtml` mixed-document outcomes.
-  - Covers F3 / AE7. Blazor fixture returns delegated `.razor` C#·HTML completion, diagnostics, navigation and formatting, then run/watch succeeds.
+  - C# console/library/test fixture resolves the exact SDK, Roslyn initializes and the expected C# client attaches with the managed editing capabilities enabled.
+  - Covers F3 / AE6. Web API and MVC/Razor fixtures restore/build/test, honor the selected launch profile within the loopback boundary, run/watch with clean lifecycle and attach both Roslyn and delegated HTML clients for `.cshtml`.
+  - Covers F3 / AE7. Blazor fixture attaches both Roslyn and delegated HTML clients for `.razor`, then run/watch succeeds.
   - Console/test/ASP.NET DAP observes breakpoint stop, known variable presence, continue, step-in, step-over and terminate through NetCoreDbg.
-  - Wildcard/non-loopback launch URLs are rejected until an explicit per-action override; certification stays on an ephemeral loopback port without browser launch or host forwarding.
+  - Wildcard/non-loopback `applicationUrl` or `ASPNETCORE_URLS` is rejected; managed run/watch/debug and certification stay on an ephemeral loopback port without browser launch or host forwarding.
   - Multiple solutions/projects/profiles require explicit stable selection; missing SDK, incompatible Roslyn/Razor epoch or port conflict returns attributable non-ready output.
   - Deprecated RZLS, OmniSharp or moving Roslyn feed reference is absent from production config and fails catalog/config regression tests if introduced.
 - **Verification:** .NET-only profile passes exact SDK/server/plugin/runtime identity plus C#, Razor, Blazor, action and DAP production probes.
@@ -421,7 +423,7 @@ U6 and U7 may proceed independently after U3-U5, but U8 requires both and the le
 | Static quality | `go vet ./...` and `go build ./cmd/mds ./cmd/mds-evidence ./cmd/mds-release` | Vet is clean and all production commands build |
 | Repository hygiene | `git diff --check`, `actionlint -color`, and shellcheck for changed scripts when available | No whitespace, workflow or shell findings |
 | Real Neovim | Opt-in managed Neovim plugin smoke on the exact 0.12.4 epoch | Headless startup, restore, checkhealth, exact checkout and legacy language smoke pass |
-| Project capability | Production `Verify` against prepared JVM and .NET fixtures | Required LSP, mixed-document, action, watch and DAP outcomes pass offline from temporary copies |
+| Project capability | Production `Verify` against isolated JVM and .NET fixture copies | Required LSP initialization/client attachment, mixed-document cohost, action, watch and structural DAP outcomes pass |
 | Actual target | Reviewed binary on a clean Apple Silicon `lima-guest:mds` run | Apply complete, repeat all-no-op, doctor ready and evidence bundle verifies exact identities |
 | Workflow evidence | Workspace work doc and Notion implementation page | Commands/results, skipped checks, blockers, PR URL and canonical links stay synchronized |
 
@@ -438,7 +440,7 @@ If network, runner or upstream capability prevents the actual gate, `implemented
 - Linear and persistent ideation remain the only waived workflow stages; Notion, work evidence, branch/PR and review gates are complete.
 - Normal apply consumes exact production identities and never downloads a moving version or changes a lock.
 - JVM-only, .NET-only and full profiles satisfy their declared closures without user-owned config mutation.
-- Every required LSP, mixed-document, project-action and DAP capability is observed by production Verify and fails closed.
+- Production Verify fails closed on exact LSP server initialization and expected client/cohost attachment, mixed-document cohost presence, project-action outcomes and structural DAP outcomes. Managed configuration and contract tests separately prove the requested editing capability exposure without claiming semantic request coverage that the production probe does not execute.
 - Clean and repeat Apple Silicon Lima runs produce a verified evidence bundle for the same immutable project head.
 - Existing C++·Go·Python behavior and global release promotion breadth remain green.
 - Dead-end adapters, experimental fallback configurations, temporary fixture output and abandoned code are removed from the final diff.
@@ -450,7 +452,7 @@ If network, runner or upstream capability prevents the actual gate, `implemented
 - U2 is done when every external cohort member has reviewed source, version, checksum, layout and strict validation.
 - U3 is done when runtime trees publish, observe and repair atomically with the full unsafe-archive and ownership matrix passing.
 - U4 is done when all editor slice combinations render the same plan-bound expectation per action and Neovim 0.12 legacy regression passes.
-- U5 is done when UI and production Verify share one action/root/lifecycle contract and real DAP outcome schema.
+- U5 is done when UI action harnesses and production probes cover the same action vocabulary and project families, trust is revocable, and DAP uses the structural outcome schema.
 - U6 is done when Java and Kotlin Spring fixtures meet the bounded JVM contract including actual application/test debugging.
 - U7 is done when C#, Razor and Blazor fixtures meet editing, action, watch and actual debugging contracts.
 - U8 is done when Lima defaults to full, doctor/evidence are fail-closed and the actual Apple Silicon bundle verifies the full matrix.
