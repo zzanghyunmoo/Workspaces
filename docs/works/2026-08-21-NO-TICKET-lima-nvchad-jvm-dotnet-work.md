@@ -4,7 +4,7 @@ ticket_id: NO-TICKET
 ticket_url:
 ticket_status: waived
 ticket_completion: waived
-remaining_prs: https://github.com/zzanghyunmoo/my-desk-setup/pull/8
+remaining_prs:
 ideation_status: waived
 ideation_path:
 ideation_notion_url:
@@ -16,13 +16,13 @@ plan_waiver_reason:
 work_status: complete
 work_notion_url: https://app.notion.com/p/3c3ef22ad4fc81ad97e0d9f020192b8e
 pr_url: https://github.com/zzanghyunmoo/my-desk-setup/pull/8
-closeout_status: pending
-merged_pr_url:
-merge_commit:
-kb_paths:
-notion_feature_status_url:
+closeout_status: complete
+merged_pr_url: https://github.com/zzanghyunmoo/my-desk-setup/pull/8
+merge_commit: a98ba15a51e1d806ff544fe926149f66855cb017
+kb_paths: docs/kb/developer-environments/2026-08-23-NO-TICKET-lima-nvchad-jvm-dotnet.md
+notion_feature_status_url: https://app.notion.com/p/3c3ef22ad4fc81ad97e0d9f020192b8e
 notion_ticket_url: https://app.notion.com/p/3c3ef22ad4fc81ad97e0d9f020192b8e
-closed_at:
+closed_at: 2026-08-23T00:00:00+09:00
 ---
 
 # NO-TICKET Lima NvChad JVM and .NET IDE 작업 기록
@@ -89,13 +89,13 @@ Linear 티켓 생성과 상태 전환은 2026-08-21 사용자의 명시 요청�
 - 최신 project head의 `ce-code-review`와 `ce-doc-review`: findings/blocker 없이
   통과했고 PR에 head-bound passing marker를 각각 게시했다.
 - GitHub Actions: 최신 head에서 `CI #42`와 `Target certification #38` 모두 통과.
-- 미실행 검증: 없음. Merge와 merge closeout은 사용자 승인 전 범위에서 제외한다.
+- 미실행 검증: 없음. PR #8 승인 후 squash merge와 closeout을 완료했다.
 
 ## 외부 동기화
 
 - Linear: 사용자 요청으로 전체 단계 waived.
-- Project branch: `feat/lima-nvchad-jvm-dotnet`
-- Project head: `0591b11044b65ec89b343c558410611c4c5308d3`
+- Project branch: `main`
+- Project head: `a98ba15a51e1d806ff544fe926149f66855cb017`
 - Pull request: https://github.com/zzanghyunmoo/my-desk-setup/pull/8
 - Notion 요구사항: https://app.notion.com/p/3c3ef22ad4fc819eb3c0de18b70cff5e
 - Notion 계획: https://app.notion.com/p/3c3ef22ad4fc8179a213f2f20ce4372f
@@ -103,5 +103,5 @@ Linear 티켓 생성과 상태 전환은 2026-08-21 사용자의 명시 요청�
 
 ## Merge closeout
 
-PR merge 전이다. Merge, KB 작성, Notion 기능 현황 갱신과 closeout 완료는 해당 PR에
-대한 사용자 명시 승인 뒤 수행한다.
+PR #8을 squash merge하여 `main`을 최신화했다. merge commit은
+`a98ba15a51e1d806ff544fe926149f66855cb017`이며, KB와 Notion 구현 기록을 갱신했다.
