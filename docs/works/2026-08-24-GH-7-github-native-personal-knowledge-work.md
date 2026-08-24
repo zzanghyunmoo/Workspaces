@@ -10,8 +10,8 @@ ideation_waiver_reason: 사용자가 GitHub-native 방향을 확정한 뒤 ce-po
 plan_status: complete
 plan_path: docs/plans/2026-08-24-GH-7-github-native-personal-knowledge-plan.md
 plan_waiver_reason:
-work_status: in_progress
-pr_url:
+work_status: complete
+pr_url: https://github.com/zzanghyunmoo/zzanghyunmoo.github.io/pull/18
 closeout_status: pending
 merged_pr_url:
 merge_commit:
@@ -60,10 +60,11 @@ Obsidian vault에서 기존 AstroPaper/Pagefind 블로그로 공개 가능한 �
 ## GitHub 추적
 
 - Issue: https://github.com/zzanghyunmoo/Workspaces/issues/7
-- 현재 lifecycle: `status:in-progress`
+- PR: https://github.com/zzanghyunmoo/zzanghyunmoo.github.io/pull/18
+- 현재 lifecycle: `status:in-review`
 - Plan: `docs/plans/2026-08-24-GH-7-github-native-personal-knowledge-plan.md`
 - GitHub Project는 현재 token의 project scope가 없어 비차단 projection으로 보류한다.
 
 ## Merge closeout
 
-구현·PR·merge 승인 전이다. `ticket_completion: pending`, `closeout_status: pending`을 유지한다.
+PR review와 merge 승인 전이다. `ticket_completion: pending`, `closeout_status: pending`을 유지한다.
