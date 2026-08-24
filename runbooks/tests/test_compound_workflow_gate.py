@@ -125,6 +125,69 @@ class CompoundWorkflowGateTests(unittest.TestCase):
     def test_accepts_in_progress_work_evidence_before_pr(self) -> None:
         self.validate(self.evidence_text(work_status="in_progress"))
 
+    def test_accepts_explicit_no_ticket_waiver(self) -> None:
+        self.validate(
+            self.evidence_text(
+                ticket_id="NO-TICKET",
+                ticket_url="",
+                ticket_status="waived",
+                ticket_completion="waived",
+                remaining_prs="",
+            )
+        )
+
+    def test_no_ticket_waiver_requires_empty_ticket_url(self) -> None:
+        with self.assertRaisesRegex(GATE.GateError, "ticket_url must be empty"):
+            self.validate(
+                self.evidence_text(
+                    ticket_id="NO-TICKET",
+                    ticket_status="waived",
+                    ticket_completion="waived",
+                    remaining_prs="",
+                )
+            )
+
+    def test_rejects_arbitrary_ticket_waiver_identifier(self) -> None:
+        with self.assertRaisesRegex(GATE.GateError, "be NO-TICKET"):
+            self.validate(
+                self.evidence_text(
+                    ticket_id="SKIPPED",
+                    ticket_url="",
+                    ticket_status="waived",
+                    ticket_completion="waived",
+                    remaining_prs="",
+                )
+            )
+
+    def test_no_ticket_waiver_rejects_remaining_pull_requests(self) -> None:
+        with self.assertRaisesRegex(GATE.GateError, "remaining_prs must be empty"):
+            self.validate(
+                self.evidence_text(
+                    ticket_id="NO-TICKET",
+                    ticket_url="",
+                    ticket_status="waived",
+                    ticket_completion="waived",
+                )
+            )
+
+    def test_no_ticket_waiver_requires_waived_status_and_completion(self) -> None:
+        for field, value in (
+            ("ticket_status", "In Review"),
+            ("ticket_completion", "complete"),
+        ):
+            with self.subTest(field=field), self.assertRaisesRegex(
+                GATE.GateError, f"{field} must be waived"
+            ):
+                overrides = {
+                    "ticket_id": "NO-TICKET",
+                    "ticket_url": "",
+                    "ticket_status": "waived",
+                    "ticket_completion": "waived",
+                    "remaining_prs": "",
+                }
+                overrides[field] = value
+                self.validate(self.evidence_text(**overrides))
+
     def test_ref_contains_file_rejects_tree_objects(self) -> None:
         GATE.run(["git", "init"], cwd=self.root)
         GATE.run(["git", "add", "docs"], cwd=self.root)
@@ -309,6 +372,71 @@ class CompoundWorkflowGateTests(unittest.TestCase):
                 GATE.validate_pre_merge(self.root, "docs/works/work.md", repo, pr),
                 head_sha,
             )
+
+    def test_pre_merge_accepts_no_ticket_review_markers(self) -> None:
+        repo = "owner/repo"
+        pr = 42
+        head_sha = "9" * 40
+        evidence = GATE.parse_evidence_text(
+            PurePosixPath("docs/works/work.md"),
+            self.evidence_text(
+                ticket_id="NO-TICKET",
+                ticket_url="",
+                ticket_status="waived",
+                ticket_completion="waived",
+                remaining_prs="",
+                pr_url=f"https://github.com/{repo}/pull/{pr}",
+            ),
+        )
+        metadata = {
+            "state": "OPEN",
+            "isDraft": False,
+            "url": f"https://github.com/{repo}/pull/{pr}",
+            "headRefOid": head_sha,
+            "mergeable": "MERGEABLE",
+            "mergeStateStatus": "CLEAN",
+        }
+        comments = [
+            {
+                "id": index,
+                "body": (
+                    f"{review_type} 리뷰에서 변경 범위, 계약, 검증 결과와 회귀 위험을 "
+                    "확인했으며 merge를 막을 blocker가 남아 있지 않습니다.\n\n"
+                    f"<!-- ce-review:v1 type={review_type} ticket=NO-TICKET "
+                    f"head_sha={head_sha} verdict=pass -->"
+                ),
+                "user": {"login": "reviewer"},
+                "author_association": "OWNER",
+            }
+            for index, review_type in enumerate(("code", "doc"), start=1)
+        ]
+        with (
+            mock.patch.object(GATE, "refresh_origin_main"),
+            mock.patch.object(GATE, "read_evidence", return_value=evidence),
+            mock.patch.object(GATE, "ref_contains_file", return_value=True),
+            mock.patch.object(GATE, "pr_metadata", return_value=metadata),
+            mock.patch.object(
+                GATE,
+                "trusted_review_comments",
+                return_value=("reviewer", comments),
+            ),
+        ):
+            self.assertEqual(
+                GATE.validate_pre_merge(self.root, "docs/works/work.md", repo, pr),
+                head_sha,
+            )
+
+    def test_no_ticket_closeout_preserves_waived_status(self) -> None:
+        self.assertEqual(
+            GATE.expected_closeout_ticket_status(
+                {
+                    "ticket_id": "NO-TICKET",
+                    "ticket_completion": "waived",
+                    "remaining_prs": "",
+                }
+            ),
+            "waived",
+        )
 
     def test_pre_merge_reads_new_evidence_from_verified_pr_head(self) -> None:
         repo = "owner/repo"

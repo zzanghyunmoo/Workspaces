@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate ticket-backed Compound Engineering workflow evidence."""
+"""Validate Compound Engineering workflow evidence and explicit ticket waivers."""
 
 from __future__ import annotations
 
@@ -304,17 +304,33 @@ def validate_work_evidence(
         raise GateError(f"workflow_schema must be {WORKFLOW_SCHEMA}")
 
     ticket_id = require_field(fields, "ticket_id")
-    if not re.fullmatch(r"[A-Z][A-Z0-9]+-\d+", ticket_id):
-        raise GateError("ticket_id must look like ZZA-123")
-    require_https_url(fields, "ticket_url", allowed_hosts=("linear.app",))
-
     ticket_status = require_field(fields, "ticket_status")
+    no_ticket = ticket_id == "NO-TICKET"
+    if no_ticket:
+        if fields.get("ticket_url", "").strip():
+            raise GateError("ticket_url must be empty when ticket_id is NO-TICKET")
+        if ticket_status.casefold() != "waived":
+            raise GateError("ticket_status must be waived when ticket_id is NO-TICKET")
+        if require_field(fields, "ticket_completion").casefold() != "waived":
+            raise GateError(
+                "ticket_completion must be waived when ticket_id is NO-TICKET"
+            )
+        if fields.get("remaining_prs", "").strip():
+            raise GateError("remaining_prs must be empty when ticket_id is NO-TICKET")
+    else:
+        if not re.fullmatch(r"[A-Z][A-Z0-9]+-\d+", ticket_id):
+            raise GateError("ticket_id must look like ZZA-123 or be NO-TICKET")
+        require_https_url(fields, "ticket_url", allowed_hosts=("linear.app",))
+
+    effective_expected_status = "waived" if no_ticket else expected_ticket_status
     if (
-        expected_ticket_status
-        and ticket_status.casefold() != expected_ticket_status.casefold()
+        effective_expected_status
+        and ticket_status.casefold() != effective_expected_status.casefold()
     ):
-        raise GateError(f"ticket_status must be {expected_ticket_status} for this gate")
-    if not expected_ticket_status and ticket_status.casefold() not in {
+        raise GateError(
+            f"ticket_status must be {effective_expected_status} for this gate"
+        )
+    if not effective_expected_status and ticket_status.casefold() not in {
         "in progress".casefold(),
         "in review".casefold(),
         "done".casefold(),
@@ -532,6 +548,12 @@ def require_iso_timestamp(fields: Mapping[str, str], name: str) -> str:
 
 def expected_closeout_ticket_status(fields: Mapping[str, str]) -> str:
     completion = require_field(fields, "ticket_completion").lower()
+    if fields.get("ticket_id", "").strip() == "NO-TICKET":
+        if completion != "waived":
+            raise GateError(
+                "ticket_completion must be waived when ticket_id is NO-TICKET"
+            )
+        return "waived"
     if completion == "complete":
         return "Done"
     if completion == "pending":
