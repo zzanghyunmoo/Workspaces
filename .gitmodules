@@ -10,30 +10,3 @@
 	path = projects/oh-my-harness
 	url = https://github.com/zzanghyunmoo/oh-my-harness.git
 	branch = main
-[submodule "projects/ReplaceMe"]
-	path = projects/ReplaceMe
-	url = https://github.com/zzanghyunmoo/ReplaceMe.git
-[submodule "projects/our-moneyflow"]
-	path = projects/our-moneyflow
-	url = https://github.com/zzanghyunmoo/our-moneyflow.git
-	branch = main
-[submodule "projects/home-ai-infra"]
-	path = projects/home-ai-infra
-	url = https://github.com/zzanghyunmoo/home-ai-infra.git
-	branch = main
-[submodule "projects/LetsStudyCS"]
-	path = projects/LetsStudyCS
-	url = https://github.com/zzanghyunmoo/LetsStudyCS.git
-	branch = main
-[submodule "projects/blog-automation"]
-	path = projects/blog-automation
-	url = https://github.com/zzanghyunmoo/self-automation.git
-	branch = master
-[submodule "projects/money-pipeline"]
-	path = projects/money-pipeline
-	url = https://github.com/zzanghyunmoo/money-pipeline.git
-	branch = main
-[submodule "projects/random-tower-defense"]
-	path = projects/random-tower-defense
-	url = https://github.com/zzanghyunmoo/random-tower-defense.git
-	branch = main
