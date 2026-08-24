@@ -109,7 +109,94 @@ fixture, and the production lock must match the same fixture. Copying values int
 both fixture and production configuration without an independent producer-byte
 comparison does not establish this contract.
 
-## Notion Documentation
+## GitHub-native Work and Knowledge
+
+### GitHub-native Control Plane
+
+The workflow in which GitHub Issues own work identity and lifecycle, GitHub pull
+requests own review and merge delivery, and repository Markdown owns durable
+requirements, plans, implementation evidence, and operational knowledge.
+
+The control plane keeps an Issue concise. It links to canonical repository
+artifacts instead of duplicating their prose or becoming a second documentation
+source.
+
+### Canonical Repository Artifact
+
+A versioned Markdown artifact in the designated `docs/` stage directory that is
+the source of truth for that stage of work.
+
+Ideation, requirements, plans, work evidence, merge closeout knowledge, and
+reusable solutions remain reviewable with the code and can be validated by
+repository tooling.
+
+### GitHub Issue Index
+
+A short GitHub Issue body that records the objective, current lifecycle, and
+links to canonical repository artifacts and pull requests.
+
+The Issue Index is the work identity and remote status surface, not a copy of the
+requirements, plan, work log, or knowledge-base entry.
+
+### Open Issue Lifecycle Label
+
+Exactly one of `status:planned`, `status:in-progress`, `status:in-review`, or
+`status:blocked` attached to an open Issue.
+
+Closeout remains `status:in-review`. After the final closeout reaches the default
+branch, the lifecycle label is removed and the Issue is closed with reason
+`completed`. Cancellation instead uses close reason `not planned`.
+
+### Optional Project Projection
+
+A GitHub Project view that aggregates Issues from one or more repositories
+without becoming their source of truth or a completion gate.
+
+Missing Project token scope or a delayed projection does not block Issue, pull
+request, repository-document, or workflow-gate operations.
+
+### Compound Work v2
+
+The GitHub-native work-evidence schema identified by
+`workflow_schema: compound-work/v2`.
+
+Compound Work v2 uses a `GH-<number>` ticket identity and matching GitHub Issue
+URL. It requires repository artifacts and merge closeout evidence, but does not
+require or interpret Linear state or Notion URLs. Compound Work v1 remains a
+read-only legacy contract for historical evidence.
+
+### Cross-repository Review Evidence
+
+A `ce-review:v2` marker that binds a review verdict to the pull-request head and
+the exact canonical work-evidence revision using `head_sha`, `evidence_commit`,
+and `evidence_blob`.
+
+This tuple prevents a review on one repository from being reused after either
+the code head or the root-owned evidence changes. Code and document verdicts are
+published as separate trusted comments.
+
+### Guarded Issue Finalization
+
+The idempotent close operation that verifies final closeout on the default
+branch, confirms no pull requests remain, removes the open lifecycle label, and
+closes the Issue with reason `completed`.
+
+Merge alone never authorizes finalization. Partial mutations are reconciled on a
+retry instead of being hidden by a successful earlier step.
+
+### Private/Public Knowledge Boundary
+
+The physical separation between private Markdown notes and a public publishing
+repository, with no submodule, symlink, or build-loader connection between them.
+
+Publication is a deliberate promotion of selected content after privacy checks;
+the private repository never becomes a public build input.
+
+## Legacy External Documentation Vocabulary
+
+The Notion terms below describe `compound-work/v1` artifacts and historical
+project workflows. They remain searchable for old evidence but are not forward
+dependencies of GitHub-native work.
 
 ### Ticket-scoped Documentation
 
@@ -241,7 +328,8 @@ lessons learned.
 
 A Notion Lifecycle Document is memory, not just a copied ticket body: it should
 preserve why the work happened, what happened during the run, and what future
-runs should learn from it.
+runs should learn from it. This is legacy `compound-work/v1` vocabulary, not a
+forward requirement for GitHub-native work.
 
 ### Linear Issue Execution Grammar
 
@@ -250,6 +338,7 @@ information to become executable automation work.
 
 When the issue is not runnable, the grammar should produce a focused
 clarification path instead of starting an agent run from ambiguous requirements.
+This is legacy `compound-work/v1` vocabulary; new work uses a GitHub Issue Index.
 
 ## Agent Orchestration
 
@@ -307,7 +396,8 @@ current status back into the external work surfaces that own the ticket context.
 
 External Work Surface Sync keeps Linear issues and Notion design or lifecycle
 notes aligned with the actual PR stack, so reviewers and future automation runs
-do not rely on stale ticket or document state.
+do not rely on stale ticket or document state. It is retained to interpret
+legacy `compound-work/v1` evidence and is not performed for GitHub-native work.
 
 ### Oversized PR
 

@@ -1,25 +1,36 @@
 # Knowledge Base
 
-`docs/kb/`는 merge된 기능의 **현재 동작과 운영 사실**을 티켓에서 분리해 찾을 수 있게
-정리하는 로컬 knowledge base다. Notion `디자인 문서 > 기능 현황`과 티켓별 결과 문서가
-canonical source이며, 로컬 KB는 merge commit과 canonical 링크를 가진 동기화 사본이다.
+`docs/kb/` is the canonical repository knowledge base for the current behavior
+and operating facts of merged work. It is intentionally separate from the
+ticket timeline: the GitHub Issue links to the KB entry, while the KB preserves
+the versioned, reviewable result.
 
-## `docs/solutions/`와의 경계
+## Boundary with `docs/solutions/`
 
-- `docs/kb/`: merge 후 확인된 기능 상태, 사용법, 운영 경계, 현재 제한.
-- `docs/solutions/`: 문제를 해결하며 얻은 재사용 가능한 원인·해결법·워크플로 학습.
+- `docs/kb/`: verified current feature state, usage, operating boundaries, and
+  current limitations after merge.
+- `docs/solutions/`: reusable causes, fixes, and workflow learnings discovered
+  while solving a problem.
 
-같은 내용을 복제하지 않는다. 기능의 현재 모습은 KB에, 다시 발생할 문제를 빠르게 해결하는
-지식은 solution에 두고 서로 링크한다.
+Do not duplicate the same prose. Link between the current-state KB and a reusable
+solution when both are useful.
 
-## 파일 규칙
+## File rules
 
-- 경로: `docs/kb/<category>/<YYYY-MM-DD>-<TICKET>-<topic>.md`
-- 시작점: `docs/kb/_template.md`
-- merge된 PR과 commit, work evidence, Notion 기능 현황, Notion 티켓 문서를 연결한다.
-- 코드에서 확인한 현재 동작과 실제 검증 결과만 기록한다.
-- 계획이나 미구현 목표는 현재 기능처럼 쓰지 않는다.
+- Path: `docs/kb/<category>/<YYYY-MM-DD>-GH-<number>-<topic>.md`.
+- Start from `docs/kb/_template.md`.
+- Link the canonical GitHub Issue, merged PR and commit, and work evidence.
+- Record only behavior confirmed in code and actual verification results.
+- Do not describe a plan or unimplemented goal as current behavior.
 
-`runbooks/compound_workflow_gate.py closeout`은 work evidence의 `kb_paths`가 실제
-`docs/kb/` Markdown 문서를 가리키는지, local `HEAD`에 commit됐는지, 필수 frontmatter와
-현재 상태·경계·검증·운영 섹션이 work evidence와 일치하는지 확인한다.
+For `compound-work/v2`, required frontmatter is `title`, `ticket`, `ticket_url`,
+`merged_pr`, `merge_commit`, `work_evidence`, and `last_verified`. Notion and
+Linear fields are neither required nor interpreted.
+
+`runbooks/compound_workflow_gate.py closeout` verifies that `kb_paths` resolves
+to real `docs/kb/` Markdown committed at local `HEAD`, that the Issue/PR/commit
+identity matches the work evidence, and that the current-state, boundary,
+verification, and operations sections are present.
+
+Existing KB entries linked from `compound-work/v1` remain historical evidence
+and keep their legacy Notion/Linear fields; do not rewrite them in bulk.

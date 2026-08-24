@@ -15,9 +15,32 @@ from datetime import datetime
 from pathlib import Path, PurePosixPath
 from urllib.parse import urlparse
 
-WORKFLOW_SCHEMA = "compound-work/v1"
+LEGACY_WORKFLOW_SCHEMA = "compound-work/v1"
+GITHUB_WORKFLOW_SCHEMA = "compound-work/v2"
+WORKFLOW_SCHEMA = LEGACY_WORKFLOW_SCHEMA
+WORKFLOW_SCHEMAS = (LEGACY_WORKFLOW_SCHEMA, GITHUB_WORKFLOW_SCHEMA)
 REVIEW_TYPES = ("code", "doc")
-REQUIRED_SECTIONS = ("주요 변경 지점", "검증", "외부 동기화")
+V1_REQUIRED_SECTIONS = ("주요 변경 지점", "검증", "외부 동기화")
+V2_REQUIRED_SECTIONS = (
+    "작업 목표",
+    "주요 변경 지점",
+    "검증",
+    "GitHub 추적",
+    "Merge closeout",
+)
+REQUIRED_SECTIONS = V1_REQUIRED_SECTIONS
+IN_REVIEW_LABEL = "status:in-review"
+PR_INDEX_START = "<!-- compound-pr-index:start -->"
+PR_INDEX_END = "<!-- compound-pr-index:end -->"
+V2_FORBIDDEN_FIELDS = (
+    "ticket_status",
+    "ideation_notion_url",
+    "plan_notion_url",
+    "work_notion_url",
+    "notion_feature_status_url",
+    "notion_ticket_url",
+    "closed_at",
+)
 KB_REQUIRED_SECTIONS = (
     "현재 기능 상태",
     "주요 동작과 경계",
@@ -25,9 +48,7 @@ KB_REQUIRED_SECTIONS = (
     "운영 및 사용 시 주의사항",
 )
 PLACEHOLDER_MARKERS = ("[작성 필요]", "TODO", "TBD", "ZZA-000", "example.com")
-ELLIPSIS_PLACEHOLDER = re.compile(
-    r"(?m)^\s*(?:[-*]\s*)?(?:\[\s*)?\.\.\.(?:\s*\])?\s*$"
-)
+ELLIPSIS_PLACEHOLDER = re.compile(r"(?m)^\s*(?:[-*]\s*)?(?:\[\s*)?\.\.\.(?:\s*\])?\s*$")
 
 
 class GateError(RuntimeError):
@@ -47,6 +68,13 @@ class PendingCloseout:
     repo: str
     pr: int
     evidence: str
+
+
+@dataclass(frozen=True)
+class GitHubIssue:
+    repo: str
+    number: int
+    url: str
 
 
 def workspace_root(start: Path | None = None) -> Path:
@@ -73,14 +101,18 @@ def workspace_root(start: Path | None = None) -> Path:
 
 
 def run(command: list[str], *, cwd: Path) -> str:
-    result = subprocess.run(
-        command,
-        cwd=cwd,
-        check=False,
-        text=True,
-        encoding="utf-8",
-        capture_output=True,
-    )
+    try:
+        result = subprocess.run(
+            command,
+            cwd=cwd,
+            check=False,
+            text=True,
+            encoding="utf-8",
+            capture_output=True,
+            timeout=120,
+        )
+    except subprocess.TimeoutExpired as error:
+        raise GateError(f"{command[0]} command timed out") from error
     if result.returncode != 0:
         detail = result.stderr.strip() or result.stdout.strip() or "command failed"
         raise GateError(f"{' '.join(command)}: {detail}")
@@ -178,9 +210,10 @@ def require_field(fields: Mapping[str, str], name: str) -> str:
 
 
 def contains_placeholder(value: str) -> bool:
-    return any(
-        marker.lower() in value.lower() for marker in PLACEHOLDER_MARKERS
-    ) or ELLIPSIS_PLACEHOLDER.search(value) is not None
+    return (
+        any(marker.lower() in value.lower() for marker in PLACEHOLDER_MARKERS)
+        or ELLIPSIS_PLACEHOLDER.search(value) is not None
+    )
 
 
 def require_https_url(
@@ -201,6 +234,50 @@ def require_https_url(
         expected = ", ".join(allowed_hosts)
         raise GateError(f"{name} must use an approved host: {expected}")
     return value
+
+
+def parse_github_resource_url(
+    value: str, *, resource: str, field_name: str
+) -> tuple[str, int, str]:
+    parsed = urlparse(value)
+    match = re.fullmatch(
+        rf"/([A-Za-z0-9_.-]+)/([A-Za-z0-9_.-]+)/{resource}/([1-9][0-9]*)",
+        parsed.path,
+    )
+    if (
+        parsed.scheme != "https"
+        or (parsed.hostname or "").lower() != "github.com"
+        or parsed.params
+        or parsed.query
+        or parsed.fragment
+        or match is None
+    ):
+        raise GateError(
+            f"{field_name} must look like "
+            f"https://github.com/OWNER/REPO/{resource}/NUMBER"
+        )
+    owner, repo, raw_number = match.groups()
+    repository = f"{owner}/{repo}"
+    number = int(raw_number)
+    return repository, number, f"https://github.com/{repository}/{resource}/{number}"
+
+
+def parse_github_issue_url(value: str) -> GitHubIssue:
+    repo, number, canonical_url = parse_github_resource_url(
+        value, resource="issues", field_name="ticket_url"
+    )
+    return GitHubIssue(
+        repo=repo,
+        number=number,
+        url=canonical_url,
+    )
+
+
+def parse_github_pr_url(value: str, *, field_name: str) -> tuple[str, int]:
+    repo, number, _ = parse_github_resource_url(
+        value, resource="pull", field_name=field_name
+    )
+    return repo, number
 
 
 def ref_contains_file(root: Path, ref: str | None, path: PurePosixPath) -> bool:
@@ -265,6 +342,7 @@ def validate_optional_phase(
     phase: str,
     path_prefix: str,
     ref: str | None,
+    require_notion: bool,
 ) -> None:
     status = require_field(fields, f"{phase}_status").lower()
     if status == "complete":
@@ -276,11 +354,12 @@ def validate_optional_phase(
             ref=ref,
             allowed_suffixes=(".md", ".html"),
         )
-        require_https_url(
-            fields,
-            f"{phase}_notion_url",
-            allowed_hosts=("notion.so", "notion.site", "app.notion.com"),
-        )
+        if require_notion:
+            require_https_url(
+                fields,
+                f"{phase}_notion_url",
+                allowed_hosts=("notion.so", "notion.site", "app.notion.com"),
+            )
         return
     if status == "waived":
         reason = require_field(fields, f"{phase}_waiver_reason")
@@ -292,7 +371,7 @@ def validate_optional_phase(
     raise GateError(f"{phase}_status must be complete or waived")
 
 
-def validate_work_evidence(
+def validate_v1_work_evidence(
     root: Path,
     evidence: Evidence,
     *,
@@ -300,9 +379,6 @@ def validate_work_evidence(
     ref: str | None,
 ) -> None:
     fields = evidence.fields
-    if fields.get("workflow_schema") != WORKFLOW_SCHEMA:
-        raise GateError(f"workflow_schema must be {WORKFLOW_SCHEMA}")
-
     ticket_id = require_field(fields, "ticket_id")
     ticket_status = require_field(fields, "ticket_status")
     no_ticket = ticket_id == "NO-TICKET"
@@ -338,10 +414,20 @@ def validate_work_evidence(
         raise GateError("ticket_status must be In Progress, In Review, or Done")
 
     validate_optional_phase(
-        root, fields, phase="ideation", path_prefix="docs/ideation", ref=ref
+        root,
+        fields,
+        phase="ideation",
+        path_prefix="docs/ideation",
+        ref=ref,
+        require_notion=True,
     )
     validate_optional_phase(
-        root, fields, phase="plan", path_prefix="docs/plans", ref=ref
+        root,
+        fields,
+        phase="plan",
+        path_prefix="docs/plans",
+        ref=ref,
+        require_notion=True,
     )
 
     work_status = require_field(fields, "work_status").lower()
@@ -355,8 +441,138 @@ def validate_work_evidence(
         "work_notion_url",
         allowed_hosts=("notion.so", "notion.site", "app.notion.com"),
     )
-    for heading in REQUIRED_SECTIONS:
+    for heading in V1_REQUIRED_SECTIONS:
         require_section(evidence.body, heading)
+
+
+def validate_v2_work_evidence(
+    root: Path,
+    evidence: Evidence,
+    *,
+    require_merge_ready: bool,
+    ref: str | None,
+) -> None:
+    fields = evidence.fields
+    for name in V2_FORBIDDEN_FIELDS:
+        if name in fields:
+            raise GateError(f"field {name} is not allowed in {GITHUB_WORKFLOW_SCHEMA}")
+
+    ticket_id = require_field(fields, "ticket_id")
+    if not re.fullmatch(r"GH-[1-9][0-9]*", ticket_id):
+        raise GateError("ticket_id must look like GH-7")
+    issue = parse_github_issue_url(require_field(fields, "ticket_url"))
+    if ticket_id != f"GH-{issue.number}":
+        raise GateError("ticket_id must match ticket_url issue number")
+
+    completion = require_field(fields, "ticket_completion").lower()
+    if completion not in {"pending", "complete"}:
+        raise GateError("ticket_completion must be pending or complete")
+
+    remaining_raw = fields.get("remaining_prs", "").strip()
+    remaining_prs = [item.strip() for item in remaining_raw.split(",") if item.strip()]
+    for value in remaining_prs:
+        parse_github_pr_url(value, field_name="remaining_prs")
+    if completion == "complete" and remaining_prs:
+        raise GateError(
+            "remaining_prs must be empty when ticket_completion is complete"
+        )
+
+    validate_optional_phase(
+        root,
+        fields,
+        phase="ideation",
+        path_prefix="docs/ideation",
+        ref=ref,
+        require_notion=False,
+    )
+    validate_optional_phase(
+        root,
+        fields,
+        phase="plan",
+        path_prefix="docs/plans",
+        ref=ref,
+        require_notion=False,
+    )
+
+    work_status = require_field(fields, "work_status").lower()
+    if work_status not in {"in_progress", "complete"}:
+        raise GateError("work_status must be in_progress or complete")
+    if require_merge_ready and work_status != "complete":
+        raise GateError("work_status must be complete before PR merge or closeout")
+
+    pr_url = fields.get("pr_url", "").strip()
+    if pr_url:
+        parse_github_pr_url(pr_url, field_name="pr_url")
+    if require_merge_ready and not pr_url:
+        raise GateError("pr_url is required before PR merge or closeout")
+
+    closeout = require_field(fields, "closeout_status").lower()
+    if closeout not in {"pending", "complete"}:
+        raise GateError("closeout_status must be pending or complete")
+    closeout_fields = (
+        "merged_pr_url",
+        "merge_commit",
+        "kb_paths",
+        "closeout_completed_at",
+    )
+    if closeout == "pending":
+        for name in closeout_fields:
+            if fields.get(name, "").strip():
+                raise GateError(
+                    f"{name} must be empty while closeout_status is pending"
+                )
+        if completion == "complete":
+            raise GateError(
+                "ticket_completion cannot be complete while closeout_status is pending"
+            )
+    else:
+        if work_status != "complete":
+            raise GateError(
+                "work_status must be complete when closeout_status is complete"
+            )
+        for name in closeout_fields:
+            require_field(fields, name)
+        parse_github_pr_url(
+            require_field(fields, "merged_pr_url"), field_name="merged_pr_url"
+        )
+        if not re.fullmatch(r"[0-9a-f]{40}", require_field(fields, "merge_commit")):
+            raise GateError("merge_commit must be a full lowercase Git SHA")
+        require_iso_timestamp(fields, "closeout_completed_at")
+        if completion == "pending" and not remaining_prs:
+            raise GateError(
+                "remaining_prs must list dependent PRs for an intermediate closeout"
+            )
+
+    for heading in V2_REQUIRED_SECTIONS:
+        require_section(evidence.body, heading)
+
+
+def validate_work_evidence(
+    root: Path,
+    evidence: Evidence,
+    *,
+    expected_ticket_status: str | None,
+    ref: str | None,
+) -> None:
+    schema = evidence.fields.get("workflow_schema", "")
+    if schema == LEGACY_WORKFLOW_SCHEMA:
+        validate_v1_work_evidence(
+            root,
+            evidence,
+            expected_ticket_status=expected_ticket_status,
+            ref=ref,
+        )
+        return
+    if schema == GITHUB_WORKFLOW_SCHEMA:
+        validate_v2_work_evidence(
+            root,
+            evidence,
+            require_merge_ready=expected_ticket_status is not None,
+            ref=ref,
+        )
+        return
+    expected = ", ".join(WORKFLOW_SCHEMAS)
+    raise GateError(f"workflow_schema must be one of: {expected}")
 
 
 def expected_pr_url(repo: str, pr: int) -> str:
@@ -390,6 +606,130 @@ def pr_metadata(root: Path, repo: str, pr: int) -> dict[str, object]:
     if not isinstance(metadata, dict):
         raise GateError("GitHub returned an unexpected PR metadata shape")
     return metadata
+
+
+def issue_metadata(root: Path, issue: GitHubIssue) -> dict[str, object]:
+    output = gh(
+        root,
+        "issue",
+        "view",
+        str(issue.number),
+        "--repo",
+        issue.repo,
+        "--json",
+        "number,url,state,stateReason,labels,body",
+    )
+    try:
+        metadata = json.loads(output)
+    except json.JSONDecodeError as error:
+        raise GateError("GitHub returned invalid Issue metadata JSON") from error
+    if not isinstance(metadata, dict):
+        raise GateError("GitHub returned an unexpected Issue metadata shape")
+    return metadata
+
+
+def metadata_label_names(metadata: Mapping[str, object]) -> list[str]:
+    labels = metadata.get("labels")
+    if not isinstance(labels, list):
+        raise GateError("GitHub returned an unexpected Issue labels shape")
+    names: list[str] = []
+    for label in labels:
+        if not isinstance(label, dict) or not isinstance(label.get("name"), str):
+            raise GateError("GitHub returned an unexpected Issue label entry")
+        names.append(str(label["name"]))
+    return names
+
+
+def lifecycle_label_names(metadata: Mapping[str, object]) -> list[str]:
+    return [
+        name for name in metadata_label_names(metadata) if name.startswith("status:")
+    ]
+
+
+def validate_issue_state(
+    fields: Mapping[str, str],
+    metadata: Mapping[str, object],
+    *,
+    expected_state: str,
+    expected_label: str | None,
+) -> None:
+    issue = parse_github_issue_url(require_field(fields, "ticket_url"))
+    if metadata.get("number") != issue.number or metadata.get("url") != issue.url:
+        raise GateError("GitHub Issue metadata does not match ticket_url")
+    actual_state = str(metadata.get("state") or "").upper()
+    if actual_state != expected_state.upper():
+        raise GateError(f"Issue must be {expected_state.upper()}")
+
+    lifecycle = lifecycle_label_names(metadata)
+    if expected_label is None:
+        if lifecycle:
+            raise GateError("completed Issue must not retain a lifecycle label")
+    elif lifecycle != [expected_label]:
+        raise GateError(
+            f"Issue must have exactly one lifecycle label: {expected_label}"
+        )
+
+
+def validate_completed_issue(
+    fields: Mapping[str, str], metadata: Mapping[str, object]
+) -> None:
+    validate_issue_state(
+        fields,
+        metadata,
+        expected_state="CLOSED",
+        expected_label=None,
+    )
+    if str(metadata.get("stateReason") or "").upper() != "COMPLETED":
+        raise GateError("closed Issue must use close reason completed")
+
+
+def issue_pr_index(metadata: Mapping[str, object]) -> list[tuple[str, int]]:
+    body = metadata.get("body")
+    if not isinstance(body, str):
+        raise GateError("GitHub returned an unexpected Issue body shape")
+    if body.count(PR_INDEX_START) != 1 or body.count(PR_INDEX_END) != 1:
+        raise GateError("Issue must contain exactly one canonical PR index")
+    start = body.index(PR_INDEX_START) + len(PR_INDEX_START)
+    end = body.index(PR_INDEX_END)
+    if end <= start:
+        raise GateError("Issue canonical PR index markers are out of order")
+
+    indexed: list[tuple[str, int]] = []
+    seen: set[tuple[str, int]] = set()
+    for raw_line in body[start:end].splitlines():
+        line = raw_line.strip()
+        if not line or (line.startswith("<!--") and line.endswith("-->")):
+            continue
+        match = re.fullmatch(
+            r"-\s+(https://github\.com/[^\s]+/[^\s]+/pull/[1-9][0-9]*)", line
+        )
+        if not match:
+            raise GateError(
+                "Issue canonical PR index must contain only '- https://github.com/OWNER/REPO/pull/N' entries"
+            )
+        value = parse_github_pr_url(match.group(1), field_name="Issue PR index")
+        if value in seen:
+            raise GateError("Issue canonical PR index contains a duplicate PR")
+        seen.add(value)
+        indexed.append(value)
+    if not indexed:
+        raise GateError("Issue canonical PR index must list at least one PR")
+    return indexed
+
+
+def validate_final_issue_pr_index(
+    root: Path, fields: Mapping[str, str], metadata: Mapping[str, object]
+) -> None:
+    indexed = issue_pr_index(metadata)
+    primary = parse_github_pr_url(require_field(fields, "pr_url"), field_name="pr_url")
+    if primary not in indexed:
+        raise GateError("Issue canonical PR index must include pr_url")
+    for repo, pr in indexed:
+        remote = pr_metadata(root, repo, pr)
+        if remote.get("state") != "MERGED" or not remote.get("mergedAt"):
+            raise GateError(
+                f"Issue canonical PR index contains an unmerged PR: {repo}#{pr}"
+            )
 
 
 def trusted_review_comments(
@@ -449,6 +789,84 @@ def pre_merge_evidence_ref(
     return head_sha
 
 
+def evidence_revision(root: Path, ref: str, evidence_path: str) -> tuple[str, str]:
+    path = normalize_relative_path(evidence_path, prefix="docs/works")
+    commit_sha = git(root, "rev-parse", ref).strip()
+    blob_sha = git(root, "rev-parse", f"{ref}:{path.as_posix()}").strip()
+    if not re.fullmatch(r"[0-9a-f]{40}", commit_sha):
+        raise GateError(f"{ref} did not resolve to a full commit SHA")
+    if not re.fullmatch(r"[0-9a-f]{40}", blob_sha):
+        raise GateError(f"{ref}:{path} did not resolve to a full blob SHA")
+    return commit_sha, blob_sha
+
+
+def review_marker_pattern(
+    schema: str,
+    *,
+    review_type: str,
+    ticket_id: str,
+    head_sha: str,
+    evidence_commit: str | None = None,
+    evidence_blob: str | None = None,
+) -> re.Pattern[str]:
+    if schema == LEGACY_WORKFLOW_SCHEMA:
+        return re.compile(
+            rf"<!-- ce-review:v1 type={re.escape(review_type)} "
+            rf"ticket={re.escape(ticket_id)} head_sha={head_sha} "
+            r"verdict=(pass|fail) -->"
+        )
+    if schema == GITHUB_WORKFLOW_SCHEMA:
+        if evidence_commit is None or evidence_blob is None:
+            raise GateError("v2 review marker requires an evidence revision")
+        return re.compile(
+            rf"<!-- ce-review:v2 type={re.escape(review_type)} "
+            rf"ticket={re.escape(ticket_id)} head_sha={head_sha} "
+            rf"evidence_commit={evidence_commit} evidence_blob={evidence_blob} "
+            r"verdict=(pass|fail) -->"
+        )
+    raise GateError(f"unsupported review marker schema: {schema}")
+
+
+def print_review_context(root: Path, evidence_path: str, repo: str, pr: int) -> None:
+    refresh_origin_main(root)
+    evidence = read_evidence(root, evidence_path, ref="origin/main")
+    fields = evidence.fields
+    if fields.get("workflow_schema") != GITHUB_WORKFLOW_SCHEMA:
+        raise GateError("review-context requires compound-work/v2 evidence")
+    validate_work_evidence(
+        root,
+        evidence,
+        expected_ticket_status="In Review",
+        ref="origin/main",
+    )
+    expected_url = expected_pr_url(repo, pr)
+    if require_field(fields, "pr_url") != expected_url:
+        raise GateError(f"pr_url must be {expected_url}")
+
+    metadata = pr_metadata(root, repo, pr)
+    if metadata.get("url") != expected_url:
+        raise GateError("GitHub PR URL does not match workflow evidence")
+    head_sha = str(metadata.get("headRefOid") or "")
+    if not re.fullmatch(r"[0-9a-f]{40}", head_sha):
+        raise GateError("GitHub did not return a full PR head SHA")
+    evidence_commit, evidence_blob = evidence_revision(
+        root, "origin/main", evidence_path
+    )
+    ticket_id = require_field(fields, "ticket_id")
+
+    print(f"TICKET_ID={ticket_id}")
+    print(f"HEAD_SHA={head_sha}")
+    print(f"EVIDENCE_COMMIT={evidence_commit}")
+    print(f"EVIDENCE_BLOB={evidence_blob}")
+    for review_type in REVIEW_TYPES:
+        print(
+            f"{review_type.upper()}_MARKER_TEMPLATE="
+            f"<!-- ce-review:v2 type={review_type} ticket={ticket_id} "
+            f"head_sha={head_sha} evidence_commit={evidence_commit} "
+            f"evidence_blob={evidence_blob} verdict=<pass-or-fail> -->"
+        )
+
+
 def validate_pre_merge(root: Path, evidence_path: str, repo: str, pr: int) -> str:
     refresh_origin_main(root)
     expected_url = expected_pr_url(repo, pr)
@@ -471,6 +889,9 @@ def validate_pre_merge(root: Path, evidence_path: str, repo: str, pr: int) -> st
 
     evidence_ref = pre_merge_evidence_ref(root, evidence_path, pr, head_sha)
     evidence = read_evidence(root, evidence_path, ref=evidence_ref)
+    schema = evidence.fields.get("workflow_schema", "")
+    if schema == GITHUB_WORKFLOW_SCHEMA and evidence_ref != "origin/main":
+        raise GateError("compound-work/v2 evidence must be published on origin/main")
     validate_work_evidence(
         root,
         evidence,
@@ -484,15 +905,33 @@ def validate_pre_merge(root: Path, evidence_path: str, repo: str, pr: int) -> st
     if require_field(fields, "closeout_status").lower() != "pending":
         raise GateError("closeout_status must be pending before merge")
 
+    evidence_commit: str | None = None
+    evidence_blob: str | None = None
+    if schema == GITHUB_WORKFLOW_SCHEMA:
+        issue = parse_github_issue_url(require_field(fields, "ticket_url"))
+        validate_issue_state(
+            fields,
+            issue_metadata(root, issue),
+            expected_state="OPEN",
+            expected_label=IN_REVIEW_LABEL,
+        )
+        evidence_commit, evidence_blob = evidence_revision(
+            root, "origin/main", evidence_path
+        )
+
     actor_login, comments = trusted_review_comments(root, repo, pr)
     ticket_id = fields["ticket_id"]
     matched_comment_ids: dict[str, int] = {}
-    marker_pattern = re.compile(r"<!-- ce-review:v1 .*? -->")
+    marker_pattern = re.compile(r"<!-- ce-review:v[12] .*? -->")
     trusted_associations = {"OWNER", "MEMBER", "COLLABORATOR"}
     for review_type in REVIEW_TYPES:
-        verdict_pattern = re.compile(
-            rf"<!-- ce-review:v1 type={review_type} ticket={re.escape(ticket_id)} "
-            rf"head_sha={head_sha} verdict=(pass|fail) -->"
+        verdict_pattern = review_marker_pattern(
+            schema,
+            review_type=review_type,
+            ticket_id=ticket_id,
+            head_sha=head_sha,
+            evidence_commit=evidence_commit,
+            evidence_blob=evidence_blob,
         )
         candidates: list[tuple[int, str, str]] = []
         for comment in comments:
@@ -582,14 +1021,31 @@ def validate_kb_document(
     kb = parse_evidence_text(path, read_artifact_text(root, ref, path))
     fields = kb.fields
     require_field(fields, "title")
-    expected_fields = {
+    common_expected = {
         "ticket": evidence.fields["ticket_id"],
         "merged_pr": expected_url,
         "merge_commit": evidence.fields["merge_commit"],
         "work_evidence": evidence.path.as_posix(),
-        "notion_feature_status": evidence.fields["notion_feature_status_url"],
-        "notion_ticket": evidence.fields["notion_ticket_url"],
     }
+    schema = evidence.fields.get("workflow_schema")
+    if schema == LEGACY_WORKFLOW_SCHEMA:
+        expected_fields = {
+            **common_expected,
+            "notion_feature_status": evidence.fields["notion_feature_status_url"],
+            "notion_ticket": evidence.fields["notion_ticket_url"],
+        }
+    elif schema == GITHUB_WORKFLOW_SCHEMA:
+        expected_fields = {
+            **common_expected,
+            "ticket_url": evidence.fields["ticket_url"],
+        }
+        for forbidden in ("notion_feature_status", "notion_ticket"):
+            if forbidden in fields:
+                raise GateError(
+                    f"KB field {forbidden} is not allowed for {GITHUB_WORKFLOW_SCHEMA}"
+                )
+    else:
+        raise GateError("KB parent evidence uses an unsupported workflow_schema")
     for name, expected in expected_fields.items():
         if require_field(fields, name) != expected:
             raise GateError(f"KB field {name} does not match work evidence")
@@ -606,10 +1062,16 @@ def validate_closeout(
     pr: int,
     *,
     ref: str,
-) -> None:
-    evidence = read_evidence(root, evidence_path, ref=ref)
+    evidence: Evidence | None = None,
+) -> Evidence:
+    evidence = evidence or read_evidence(root, evidence_path, ref=ref)
     fields = evidence.fields
-    expected_ticket_status = expected_closeout_ticket_status(fields)
+    schema = fields.get("workflow_schema")
+    expected_ticket_status = (
+        expected_closeout_ticket_status(fields)
+        if schema == LEGACY_WORKFLOW_SCHEMA
+        else "closeout"
+    )
     validate_work_evidence(
         root,
         evidence,
@@ -624,17 +1086,22 @@ def validate_closeout(
         raise GateError(f"pr_url must be {expected_url}")
     if require_https_url(fields, "merged_pr_url") != expected_url:
         raise GateError(f"merged_pr_url must be {expected_url}")
-    require_https_url(
-        fields,
-        "notion_feature_status_url",
-        allowed_hosts=("notion.so", "notion.site", "app.notion.com"),
-    )
-    require_https_url(
-        fields,
-        "notion_ticket_url",
-        allowed_hosts=("notion.so", "notion.site", "app.notion.com"),
-    )
-    require_iso_timestamp(fields, "closed_at")
+    if schema == LEGACY_WORKFLOW_SCHEMA:
+        require_https_url(
+            fields,
+            "notion_feature_status_url",
+            allowed_hosts=("notion.so", "notion.site", "app.notion.com"),
+        )
+        require_https_url(
+            fields,
+            "notion_ticket_url",
+            allowed_hosts=("notion.so", "notion.site", "app.notion.com"),
+        )
+        require_iso_timestamp(fields, "closed_at")
+    elif schema == GITHUB_WORKFLOW_SCHEMA:
+        require_iso_timestamp(fields, "closeout_completed_at")
+    else:
+        raise GateError("closeout evidence uses an unsupported workflow_schema")
 
     kb_paths: list[PurePosixPath] = []
     for raw_path in parse_kb_paths(fields):
@@ -659,6 +1126,105 @@ def validate_closeout(
     )
     if require_field(fields, "merge_commit") != merge_oid:
         raise GateError("merge_commit does not match GitHub remote truth")
+    return evidence
+
+
+def prepare_v2_finalization(
+    root: Path, evidence_path: str
+) -> tuple[Evidence, GitHubIssue]:
+    refresh_origin_main(root)
+    evidence = read_evidence(root, evidence_path, ref="origin/main")
+    fields = evidence.fields
+    if fields.get("workflow_schema") != GITHUB_WORKFLOW_SCHEMA:
+        raise GateError("GitHub Issue finalizer requires compound-work/v2 evidence")
+    if require_field(fields, "ticket_completion").lower() != "complete":
+        raise GateError("ticket_completion must be complete before Issue finalization")
+    if fields.get("remaining_prs", "").strip():
+        raise GateError("remaining_prs must be empty before Issue finalization")
+    pr_repo, pr = parse_github_pr_url(
+        require_field(fields, "pr_url"), field_name="pr_url"
+    )
+    validate_closeout(
+        root,
+        evidence_path,
+        pr_repo,
+        pr,
+        ref="origin/main",
+        evidence=evidence,
+    )
+    return evidence, parse_github_issue_url(require_field(fields, "ticket_url"))
+
+
+def finalization_lifecycle_labels(metadata: Mapping[str, object]) -> list[str]:
+    lifecycle = lifecycle_label_names(metadata)
+    if lifecycle not in ([], [IN_REVIEW_LABEL]):
+        raise GateError(
+            "Issue finalization expects no lifecycle label or exactly status:in-review"
+        )
+    return lifecycle
+
+
+def finalize_github_issue(root: Path, evidence_path: str, *, dry_run: bool) -> None:
+    evidence, issue = prepare_v2_finalization(root, evidence_path)
+    fields = evidence.fields
+    metadata = issue_metadata(root, issue)
+    validate_final_issue_pr_index(root, fields, metadata)
+    state = str(metadata.get("state") or "").upper()
+    lifecycle = finalization_lifecycle_labels(metadata)
+
+    if (
+        state == "CLOSED"
+        and str(metadata.get("stateReason") or "").upper() != "COMPLETED"
+    ):
+        raise GateError("closed Issue must use close reason completed")
+    if state not in {"OPEN", "CLOSED"}:
+        raise GateError("Issue must be OPEN or CLOSED during finalization")
+
+    if dry_run:
+        if state == "CLOSED" and not lifecycle:
+            validate_completed_issue(fields, metadata)
+            print(f"PASS: Issue is already finalized ({issue.url})")
+        else:
+            print(f"DRY-RUN: remove lifecycle label and close completed ({issue.url})")
+        return
+
+    if lifecycle:
+        gh(
+            root,
+            "issue",
+            "edit",
+            str(issue.number),
+            "--repo",
+            issue.repo,
+            "--remove-label",
+            lifecycle[0],
+        )
+        metadata = issue_metadata(root, issue)
+        if str(metadata.get("state") or "").upper() == "OPEN":
+            validate_issue_state(
+                fields,
+                metadata,
+                expected_state="OPEN",
+                expected_label=None,
+            )
+        else:
+            validate_completed_issue(fields, metadata)
+
+    if str(metadata.get("state") or "").upper() == "OPEN":
+        gh(
+            root,
+            "issue",
+            "close",
+            str(issue.number),
+            "--repo",
+            issue.repo,
+            "--reason",
+            "completed",
+        )
+        metadata = issue_metadata(root, issue)
+
+    validate_completed_issue(fields, metadata)
+    print(f"FINALIZED: {issue.url}")
 
 
 def closeout_section(repo: str, pr: int) -> str:
@@ -729,8 +1295,48 @@ def pending_records(root: Path) -> Iterable[PendingCloseout]:
 
 def validate_pending_closeouts(root: Path, ref: str) -> None:
     records = list(pending_records(root))
+    refreshed_origin = False
     for record in records:
-        validate_closeout(root, record.evidence, record.repo, record.pr, ref=ref)
+        evidence = read_evidence(root, record.evidence, ref=ref)
+        validate_closeout(
+            root,
+            record.evidence,
+            record.repo,
+            record.pr,
+            ref=ref,
+            evidence=evidence,
+        )
+        if evidence.fields.get("workflow_schema") == GITHUB_WORKFLOW_SCHEMA:
+            if not refreshed_origin:
+                refresh_origin_main(root)
+                refreshed_origin = True
+            if ref_contains_file(root, "origin/main", evidence.path):
+                published = read_evidence(root, record.evidence, ref="origin/main")
+                if published.fields.get("closeout_status", "").lower() == "complete":
+                    validate_closeout(
+                        root,
+                        record.evidence,
+                        record.repo,
+                        record.pr,
+                        ref="origin/main",
+                        evidence=published,
+                    )
+                    issue = parse_github_issue_url(
+                        require_field(published.fields, "ticket_url")
+                    )
+                    metadata = issue_metadata(root, issue)
+                    if (
+                        require_field(published.fields, "ticket_completion").lower()
+                        == "complete"
+                    ):
+                        validate_completed_issue(published.fields, metadata)
+                    else:
+                        validate_issue_state(
+                            published.fields,
+                            metadata,
+                            expected_state="OPEN",
+                            expected_label=IN_REVIEW_LABEL,
+                        )
         print(f"PASS: closeout is committed in {ref} for {record.repo}#{record.pr}")
     if not records:
         print("PASS: no pending Compound Engineering closeouts")
@@ -758,7 +1364,27 @@ def acknowledge_closeout(root: Path, repo: str, pr: int) -> None:
     )
     if record is None:
         raise GateError(f"no pending closeout record for {repo}#{pr}")
-    validate_closeout(root, record.evidence, record.repo, record.pr, ref="origin/main")
+    evidence = read_evidence(root, record.evidence, ref="origin/main")
+    validate_closeout(
+        root,
+        record.evidence,
+        record.repo,
+        record.pr,
+        ref="origin/main",
+        evidence=evidence,
+    )
+    if evidence.fields.get("workflow_schema") == GITHUB_WORKFLOW_SCHEMA:
+        issue = parse_github_issue_url(require_field(evidence.fields, "ticket_url"))
+        metadata = issue_metadata(root, issue)
+        if require_field(evidence.fields, "ticket_completion").lower() == "complete":
+            validate_completed_issue(evidence.fields, metadata)
+        else:
+            validate_issue_state(
+                evidence.fields,
+                metadata,
+                expected_state="OPEN",
+                expected_label=IN_REVIEW_LABEL,
+            )
     git(root, "config", "--local", "--remove-section", section)
     print(f"CLEARED: closeout is present on origin/main for {repo}#{pr}")
 
@@ -778,6 +1404,13 @@ def build_parser() -> argparse.ArgumentParser:
     pre_merge.add_argument("--evidence", required=True)
     pre_merge.add_argument("--repo", required=True)
     pre_merge.add_argument("--pr", required=True, type=int)
+
+    context = subparsers.add_parser(
+        "review-context", help="print cross-repository v2 review marker inputs"
+    )
+    context.add_argument("--evidence", required=True)
+    context.add_argument("--repo", required=True)
+    context.add_argument("--pr", required=True, type=int)
 
     closeout = subparsers.add_parser(
         "closeout", help="validate a committed post-merge closeout"
@@ -809,6 +1442,12 @@ def build_parser() -> argparse.ArgumentParser:
     )
     acknowledge.add_argument("--repo", required=True)
     acknowledge.add_argument("--pr", required=True, type=int)
+
+    finalize = subparsers.add_parser(
+        "finalize-issue", help="finalize a GitHub Issue after v2 closeout"
+    )
+    finalize.add_argument("--evidence", required=True)
+    finalize.add_argument("--dry-run", action="store_true")
     return parser
 
 
@@ -828,6 +1467,8 @@ def main(argv: list[str] | None = None) -> int:
                 f"PASS: workflow evidence and latest-head reviews are complete for {args.repo}#{args.pr}"
             )
             print(f"VERIFIED_HEAD_SHA={verified_head}")
+        elif args.command == "review-context":
+            print_review_context(root, args.evidence, args.repo, args.pr)
         elif args.command == "closeout":
             validate_closeout(root, args.evidence, args.repo, args.pr, ref="HEAD")
             print(f"PASS: closeout is committed locally for {args.repo}#{args.pr}")
@@ -839,6 +1480,8 @@ def main(argv: list[str] | None = None) -> int:
             cancel_closeout(root, args.repo, args.pr)
         elif args.command == "ack-closeout":
             acknowledge_closeout(root, args.repo, args.pr)
+        elif args.command == "finalize-issue":
+            finalize_github_issue(root, args.evidence, dry_run=args.dry_run)
         else:
             raise GateError(f"unsupported command: {args.command}")
     except GateError as error:

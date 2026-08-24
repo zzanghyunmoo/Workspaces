@@ -42,51 +42,69 @@
 
 1. **Ideation**
    - `ce-ideate` 결과를 `docs/ideation/`에 저장한다.
-   - 같은 내용을 Notion `배경`의 canonical 문서에 먼저 생성하거나 갱신한다.
+   - GitHub Issue에 canonical ideation 경로를 추가하되, 본문을 Issue에 복제하지
+     않는다.
 2. **Plan**
-   - Linear 티켓을 새로 만들거나 기존 티켓을 확정한 뒤 `ce-plan`을 실행한다.
-   - 로컬 `docs/plans/`와 Notion `개발 문서 > 계획`에 같은 범위와 링크를 남긴다.
+   - GitHub Issue를 새로 만들거나 기존 Issue를 확정한 뒤 `ce-plan`을 실행한다.
+   - 식별자는 `GH-<number>`, canonical URL은
+     `https://github.com/<owner>/<repo>/issues/<number>`를 사용한다.
+   - `docs/plans/`의 canonical plan 경로를 Issue에 연결한다.
 3. **Work**
-   - 구현 전에 티켓을 `In Progress`로 바꾼다.
-   - `docs/works/`의 work evidence와 Notion `개발 문서 > 티켓` 구현 문서를 갱신한다.
+   - 구현 전에 Issue의 lifecycle label을 `status:in-progress`로 바꾼다.
+   - 열린 Issue에는 `status:planned`, `status:in-progress`, `status:in-review`,
+     `status:blocked` 중 정확히 하나만 둔다.
+   - `docs/works/`의 `compound-work/v2` work evidence를 갱신하고 Issue와 서로
+     연결한다.
    - work 문서의 `주요 변경 지점`에는 개발 로직, 계약, 설정, 데이터 흐름 등 리뷰어가
      확인할 핵심을 파일·심볼 단위로 요약하고, 검증 결과와 미실행 검증을 함께 적는다.
 4. **PR review**
    - PR 생성 직후 최신 head에 `ce-code-review`와 `ce-doc-review`를 모두 실행한다.
    - 두 결과를 별도 PR 댓글로 게시하고, blocker를 해결한 최신 head 댓글에만
-     `docs/works/README.md`의 `ce-review:v1` passing marker를 넣는다. Merge를 실행하는
+     `docs/works/README.md`의 `ce-review:v2` passing marker를 넣는다. Marker에는 PR
+     `head_sha`와 canonical evidence의 `evidence_commit`, `evidence_blob`을 함께 고정한다.
+     Merge를 실행하는
      인증 GitHub OWNER/MEMBER/COLLABORATOR가 게시한 댓글만 gate 증빙으로 인정한다.
    - 새 commit이 push되면 이전 marker는 stale이다. 두 리뷰를 다시 실행해 댓글을 갱신한다.
 5. **Merge closeout**
    - Merge 뒤 `docs/kb/`에 현재 기능 상태·운영 경계·검증 결과를 정리한다.
-   - Notion `디자인 문서 > 기능 현황`과 `개발 문서 > 티켓` 결과 문서를 갱신한다.
-   - work evidence에 merge commit, KB 경로, Notion 링크를 기록하고
-     `closeout_status: complete`로 마감한다. 마지막 PR이면 Linear 티켓을 `Done`으로
-     바꾸고, stacked 후속 PR이 남아 있으면 `In Review`와 `remaining_prs`를 유지한다.
+   - work evidence에 merge commit, merged PR, KB 경로, closeout 시각을 기록하고
+     `closeout_status: complete`로 마감한다.
+   - stacked 후속 PR이 남아 있으면 Issue를 열어 두고
+     `status:in-review`와 `remaining_prs`를 유지한다. 마지막 PR의 closeout이
+     기본 브랜치에 반영된 뒤에만 lifecycle label을 제거하고 close reason
+     `completed`로 Issue를 닫는다.
 
 `docs/works/_template.md`를 work evidence 시작점으로 사용한다. 하나의 티켓이 여러 PR로
-나뉘면 PR마다 evidence를 하나씩 만들고, 마지막 PR 전까지 Linear `In Review`를 유지한다.
+나뉘면 PR마다 evidence를 하나씩 만들고, 마지막 PR 전까지 Issue의
+`status:in-review`를 유지한다.
 PR merge 전에는
 `runbooks/guarded-pr-merge.sh --workflow-evidence <docs/works/...>`가 `origin/main`의
 ideation/plan/work 증빙과 PR 최신 head의 두 review marker를 검증한다. Merge 성공 후에는
-root pre-push가 closeout 완료를 검사하므로 KB·Notion·티켓 정리 전에는 다음 root push를
-완료할 수 없다.
+root pre-push가 closeout 완료를 검사하므로 KB·work evidence·Issue 정리 전에는
+다음 root push를 완료할 수 없다.
 
-## 문서 이중 발행 및 Notion 기준 동기화
+## GitHub-native 문서와 작업 제어면
 
-- ReplaceMe처럼 Notion 프로젝트 위키와 로컬 repo docs를 함께 쓰는 작업은 단계별
-  산출물을 Notion과 로컬 문서에 모두 남긴다.
-- 문서 구조와 본문 기준은 Notion을 canonical source로 삼고, 로컬 문서는 Notion에서
-  확정한 제목·범위·섹션·링크 관계를 따라 동기화한다.
-- 새 문서를 만들기 전에는 Notion의 기존 parent와 같은 역할의 canonical 문서가 있는지
-  확인한다. 중복을 만들었으면 새 사본을 확장하지 말고 canonical 링크를 담은
-  이동/중복 안내로 정리한다.
-- ReplaceMe Notion 기준 위치는 다음을 따른다: 아이디에이션·아키텍처 배경은 `배경`,
-  기능 현황과 기능별 설명 및 merge closeout은 `디자인 문서 > 기능 현황`, 날짜별 실행
-  계획은 `개발 문서 > 계획`, 티켓별 작업 계획·구현 설명·검증 결과는
-  `개발 문서 > 티켓`.
-- 로컬 문서에는 가능하면 대응 Notion 원본 링크나 동기화 기준을 남겨, 로컬 문서가
-  독립 원본처럼 drift되지 않게 한다.
+- 새 ideation, requirements, plan, work, KB, solution은 지정된 `docs/` Markdown이
+  canonical source다. GitHub Issue는 목표, 현재 lifecycle, canonical 문서와 PR
+  링크를 담는 짧은 index로 유지한다.
+- GitHub Project는 여러 repository Issue를 모아 보는 선택적 projection이다.
+  Project 권한이 없거나 projection이 지연돼도 Issue, PR, repo docs, gate는
+  계속 동작해야 한다.
+- GitHub Wiki는 별도 repository이므로 canonical 문서 표면으로 사용하지 않는다.
+- 신규 `compound-work/v2` 산출물은 Notion URL이나 Linear 상태를 요구하지
+  않는다. 기존 `compound-work/v1` 문서와 Notion/Linear 링크는 역사 증거로
+  수정하지 않고 legacy validator로 계속 해석한다.
+
+## 비공개 노트의 공개 승격
+
+- private note에서 파생된 글은 `runbooks/private-knowledge-publishing.md`를 먼저 읽고,
+  candidate만 바뀐 전용 blog branch에서 `runbooks/guarded-publication-push.sh`로만
+  push한다. Canary와 exact remote/branch/base/HEAD/candidate 승인 없이 일반
+  `git push`로 우회하지 않는다.
+- private vault를 공개 저장소의 symlink, submodule, content loader, build input으로
+  연결하지 않는다. 일반 공개 코드·기존 공개 글 변경은 이 publication wrapper 대상이
+  아니며 해당 repository의 기존 branch/PR 규칙을 따른다.
 
 ## 작업 디렉터리 규칙
 
@@ -144,23 +162,23 @@ root pre-push가 closeout 완료를 검사하므로 KB·Notion·티켓 정리 �
 
 ## PR/MR Merge 승인 규칙
 
-- PR/MR 생성, reviewer pass, merge 가능 상태 확인, "merge order" 정리, Linear In Review/Done
-  전환은 merge 승인으로 해석하지 않는다.
+- PR/MR 생성, reviewer pass, merge 가능 상태 확인, "merge order" 정리, Issue
+  lifecycle 전환은 merge 승인으로 해석하지 않는다.
 - `gh pr merge`, `glab mr merge`, GitHub/GitLab API mutation 등 PR/MR을 병합하거나
   종료하는 명령은 현재 turn에서 사용자가 해당 repo와 PR/MR 번호를 명시해 merge를 승인한
   경우에만 실행한다.
 - merge 실행 직전에는 대상 repo, PR/MR 번호와 제목, head→base branch, merge method,
-  commit subject/body, branch 삭제 여부, Linear 상태 변경 계획을 한 번에 제시하고 승인을
-  받아야 한다.
+  commit subject/body, branch 삭제 여부, Issue lifecycle·closeout 변경 계획을 한 번에
+  제시하고 승인을 받아야 한다.
 - GitHub PR merge는 `runbooks/guarded-pr-merge.sh --workflow-evidence
   docs/works/<work-file>.md`를 통해서만 실행한다. 직접 `gh pr merge`를 호출하지 않는다.
   Guard가 최신 head의 code/doc review marker 또는 단계별 증빙 누락을 보고하면 merge 승인을
   받았더라도 먼저 누락을 보완한다.
 - 사용자의 명시 승인 없이는 `PR_MERGE_APPROVED=1` 같은 merge 승인 우회 환경변수를
   설정하지 않는다. guard가 차단하면 중단하고 approval packet을 사용자에게 제시한다.
-- Linear ticket을 Done으로 옮기는 것은 PR/MR merge 후 `docs/kb`, Notion 기능 현황·티켓
-  문서, work evidence closeout까지 완료한 뒤에만 수행한다. Merge 자체는 완료 보고나
-  `Done` 전환의 충분조건이 아니다.
+- Issue를 닫는 것은 PR/MR merge 후 `docs/kb`, work evidence closeout, 남은 PR 확인을
+  모두 완료한 뒤에만 수행한다. Merge 자체는 완료 보고나 Issue close의
+  충분조건이 아니다.
 
 ## PR/MR 작성 규칙
 
@@ -168,7 +186,8 @@ root pre-push가 closeout 완료를 검사하므로 KB·Notion·티켓 정리 �
   사용자가 영어를 명시하면 영어로 작성한다.
 - PR/MR 본문은 `docs/solutions/conventions/pr-description-template.md`의
   4섹션 구조(문제·변경·테스트·데모)를 따르고, ticket ID, `docs/works` evidence,
-  canonical Notion 구현 문서 링크를 작업 추적 섹션에 포함한다.
+  canonical GitHub Issue URL을 작업 추적 섹션에 포함한다. `Closes`,
+  `Fixes`, `Resolves`같은 auto-close keyword 대신 non-closing 링크를 사용한다.
 - 자동 생성한 안내 문구, 예시용 blockquote, 민감 정보(API key/token/내부
   호스트/개인 경로)는 본문에 남기지 않는다.
 

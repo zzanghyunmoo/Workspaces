@@ -219,9 +219,14 @@ cat <<MSG
 
 Merge completed. Completion is still pending until all closeout steps pass:
 - add or update docs/kb
-- sync Notion feature status and ticket documents
-- update work evidence to closeout_status: complete; use ticket_status: Done only for the final PR
-- push the root closeout commit, then run:
+- update the schema-specific ticket and canonical documentation
+- update work evidence to closeout_status: complete; keep remaining_prs for stacked work
+- push the root closeout commit
+- for compound-work/v2, finalize the GitHub Issue before acknowledging closeout:
+
+  runbooks/finalize-github-issue.sh --workflow-evidence $workflow_evidence --execute
+
+- acknowledge closeout for both schemas:
 
   python3 $workflow_gate ack-closeout --repo $repo --pr $pr_number
 MSG

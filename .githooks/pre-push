@@ -39,7 +39,8 @@ is_protected_ref() {
 # additional protected-branch rule for project repositories.
 checked_ref=0
 zero_sha=0000000000000000000000000000000000000000
-while read local_ref local_sha remote_ref remote_sha; do
+while IFS=' ' read -r local_ref local_sha remote_ref remote_sha; do
+	: "$remote_sha"
 	if [ "$local_sha" != "$zero_sha" ]; then
 		(
 			cd "$repo_root"
@@ -58,7 +59,7 @@ while read local_ref local_sha remote_ref remote_sha; do
 
 ⛔ main-guard: protected project branch push blocked.
 
-Project repositories under projects/ must not push directly to main/master.
+Repositories other than the root workspace must not push directly to main/master.
 Preferred workflow: create/confirm a ticket, work on a branch, and open a PR/MR.
 The root zWorkspaces repository is exempt and may push directly to main.
 

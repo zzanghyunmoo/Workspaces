@@ -10,8 +10,9 @@ workspace_root="$(canonical_dir "$hook_dir/..")"
 repo_root="$(canonical_dir "$(git rev-parse --show-toplevel 2>/dev/null || pwd)")"
 
 # The root zWorkspaces repository is the operating workspace and intentionally
-# allows direct main/master commits. Product/project repositories under projects/
-# remain protected and should use branch -> PR/MR.
+# allows direct main/master commits. Every other repository using these hooks,
+# including external private clones, remains protected and should use branch ->
+# PR/MR unless the user explicitly approves the exact direct-main operation.
 if [ "$repo_root" = "$workspace_root" ]; then
 	exit 0
 fi
@@ -25,7 +26,7 @@ case "$protected" in
 
 ⛔ main-guard: protected project branch commit blocked.
 
-Project repositories under projects/ must not commit directly on main/master.
+Repositories other than the root workspace must not commit directly on main/master.
 Preferred workflow: create/confirm a ticket, work on a branch, and open a PR/MR.
 The root zWorkspaces repository is exempt and may work directly on main.
 

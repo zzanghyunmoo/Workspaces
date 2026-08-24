@@ -29,6 +29,9 @@ cancel-closeout)
 pending-closeouts)
   printf '%s\n' "$*" >"$TEST_DIR/pre-push-args"
   ;;
+finalize-issue)
+  printf '%s\n' "$*" >"$TEST_DIR/finalize-args"
+  ;;
 *)
   printf 'unexpected Python command: %s\n' "$command_name" >&2
   exit 1
@@ -104,5 +107,17 @@ git init -q "$project_dir"
 )
 
 grep -F -- "pending-closeouts --ref $local_sha" "$test_dir/pre-push-args" >/dev/null
+
+"$workspace_root/runbooks/finalize-github-issue.sh" \
+	--workflow-evidence docs/works/work.md >/dev/null
+grep -F -- "finalize-issue --evidence docs/works/work.md --dry-run" \
+	"$test_dir/finalize-args" >/dev/null
+
+"$workspace_root/runbooks/finalize-github-issue.sh" \
+	--workflow-evidence docs/works/work.md --execute >/dev/null
+if grep -F -- "--dry-run" "$test_dir/finalize-args" >/dev/null; then
+	printf 'execute mode unexpectedly retained --dry-run\n' >&2
+	exit 1
+fi
 
 printf 'PASS: guarded merge pins reviewed head and pre-push validates pushed SHA\n'
