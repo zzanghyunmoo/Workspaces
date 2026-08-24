@@ -13,9 +13,9 @@ plan_status: waived
 plan_path:
 plan_notion_url: https://app.notion.com/p/3c3ef22ad4fc8179a213f2f20ce4372f
 plan_waiver_reason: "기존 canonical 계획 범위 안의 managed NvChad 시작·filetype 계약 수정이며 사용자가 이슈 트래커 단계를 명시적으로 제외함"
-work_status: in_progress
+work_status: in_review
 work_notion_url: https://app.notion.com/p/3c3ef22ad4fc81ad97e0d9f020192b8e
-pr_url:
+pr_url: https://github.com/zzanghyunmoo/my-desk-setup/pull/9
 closeout_status: pending
 merged_pr_url:
 merge_commit:
@@ -140,8 +140,9 @@ ID, URL 또는 상태는 기록하지 않는다.
   `cd6b9ac7d71f3b5fc28fec1184ad0310c706bf24`.
 - Notion canonical 구현 문서:
   https://app.notion.com/p/3c3ef22ad4fc81ad97e0d9f020192b8e
-- Pull request: GitHub 재인증 후 생성한다. 현재 로컬 branch는 clean이며 origin에는 아직
-  push되지 않았다.
+- Pull request: https://github.com/zzanghyunmoo/my-desk-setup/pull/9
+- Branch와 work evidence는 원격에 push됐으며 최신 head code/doc review 및 merge guard
+  검증을 진행한다.
 
 ## Merge closeout
 
