@@ -16,13 +16,13 @@ plan_waiver_reason: "기존 canonical 계획 범위 안의 managed NvChad 시작
 work_status: complete
 work_notion_url: https://app.notion.com/p/3c3ef22ad4fc81ad97e0d9f020192b8e
 pr_url: https://github.com/zzanghyunmoo/my-desk-setup/pull/9
-closeout_status: pending
-merged_pr_url:
-merge_commit:
-kb_paths:
-notion_feature_status_url:
+closeout_status: complete
+merged_pr_url: https://github.com/zzanghyunmoo/my-desk-setup/pull/9
+merge_commit: e8aba0276a6880a0d8b33aac2568ed8f68fec078
+kb_paths: docs/kb/developer-environments/2026-08-24-NO-TICKET-lima-nvchad-directory-first.md
+notion_feature_status_url: https://app.notion.com/p/3acef22ad4fc81e0813ff060d2fdd436
 notion_ticket_url: https://app.notion.com/p/3c3ef22ad4fc81ad97e0d9f020192b8e
-closed_at:
+closed_at: 2026-08-24T15:23:20+09:00
 ---
 
 # NO-TICKET Lima NvChad directory-first 인식 및 Kotlin DAP 수정 기록
@@ -130,10 +130,18 @@ Linear 티켓 생성과 상태 전환은 사용자의 명시 요청으로 면제
 - 최종 project head: `0ffc8cf2eb1a86f9bbb94ade140879ccfd9a32e1`.
 - Notion canonical 구현 문서:
   https://app.notion.com/p/3c3ef22ad4fc81ad97e0d9f020192b8e
-- PR 최신 head에 별도 code/doc review 댓글과 passing marker를 게시한 뒤 guarded merge
-  precheck를 실행한다.
+- 최신 head에 별도 code/doc review 댓글과 OWNER passing marker를 게시했고 guarded merge
+  precheck와 squash merge를 통과했다.
 
 ## Merge closeout
 
-PR merge 전이므로 `closeout_status: pending`이다. Merge는 사용자의 별도 명시 승인과
-guarded merge 검증 후 실행하며, 이후 KB·Notion 기능 현황·work evidence를 갱신한다.
+PR [#9](https://github.com/zzanghyunmoo/my-desk-setup/pull/9)은 사용자 명시 승인과 guarded
+merge 검증 뒤 `e8aba0276a6880a0d8b33aac2568ed8f68fec078`로 squash merge됐다.
+
+- KB: `docs/kb/developer-environments/2026-08-24-NO-TICKET-lima-nvchad-directory-first.md`
+- Reusable solution:
+  `docs/solutions/runtime-errors/managed-neovim-directory-first-project-recognition.md`
+- Notion 기능 현황: https://app.notion.com/p/3acef22ad4fc81e0813ff060d2fdd436
+- Notion 구현 기록: https://app.notion.com/p/3c3ef22ad4fc81ad97e0d9f020192b8e
+- Linear 상태 전환: 사용자 요청에 따라 `NO-TICKET` / `waived` 유지
+- Closeout 완료 시각: `2026-08-24T15:23:20+09:00`
