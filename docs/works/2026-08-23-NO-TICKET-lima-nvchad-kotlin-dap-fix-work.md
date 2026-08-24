@@ -13,7 +13,7 @@ plan_status: waived
 plan_path:
 plan_notion_url: https://app.notion.com/p/3c3ef22ad4fc8179a213f2f20ce4372f
 plan_waiver_reason: "기존 canonical 계획 범위 안의 managed NvChad 시작·filetype 계약 수정이며 사용자가 이슈 트래커 단계를 명시적으로 제외함"
-work_status: in_review
+work_status: complete
 work_notion_url: https://app.notion.com/p/3c3ef22ad4fc81ad97e0d9f020192b8e
 pr_url: https://github.com/zzanghyunmoo/my-desk-setup/pull/9
 closeout_status: pending
@@ -29,122 +29,111 @@ closed_at:
 
 ## 작업 목표
 
-Kotlin 파일만 여는 managed NvChad 세션에서도 JVM 설정이 로드되어 Kotlin DAP adapter와
-configuration이 즉시 등록되게 한다. 또한 프로젝트 디렉터리에서 파일 인자 없이 `nvim`
-또는 `nvim <directory>`로 시작해 탐색기에서 파일을 열어도 C/C++·Go·Python·Java·Kotlin·
-C# filetype과 LSP/DAP가 정상 활성화되게 한다. 소스 파일을 열기 전 NvimTree 화면에서도
-`:MdsTrustWorkspace`가 존재하고 현재 프로젝트 루트를 인식하게 한다. 함께 발견된
-host/guest `mds` revision 불일치와 workspace trust 상태를 정렬하고 actual-target
-readiness를 다시 검증한다.
+Lima의 managed NvChad를 프로젝트 디렉터리에서 파일 인자 없이 `nvim` 또는
+`nvim <directory>`로 시작해도 NvimTree, workspace trust 명령, 언어별 filetype과
+LSP/DAP 준비가 정상 동작하게 한다. Kotlin-only 세션에서도 pinned Kotlin debug adapter를
+등록하되, 실제 launch는 workspace trust를 검사하는 `:MdsProjectAction` 경로로만 제공한다.
+파일·다중 인자·headless·piped stdin 시작은 기존 입력과 자동화 동작을 보존한다.
 
-Linear 티켓 생성과 상태 전환은 2026-08-23 사용자의 명시 요청으로 면제했다. 가짜 ticket
-ID, URL 또는 상태는 기록하지 않는다.
+Linear 티켓 생성과 상태 전환은 사용자의 명시 요청으로 면제했다. 가짜 ticket ID, URL 또는
+상태는 기록하지 않는다.
 
 ## 주요 변경 지점
 
-- `internal/adapters/guest/editor_config.go`의 `renderPluginSpec`이 `nvim-jdtls` JVM setup을
-  Java뿐 아니라 Kotlin filetype에서도 lazy-load한다. 이 setup이 Kotlin DAP adapter와
-  launch configuration을 등록하므로 Kotlin-only 프로젝트가 Java buffer 선행 로드에
-  의존하지 않는다.
-- 같은 파일의 `renderManagedInit`이 UI 세션의 인자가 없거나 단일 디렉터리일 때 해당
-  디렉터리를 current directory로 확정하고 NvimTree를 자동 포커스한다. 파일·다중 인자와
-  headless 실행은 기존 시작 흐름을 유지한다.
-- NvimTree가 첫 빈 버퍼를 프로젝트 파일에 재사용할 때 NvChad의 예약된 `FileType` 이벤트
-  이후에도 filetype이 비어 있는 실제 경로를 보정한다. `BufReadPost`/`BufNewFile`에서
-  파일명 기반 타입을 계산한 뒤 한 tick 지연해, 여전히 유효·로드 상태이며 filetype이 빈
-  버퍼에만 `setfiletype`을 적용한다.
-- `renderPluginSpec`이 `nvim-lspconfig`와 `configs.lspconfig`를 `VimEnter`에도 로드해,
-  파일을 아직 열지 않은 directory-first 세션에서 workspace trust 명령을 등록한다.
-- `internal/adapters/guest/editor_language_config.go`의 `workspaceTrustLua`가 NvimTree처럼
-  실재하지 않는 가상 버퍼 이름을 받으면 current working directory로 돌아가 프로젝트
-  marker를 탐색한다.
-- `internal/adapters/guest/editor_slices_test.go`의
-  `TestJVMPluginLoadsDAPSetupForKotlinBuffers`와
-  `TestManagedInitSupportsDirectoryFirstSessions`가 Kotlin DAP 및 directory-first generated
-  configuration 계약을 고정한다. `TestTrustCommandsLoadBeforeFirstProjectFile`과
-  `TestWorkspaceTrustUsesCWDForVirtualProjectBuffers`가 파일 선행 로드 없는 trust 명령 및
-  NvimTree root fallback 계약을 추가로 고정한다.
-- Apple Silicon host와 `mds` Lima guest의 개발 CLI를 project commit
-  `cd6b9ac7d71f3b5fc28fec1184ad0310c706bf24`로 정렬하고, 새 `nvim-full` plan digest로
-  managed NvChad 설정을 재적용했다. 기존 CLI binary는 복구 가능한 별도 사본으로
-  보존했다.
-- Lima guest의 `Test` C# project root를 사용자 승인 범위에 따라 workspace trust에
-  등록했다. 신뢰 전에는 Roslyn client가 0개였고, 신뢰 후 새 Neovim 세션에서 Roslyn이
-  initialized 상태로 attach됐다.
+- `internal/adapters/guest/editor_config.go`의 `renderStartupConfig`가 directory-first UI
+  시작을 별도 managed `lua/configs/startup.lua`로 렌더링한다. 인자가 없거나 단일 디렉터리인
+  경우에만 cwd를 확정하고 NvimTree를 포커스하며, named buffer·다중 인자·headless·
+  `StdinReadPre` 경로는 건드리지 않는다.
+- 같은 startup module은 NvimTree가 시작 buffer를 재사용해 filetype이 비는 경우
+  `BufReadPost`/`BufNewFile`에서 확장자를 감지한다. scheduled callback 직전에 buffer의
+  유효성, load 상태, 원래 이름과 이미 지정된 filetype을 다시 확인해 stale buffer를
+  변경하지 않는다. 상대 `event.file`은 감지에 사용하되 identity 비교는 실제 buffer 이름을
+  사용한다.
+- `renderManagedInit`이 startup module을 로드하고, no-slice `Editor.Observe`도 plugin spec을
+  제외한 모든 base-owned configuration을 정렬해 검사하므로 `startup.lua` 누락과 drift를
+  readiness 실패로 보고한다.
+- `renderPluginSpec`은 JVM 설정을 Java와 Kotlin buffer에서 모두 lazy-load하고 trust 명령을
+  첫 project file 전에 노출한다. `renderJVMConfig`은 pinned Kotlin adapter만 등록하며
+  unrestricted `dap.configurations.kotlin`은 만들지 않는다. Java/Kotlin debug action은
+  `renderProjectActions`가 trusted root와 launch generation을 검사한 뒤 adapter type을
+  선택한다. NvimTree에서 시작한 Java action은 project source buffer를 background-load해
+  JDTLS와 Java adapter 준비를 기다리고, Kotlin action은 pinned adapter를 명시적으로
+  등록한 뒤에만 Gradle을 시작한다.
+- JVM project action의 언어 판별은 root와 최대 4단계 안의 Gradle/Maven module에서 표준
+  `src/main|test/java|kotlin` source root만 bounded scan한다. module directory는 최대 256개,
+  각 source tree는 최대 4096개 entry까지만 검사하고 생성물·VCS·dependency cache는 제외한다.
+  mixed Java/Kotlin project는 언어를 선택하게 하며, untrusted root, 취소된 비동기 adapter 준비,
+  읽을 수 없는 source tree 또는 준비되지 않은 adapter는 Gradle 시작 전에 fail closed 처리한다.
+- `internal/adapters/guest/editor_language_config.go`의 workspace root 탐색은 실재하지 않는
+  named buffer를 cwd로 오인하지 않고 그 경로의 dirname에서 시작한다. 따라서 NvimTree
+  virtual buffer는 현재 project root를 찾고, nested marker 아래의 새 파일은 outer trust를
+  상속하지 않는다.
+- `internal/adapters/guest/editor_startup_test.go`는 실제 headless Neovim callback으로 bare,
+  directory, file, multi-argument, headless, named zero-argument, stdin 시작과 C++·Go·Python·
+  Java·C# filetype 복구를 실행한다. 실제 `BufReadPost` autocmd와 empty/relative/unmatched
+  filename, deleted/unloaded/renamed/claimed buffer 경계도 검증한다. Kotlin adapter setup과
+  Kotlin project action의 `dap.run(type="kotlin")`도 실행한다. NvimTree Java/Kotlin 판별,
+  mixed project 선택, nested Gradle module 탐색, active Java buffer 우선순위, background Java
+  LSP/DAP 준비, adapter unavailable·source 없음·malformed source root·untrusted root의
+  fail-closed 경계와 pending JVM 준비 취소도 실제 headless callback으로 검증한다.
+- `internal/adapters/guest/editor_test_helpers_test.go`는 authoritative Linux amd64 CI에서
+  PATH의 임의 Neovim을 사용하거나 테스트를 skip하지 않는다. production catalog의 exact
+  URL·archive SHA·format·executable을 `artifact.Snapshotter`로 획득해 동일한 HTTPS,
+  checksum, bounded extraction과 cleanup 계약을 재사용한다.
 
 ## 검증
 
-- 회귀 테스트 RED: `go test ./internal/adapters/guest -run
-  TestJVMPluginLoadsDAPSetupForKotlinBuffers -count=1`이 수정 전 기대한 메시지로 실패.
-- 회귀 테스트 GREEN: 같은 명령이 최소 코드 수정 후 통과.
-- directory-first 회귀 테스트 RED: `go test ./internal/adapters/guest -run
-  TestManagedInitSupportsDirectoryFirstSessions -count=1`이 자동 탐색기 계약 부재로 실패.
-- directory-first 회귀 테스트 GREEN: 자동 NvimTree 시작과 지연 filetype 복구 계약 추가 후
-  통과.
-- workspace trust startup 회귀 테스트 RED:
-  `TestTrustCommandsLoadBeforeFirstProjectFile`은 `VimEnter` 로딩 계약 부재로 실패했고,
-  `TestWorkspaceTrustUsesCWDForVirtualProjectBuffers`는 NvimTree 가상 경로에서 root 목록이
-  빈 값이라 실패했다.
-- workspace trust startup 회귀 테스트 GREEN: `VimEnter` 이벤트와 non-existent buffer의
-  cwd fallback 추가 후 두 테스트 모두 통과.
+- 최신 project head: `0ffc8cf2eb1a86f9bbb94ade140879ccfd9a32e1`.
 - `go test -count=1 ./...`: 전체 패키지 통과.
 - `go vet ./...`: 통과.
 - macOS arm64 `go build ./cmd/mds`: 통과.
 - Linux arm64 `CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build ./cmd/mds`: 통과.
 - `git diff --check`: 통과.
-- Lima `nvim-full` plan digest:
-  `sha256:6651369419ffa42755cec159317c8f593fbf930c8f167a598ecef3e4da50bbad`.
-- 첫 apply: `complete: true`; 실제 변경은 managed `nvchad` configuration 하나이며 나머지
-  component는 noop.
-- repeat apply: 25개 outcome 전부 `noop: true`.
-- 실제 TUI에서 `cd ~/Test && nvim` 실행 직후 `cwd=/home/gurumee92.guest/Test`,
-  `filetype=NvimTree`, window 2개를 확인했다. 방향키와 Enter로 `Program.cs`를 선택한 뒤
-  `filetype=cs`, `roslyn initialized=true`, client 1개, CoreCLR adapter, C# DAP configuration
-  2개를 확인했다.
-- 새 커밋 적용 후 source file 없이 실제 TUI를 `/tmp/mds-trust-startup-probe`에서 시작했다.
-  current buffer는 `/tmp/mds-trust-startup-probe/NvimTree_1`,
-  `exists(':MdsTrustWorkspace')=2`, `require('configs.trust').roots(0)` 결과는 현재 project
-  root 하나로 확인됐다.
-- 파일 인자 없는 시작 뒤 지연 `:edit`에서도 Go `gopls`, Python `pyright`, C++ `clangd`,
-  C# `roslyn` attach를 확인했다.
-- Kotlin-only headless Neovim: `filetype=kotlin`, `kotlin_adapter=true`,
-  `kotlin_configs=1`.
-- `Test/Program.cs` headless Neovim: `roslyn initialized=true`, C# DAP adapter와 두
-  configuration 확인.
+- 최종 macOS arm64 CLI SHA-256:
+  `6ec7334d002550bd2ea5a96c301e34e61a821ba7099ac5c75ada667901275c07`.
+- 최종 Linux arm64 CLI SHA-256:
+  `842f0b11a4672b8c242fad8957914348deea5a549d6a33f41b9a12eb07b70de8`.
+- 최종 Lima `nvim-full` plan digest:
+  `sha256:59c726ccc082afc26cc33b51a55d5905acbbbc0b53b3cd29fd2b3837d5f9b641`.
+- 최종 production 변경 apply: `complete: true`; managed `nvchad` configuration만 변경되고
+  나머지 24개는 no-op이었다. 같은 digest의 repeat apply는 25개 outcome 전부
+  `noop: true`였다.
+- 최신 config의 실제 TUI에서 project directory의 `nvim` 시작 직후 current buffer가
+  `NvimTree_1`, `filetype=NvimTree`, cwd와 trust root가 project root, startup module이 loaded,
+  `:MdsTrustWorkspace`와 `:MdsProjectAction`이 모두 존재함을 확인했다.
+- Kotlin-only headless Neovim에서 `filetype=kotlin`, pinned Kotlin adapter 등록,
+  `kotlin_configurations=0`, `:MdsProjectAction` 존재를 확인했다. untrusted workspace에서는
+  project import와 실행이 차단됐다.
+- 최종 적용 config에서 source file을 열지 않은 NvimTree 상태와 `services/api` nested Gradle
+  module을 구성해 Java project source를 background-load한 뒤 JDTLS와 `dap.adapters.java`가 준비되는
+  `MDS_JAVA_TREE_DEBUG_READY`를 확인했다. 같은 NvimTree 상태에서 실행 가능한 pinned Kotlin
+  adapter가 nested module source로 등록되는 `MDS_KOTLIN_TREE_DEBUG_READY`도 확인했다.
 - 최종 production doctor: exit 0, `ready: true`; component 25개 ready 및 expected capability
-  26개 전부 pass. Java·Kotlin·Spring·
-  C#·Razor·Blazor LSP/cohost와 Java·Kotlin·.NET app/test/server breakpoint DAP의 source,
-  stack, scope, known variable, continue, step-in, step-over, terminate 결과를 확인했다.
-- 새 커밋의 첫 전체 doctor는 Kotlin app DAP가 breakpoint·source·stack·scope·known
-  variable·step-over까지 성공한 뒤 continue/terminate 단계에서 한 번 timeout됐다. 실패
-  범위를 `--component nvim-jvm`으로 좁혀 재검증하자 Java/Kotlin DAP 4종과 JVM LSP가 모두
-  pass했고, 이어 실행한 최종 `nvim-full` doctor는 exit 0, `ready: true`, expected
-  capability 26개 전부 pass로 끝났다.
-- 중간 doctor 한 번은 진단 명령을 중복 실행해 Kotlin compiler가 exit 137, Java DAP가
-  timeout으로 실패했다. 중복 doctor 3개와 그 실행이 남긴 `/tmp/mds-capability-*` Gradle
-  daemon만 종료하고 가용 메모리 2.7 GiB 상태에서 단일 doctor를 재실행해 위 최종 성공을
-  확인했다. 사용자 Neovim/프로젝트 프로세스는 종료 대상에서 제외했다.
-- 미실행 검증: GitHub Actions와 PR 최신 head의 `ce-code-review`·`ce-doc-review`. 로컬
-  GitHub CLI token이 만료됐고 HTTPS Git credential도 없어 branch push와 PR 생성이
-  차단됐다. SSH는 현재 client cipher/known-host 상태에서 안전하게 인증할 수 없어 임의
-  우회하지 않았다.
+  26개 전부 pass. Component readiness는 C++·Go·Python toolchain을 포함하고, capability
+  검증은 Java·Kotlin·Spring·C#·Razor/Blazor LSP와 Java·Kotlin·.NET app/test/server DAP의
+  구조적 breakpoint 결과를 포함한다.
+- doctor가 남긴 PPID 1의 Gradle 9.6 daemon과 nested Java probe가 남긴 JDTLS·Gradle 8.9
+  daemon은 각각 exact PID와 command를 확인한 뒤 TERM으로 종료했다. 사용자 Neovim 및
+  project process는 종료하지 않았다.
+- GitHub Actions run `32694977715`: 최신 head에서 Linux `verify`와 `windows-verify` 모두 pass.
+- 최신 head `ce-code-review`에서 nested module 미탐색, untrusted adapter 선행 준비,
+  `:MdsProjectCancel` 뒤 stale callback launch 위험 3개를 발견해 commit `0ffc8cf`로 수정했다.
+  전체 검증과 실제 Lima probe를 다시 통과했고 남은 actionable finding은 없다.
+- 최신 head의 별도 `ce-doc-review`는 doctor의 component readiness와 구조적 capability 검증
+  범위를 구분하도록 한 문장을 바로잡았고, 남은 proposed fix·decision·FYI observation은 없다.
 
 ## 외부 동기화
 
 - Linear: 사용자 요청으로 전체 단계 waived.
 - Project branch: `fix/no-ticket-nvchad-project-startup`.
-- Project commits:
-  `b5afb65d6bd7c9fb0815714704a738599e7b2877`,
-  `839e8a9cbd61f6e5cec61815b7fb715c546000e1`,
-  `c3f9018a8e2424463fca6ab59edec30d25e1cb64`,
-  `cd6b9ac7d71f3b5fc28fec1184ad0310c706bf24`.
+- Project PR: https://github.com/zzanghyunmoo/my-desk-setup/pull/9
+- 최종 project head: `0ffc8cf2eb1a86f9bbb94ade140879ccfd9a32e1`.
 - Notion canonical 구현 문서:
   https://app.notion.com/p/3c3ef22ad4fc81ad97e0d9f020192b8e
-- Pull request: https://github.com/zzanghyunmoo/my-desk-setup/pull/9
-- Branch와 work evidence는 원격에 push됐으며 최신 head code/doc review 및 merge guard
-  검증을 진행한다.
+- PR 최신 head에 별도 code/doc review 댓글과 passing marker를 게시한 뒤 guarded merge
+  precheck를 실행한다.
 
 ## Merge closeout
 
 PR merge 전이므로 `closeout_status: pending`이다. Merge는 사용자의 별도 명시 승인과
-guarded merge 검증 없이는 실행하지 않는다.
+guarded merge 검증 후 실행하며, 이후 KB·Notion 기능 현황·work evidence를 갱신한다.
