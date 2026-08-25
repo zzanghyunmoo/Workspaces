@@ -10,3 +10,7 @@
 	path = projects/oh-my-harness
 	url = https://github.com/zzanghyunmoo/oh-my-harness.git
 	branch = main
+[submodule "notes"]
+	path = notes
+	url = https://github.com/zzanghyunmoo/notes-private.git
+	branch = main
