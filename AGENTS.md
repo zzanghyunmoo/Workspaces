@@ -1,195 +1,116 @@
 # AGENTS.md — 글로벌 가드레일
 
-이 워크스페이스(`zWorkspaces`)에서 작업하는 모든 에이전트가 따라야 하는 규칙.
+이 워크스페이스(`zWorkspaces`)에서 작업하는 모든 에이전트가 따라야 하는 규칙이다.
 
-## Compound Engineering 산출물 저장 위치
+## 워크스페이스 경계
 
-각 단계의 결과물은 다음 경로에 저장한다. 다른 경로에 흩뿌리지 말 것.
-`/ce-ideation` 요청은 설치된 `$compound-engineering:ce-ideate`로 실행한다.
+- 루트 저장소 `zzanghyunmoo/Workspaces`와 현재 연결된 모든 콘텐츠 저장소는 공개
+  저장소다. credential, token, private key, password, 복구 코드, 내부 호스트,
+  개인 로컬 경로와 공개하면 안 되는 원문을 추적하지 않는다.
+- 루트 `docs/` 디렉터리는 사용하지 않으며 새로 만들지 않는다.
+- 워크스페이스 공용 장기 지식은 공개 `notes/` 서브모듈에 일반 Markdown으로
+  기록한다. 특정 프로젝트의 설계·계획·검증 문서는 해당 프로젝트 저장소가
+  소유하고 하위 `AGENTS.md` 규약을 따른다.
+- GitHub Issue와 PR은 목표, 상태, 변경과 검증을 추적하는 제어면이다. 문서 본문을
+  Issue에 중복 복사하지 않는다.
 
-<!-- markdownlint-disable MD013 -->
-| 단계/스킬 | 저장 위치 | 파일명 패턴 |
-| --- | --- | --- |
-| `ce-ideate` (`/ce-ideation`) | `docs/ideation/` | `<YYYY-MM-DD>-<topic>-ideation.md` 또는 `.html` |
-| `ce-brainstorm` | `docs/brainstorms/` | `<YYYY-MM-DD>-<topic>-requirements.md` |
-| `ce-plan` | `docs/plans/` | `<YYYY-MM-DD>-<TICKET>-<topic>-plan.md` |
-| `ce-work` | `docs/works/` | `<YYYY-MM-DD>-<TICKET>-<topic>-work.md` |
-| merge closeout | `docs/kb/<category>/` | `<YYYY-MM-DD>-<TICKET>-<topic>.md` |
-| `ce-compound` | `docs/solutions/<category>/` | 해당 스킬 규약 따름 |
-<!-- markdownlint-enable MD013 -->
+## 작업 디렉터리
 
-## Compound Engineering 활용 흐름
+- `blogs/` — 기술 블로그 `zzanghyunmoo/zzanghyunmoo.github.io` 서브모듈.
+- `notes/` — 공개 Markdown 노트 `zzanghyunmoo/notes-private` 서브모듈.
+- `projects/my-desk-setup/` — macOS·Windows·Lima·WSL 개발 환경 control plane.
+- `projects/oh-my-harness/` — Claude Code·OpenCode·Codex 환경 관리자.
+- `projects/` — 개별 프로젝트 작업 공간. 각 프로젝트의 하위 가드레일이 우선한다.
+- `runbooks/` — 루트 저장소 운영·검증 절차와 실행 도구.
+- `CONCEPTS.md` — 워크스페이스 공유 도메인 용어집.
 
-- 거대하거나 방향성이 열려 있는 작업은 먼저
-  `$compound-engineering:ce-ideate`로 후보와 트레이드오프를 좁힌다.
-- 단일 기능/문서/프로젝트 작업은 `ce-brainstorm` → `ce-plan` → 계획
-  `ce-doc-review` → `ce-work` → PR 생성 → PR `ce-code-review`와
-  `ce-doc-review` → merge closeout → `ce-compound` 순서를 기본으로 한다.
-- 오류, 실패, 회귀, 원인 추적 작업은 사용자가 `/ce-debug`라고 부를 수 있게
-  안내하고, 해당 경우 `compound-engineering:ce-debug`를 사용한다.
-- 검증이 끝난 비반복 지식, 워크플로 결정, 프로젝트 운영 규칙은
-  `ce-compound`로 `docs/solutions/`에 남긴다.
-- `docs/solutions/`는 과거 문제의 검증된 해결책을 카테고리별로 모아둔
-  검색 가능한 지식 저장소다. 각 문서는 YAML frontmatter(`module`, `tags`,
-  `problem_type`)를 가진다. 문서화된 영역에서 구현·디버깅·결정할 때
-  참고할 만하다.
+## Compound Engineering 활용
 
-## 티켓 기반 단계별 필수 가드레일
+- 방향이 열려 있는 작업은 `compound-engineering:ce-ideate` 또는
+  `compound-engineering:ce-brainstorm`으로 범위를 좁힌다.
+- 구체적인 다단계 작업은 `ce-plan` → `ce-doc-review` → `ce-work` →
+  `ce-code-review` 흐름을 기본으로 하되, 산출물 저장 위치는 작업 대상 프로젝트의
+  규약을 따른다.
+- 루트 저장소 작업을 위해 `docs/ideation`, `docs/plans`, `docs/works`, `docs/kb`,
+  `docs/solutions`를 다시 만들지 않는다. 지속 보존이 필요한 루트 수준 지식은
+  `notes/`에 기록할지 사용자와 범위를 확정한다.
+- 오류, 실패, 회귀와 원인 추적에는 `compound-engineering:ce-debug`를 사용한다.
+- 검증된 프로젝트 지식은 해당 프로젝트의 `ce-compound` 규약에 따라 남긴다.
 
-이 가드레일은 `projects/` 아래 프로젝트의 티켓 기반 변경에 적용한다. 긴급 수정이나
-아이디에이션·계획이 불필요한 작은 작업도 단계를 조용히 생략하지 않고 work evidence에
-`waived`와 구체적인 이유를 남긴다.
+## 공개 노트 규칙
 
-1. **Ideation**
-   - `ce-ideate` 결과를 `docs/ideation/`에 저장한다.
-   - GitHub Issue에 canonical ideation 경로를 추가하되, 본문을 Issue에 복제하지
-     않는다.
-2. **Plan**
-   - GitHub Issue를 새로 만들거나 기존 Issue를 확정한 뒤 `ce-plan`을 실행한다.
-   - 식별자는 `GH-<number>`, canonical URL은
-     `https://github.com/<owner>/<repo>/issues/<number>`를 사용한다.
-   - `docs/plans/`의 canonical plan 경로를 Issue에 연결한다.
-3. **Work**
-   - 구현 전에 Issue의 lifecycle label을 `status:in-progress`로 바꾼다.
-   - 열린 Issue에는 `status:planned`, `status:in-progress`, `status:in-review`,
-     `status:blocked` 중 정확히 하나만 둔다.
-   - `docs/works/`의 `compound-work/v2` work evidence를 갱신하고 Issue와 서로
-     연결한다.
-   - work 문서의 `주요 변경 지점`에는 개발 로직, 계약, 설정, 데이터 흐름 등 리뷰어가
-     확인할 핵심을 파일·심볼 단위로 요약하고, 검증 결과와 미실행 검증을 함께 적는다.
-4. **PR review**
-   - PR 생성 직후 최신 head에 `ce-code-review`와 `ce-doc-review`를 모두 실행한다.
-   - 두 결과를 별도 PR 댓글로 게시하고, blocker를 해결한 최신 head 댓글에만
-     `docs/works/README.md`의 `ce-review:v2` passing marker를 넣는다. Marker에는 PR
-     `head_sha`와 canonical evidence의 `evidence_commit`, `evidence_blob`을 함께 고정한다.
-     Merge를 실행하는
-     인증 GitHub OWNER/MEMBER/COLLABORATOR가 게시한 댓글만 gate 증빙으로 인정한다.
-   - 새 commit이 push되면 이전 marker는 stale이다. 두 리뷰를 다시 실행해 댓글을 갱신한다.
-5. **Merge closeout**
-   - Merge 뒤 `docs/kb/`에 현재 기능 상태·운영 경계·검증 결과를 정리한다.
-   - work evidence에 merge commit, merged PR, KB 경로, closeout 시각을 기록하고
-     `closeout_status: complete`로 마감한다.
-   - stacked 후속 PR이 남아 있으면 Issue를 열어 두고
-     `status:in-review`와 `remaining_prs`를 유지한다. 마지막 PR의 closeout이
-     기본 브랜치에 반영된 뒤에만 lifecycle label을 제거하고 close reason
-     `completed`로 Issue를 닫는다.
+- `notes/`는 public-first 저장소다. commit 전 파일명, frontmatter, 본문, 첨부파일과
+  전체 diff에 민감정보나 개인 경로가 없는지 확인한다.
+- `.obsidian/workspace*`, `.trash/`, `.env*`, OS 임시 파일과 credential 파일은
+  추적하지 않는다.
+- 노트는 가능한 한 표준 Markdown 링크를 사용한다. 공개 블로그 글은
+  `runbooks/public-notes-publishing.md`를 확인하고, `notes/`를 build input이나
+  content loader로 직접 연결하지 않은 채 검토한 글만 `blogs/`의 기존 branch/PR
+  절차로 옮긴다.
+- `notes/`의 저장소 URL이나 gitlink 공개는 허용하지만, 공개 전환 이전의 private
+  가정이나 민감정보가 다시 유입되지 않게 한다.
 
-`docs/works/_template.md`를 work evidence 시작점으로 사용한다. 하나의 티켓이 여러 PR로
-나뉘면 PR마다 evidence를 하나씩 만들고, 마지막 PR 전까지 Issue의
-`status:in-review`를 유지한다.
-PR merge 전에는
-`runbooks/guarded-pr-merge.sh --workflow-evidence <docs/works/...>`가 `origin/main`의
-ideation/plan/work 증빙과 PR 최신 head의 두 review marker를 검증한다. Merge 성공 후에는
-root pre-push가 closeout 완료를 검사하므로 KB·work evidence·Issue 정리 전에는
-다음 root push를 완료할 수 없다.
+## 서브모듈 작업
 
-## GitHub-native 문서와 작업 제어면
+- `.gitmodules`의 URL과 branch를 source of truth로 사용하고, 최신화 전 각
+  서브모듈의 dirty 상태와 upstream을 확인한다.
+- 서브모듈 내부 변경과 루트 gitlink 변경을 구분한다. child 변경을 먼저 검증하고
+  반영한 뒤 루트 포인터를 갱신한다.
+- 사용자 변경, 삭제된 원격 branch와 복구 지점을 덮어쓰지 않는다.
+- 서브모듈을 제거할 때는 원격 삭제 여부와 로컬 전용 commit을 확인하고 가능한 한
+  복구 가능한 위치로 이동한다.
 
-- 새 ideation, requirements, plan, work, KB, solution은 지정된 `docs/` Markdown이
-  canonical source다. GitHub Issue는 목표, 현재 lifecycle, canonical 문서와 PR
-  링크를 담는 짧은 index로 유지한다.
-- GitHub Project는 여러 repository Issue를 모아 보는 선택적 projection이다.
-  Project 권한이 없거나 projection이 지연돼도 Issue, PR, repo docs, gate는
-  계속 동작해야 한다.
-- GitHub Wiki는 별도 repository이므로 canonical 문서 표면으로 사용하지 않는다.
-- 신규 `compound-work/v2` 산출물은 Notion URL이나 Linear 상태를 요구하지
-  않는다. 기존 `compound-work/v1` 문서와 Notion/Linear 링크는 역사 증거로
-  수정하지 않고 legacy validator로 계속 해석한다.
+## 프로젝트 작업 흐름
 
-## 비공개 노트의 공개 승격
+- 프로젝트 작업 전 해당 저장소의 `AGENTS.md`, `README`, 현재 branch, dirty 상태를
+  확인한다.
+- `projects/` 아래 저장소에서는 `main`/`master`에 직접 commit 또는 push하지 않는다.
+  문서·메타 작업도 별도 branch와 PR을 사용한다.
+- 사용자가 프로젝트 기본 branch 직접 반영을 요구해도 실행 직전에 대상 repo,
+  branch, 변경 파일, commit message와 push 대상을 한 번 더 제시하고 확인받는다.
+- 명시 승인 없이 `MAIN_GUARD_APPROVED=1` 같은 보호 hook 우회 변수를 설정하지 않는다.
+- 실제 OS·VM 검증은 대상과 결과를 기록하고, 실행하지 못한 검증은 이유를 명시한다.
 
-- private note에서 파생된 글은 `runbooks/private-knowledge-publishing.md`를 먼저 읽고,
-  candidate만 바뀐 전용 blog branch에서 `runbooks/guarded-publication-push.sh`로만
-  push한다. Canary와 exact remote/branch/base/HEAD/candidate 승인 없이 일반
-  `git push`로 우회하지 않는다.
-- private vault를 공개 저장소의 symlink, submodule, content loader, build input으로
-  연결하지 않는다. 일반 공개 코드·기존 공개 글 변경은 이 publication wrapper 대상이
-  아니며 해당 repository의 기존 branch/PR 규칙을 따른다.
+## Pi tmux 병렬 워커
 
-## 작업 디렉터리 규칙
-
-- `blogs/` — 기술 블로그(`zzanghyunmoo.github.io`). 디렉터리 자체는 유지,
-  내용물 교체는 허용.
-- `projects/` — 개별 프로젝트 작업 공간.
-- `projects/LetsStudyCS/` — 컴퓨터 과학 기본기와 언어별 실습을 정리하는 학습 repo.
-  제품 구현보다 작은 예제와 학습 노트를 우선한다.
-- `projects/our-moneyflow/` — 읽기 전용 다중 은행 가계부·예산·보고서 제품 repo.
-  Flutter/Dart Android/iOS 단일 앱으로 개발하며, 별도 API·server·sync worker와
-  database는 사용자 명시 승인 전 범위에서 제외한다. 송금·결제 기능과 ReplaceMe
-  변경도 이 repo 범위에서 제외한다.
-- `runbooks/` — 운영/실행 절차 문서.
-- `docs/` — 워크스페이스 레벨 문서(`ideation/`, `brainstorms/`, `plans/`, `works/`,
-  `kb/`, `solutions/`).
-- `CONCEPTS.md` — 워크스페이스 공유 도메인 용어집(엔티티, 명명된 프로세스,
-  상태 개념). 코드베이스를 파악하거나 도메인 개념을 논의할 때 참고할 만하다.
-
-## Pi tmux 병렬 워커 가드레일
-
-- 여러 Pi 세션을 병렬 실행할 때는 `runbooks/pi-tmux-workers.md`와
+- 여러 Pi 세션은 `runbooks/pi-tmux-workers.md`와
   `runbooks/pi_tmux_workers.py`를 기본 제어면으로 사용한다.
-- 쓰기 워커는 반드시 독립 Git worktree와 비중첩 `--scope`를 사용한다. 포트, DB,
-  package install, browser session처럼 파일 밖에서 충돌하는 대상은 `--resource`로
-  예약한다.
-- 읽기 워커는 read-only tool allowlist로 시작한다. 단, 이는 OS sandbox가 아니므로
-  신뢰하지 않는 extension이나 코드는 container/VM에서 실행한다.
+- 쓰기 워커는 독립 Git worktree와 비중첩 `--scope`를 사용한다. 포트, DB,
+  package install, browser session 같은 환경 singleton은 `--resource`로 예약한다.
 - 병렬 워커는 stage, commit, push, merge, rebase 또는 하위 worker 생성을 하지 않는다.
-  한 명의 코디네이터가 실제 diff와 scope 위반, 검증 결과를 확인한 뒤 한 slice씩
-  통합한다.
+  코디네이터가 diff, scope와 검증 결과를 확인한 뒤 한 slice씩 통합한다.
 - 동일 파일, 공용 API/type/schema, migration, lockfile, generated artifact 또는 환경
-  singleton을 건드리는 작업은 병렬화하지 않고 dependency 순서대로 직렬 실행한다.
-- 기본 동시성은 4개 이하로 유지한다. scope 위반, 광범위한 예상 밖 변경, 반복 충돌,
-  공유 환경 오염이 발견되면 즉시 병렬 실행을 중단하고 남은 작업을 직렬화한다.
-- `cleanup`은 dirty worktree나 실행 중 session을 삭제하지 않으며 worker branch도 자동
-  삭제하지 않는다. 기존 사용자 변경과 복구 지점은 코디네이터가 명시적으로 정리한다.
+  singleton을 건드리는 작업은 직렬 실행한다. 기본 동시성은 4개 이하로 유지한다.
+- scope 위반, 광범위한 예상 밖 변경, 반복 충돌 또는 공유 환경 오염이 발견되면
+  병렬 실행을 중단한다.
 
 ## Git 작업 규칙
 
-- 루트 워크스페이스 repo(`/Users/gurumee92/Workspaces/zWorkspaces`, GitHub
-  `zzanghyunmoo/Workspaces`)는 운영·문서·가드레일 repo이므로 `main`에서 직접 작업하고
-  commit/push할 수 있다.
-- `projects/` 아래 개별 프로젝트 repo(예: `projects/ReplaceMe`)에서는 `main`/`master`
-  브랜치에 직접 commit 또는 push 하지 않는다. 문서·메타 작업도 예외가 아니다.
-- 프로젝트 repo의 기본 흐름은 티켓 생성/확인 → 별도 브랜치 작업 → PR/MR 생성이다.
-- 사용자가 프로젝트 repo의 `main` 직접 반영을 명시적으로 요구해도, 실행 직전에 반드시 한 번
-  더 확인한다. 확인 메시지에는 대상 repo, 현재 브랜치, 변경 파일 요약, commit message,
-  push 대상 remote/branch를 포함한다.
-- 사용자의 명시 승인 없이는 `MAIN_GUARD_APPROVED=1` 같은 프로젝트 main 보호 hook 우회
-  환경변수를 설정하지 않는다. hook이 차단하면 중단하고 사용자에게 승인 또는 브랜치/PR 전환을
-  묻는다.
-- 로컬 main 보호 hook은 `runbooks/install-main-guard-hooks.sh`로 설치한다. 이 스크립트는
-  `core.hooksPath`를 `.githooks/`로 설정하고, root repo는 main 직접 작업을 허용하되
-  `projects/ReplaceMe` 같은 프로젝트 repo에는 pre-commit/pre-push 차단 규칙을 적용한다.
+- 루트 저장소는 운영·가드레일·서브모듈 포인터 저장소이므로 `main`에서 직접
+  작업하고 commit/push할 수 있다.
+- 기존 dirty 파일과 사용자가 만든 미추적 파일은 명시된 범위 밖에서 수정·삭제하지
+  않는다.
+- 파괴적 명령 전 exact target을 읽기 전용으로 확인하고, material한 삭제는 복구
+  가능 여부를 결과에 알린다.
+- 로컬 main 보호 hook은 `runbooks/install-main-guard-hooks.sh`로 설치한다.
 
-## PR/MR Merge 승인 규칙
+## PR/MR merge 승인
 
-- PR/MR 생성, reviewer pass, merge 가능 상태 확인, "merge order" 정리, Issue
-  lifecycle 전환은 merge 승인으로 해석하지 않는다.
-- `gh pr merge`, `glab mr merge`, GitHub/GitLab API mutation 등 PR/MR을 병합하거나
-  종료하는 명령은 현재 turn에서 사용자가 해당 repo와 PR/MR 번호를 명시해 merge를 승인한
-  경우에만 실행한다.
-- merge 실행 직전에는 대상 repo, PR/MR 번호와 제목, head→base branch, merge method,
-  commit subject/body, branch 삭제 여부, Issue lifecycle·closeout 변경 계획을 한 번에
-  제시하고 승인을 받아야 한다.
-- GitHub PR merge는 `runbooks/guarded-pr-merge.sh --workflow-evidence
-  docs/works/<work-file>.md`를 통해서만 실행한다. 직접 `gh pr merge`를 호출하지 않는다.
-  Guard가 최신 head의 code/doc review marker 또는 단계별 증빙 누락을 보고하면 merge 승인을
-  받았더라도 먼저 누락을 보완한다.
-- 사용자의 명시 승인 없이는 `PR_MERGE_APPROVED=1` 같은 merge 승인 우회 환경변수를
-  설정하지 않는다. guard가 차단하면 중단하고 approval packet을 사용자에게 제시한다.
-- Issue를 닫는 것은 PR/MR merge 후 `docs/kb`, work evidence closeout, 남은 PR 확인을
-  모두 완료한 뒤에만 수행한다. Merge 자체는 완료 보고나 Issue close의
-  충분조건이 아니다.
+- PR/MR 생성, reviewer pass, merge 가능 상태 확인과 merge 순서 정리는 merge 승인으로
+  해석하지 않는다.
+- merge는 현재 turn에서 사용자가 대상 repo와 PR/MR 번호를 명시해 승인한 경우에만
+  실행한다.
+- 실행 직전 repo, 번호와 제목, head→base, merge method, commit subject/body,
+  branch 삭제 여부와 후속 정리 계획을 한 번에 제시하고 다시 승인받는다.
+- 사용자 승인 없는 우회 환경변수나 직접 API mutation으로 보호 절차를 건너뛰지 않는다.
 
-## PR/MR 작성 규칙
+## PR/MR 작성
 
-- GitHub PR 또는 GitLab MR 본문은 기본적으로 한국어로 작성한다.
-  사용자가 영어를 명시하면 영어로 작성한다.
-- PR/MR 본문은 `docs/solutions/conventions/pr-description-template.md`의
-  4섹션 구조(문제·변경·테스트·데모)를 따르고, ticket ID, `docs/works` evidence,
-  canonical GitHub Issue URL을 작업 추적 섹션에 포함한다. `Closes`,
-  `Fixes`, `Resolves`같은 auto-close keyword 대신 non-closing 링크를 사용한다.
-- 자동 생성한 안내 문구, 예시용 blockquote, 민감 정보(API key/token/내부
-  호스트/개인 경로)는 본문에 남기지 않는다.
+- 본문은 기본적으로 한국어로 작성하며 사용자가 영어를 명시하면 영어를 사용한다.
+- 문제·변경·테스트·데모의 4개 섹션을 기본 구조로 사용하고 관련 Issue를 non-closing
+  링크로 연결한다. stacked 작업이 남아 있으면 `Closes`, `Fixes`, `Resolves`를 쓰지 않는다.
+- 자동 생성 안내 문구, 예시 blockquote, API key/token/내부 호스트/개인 경로를 남기지
+  않는다.
 
 ## 일반 원칙
 

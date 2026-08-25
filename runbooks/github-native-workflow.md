@@ -1,9 +1,10 @@
 # GitHub-native work workflow
 
-This runbook is the forward workflow for new ticket-based work. GitHub Issues
-and pull requests are the control plane; repository Markdown is the canonical
-documentation and evidence. GitHub Project is an optional projection, GitHub
-Wiki is not canonical, and Notion/Linear are not v2 dependencies.
+This runbook applies only to project repositories that explicitly retain the
+`compound-work/v2` staged `docs/` contract in their own `AGENTS.md`. It is not
+the workflow for the `zWorkspaces` root, whose `AGENTS.md` forbids root `docs/`.
+For participating projects, GitHub Issues and pull requests are the control
+plane and repository Markdown is the canonical documentation and evidence.
 
 ## Source-of-truth map
 
@@ -93,9 +94,9 @@ After PR creation:
 5. Bind each `ce-review:v2` verdict to `head_sha`, `evidence_commit`, and
    `evidence_blob`. A change to code or evidence makes the verdict stale.
 
-For a cross-repository PR, `evidence_commit` identifies the root evidence
-repository revision and `evidence_blob` identifies the exact work file in that
-revision. The gate must verify both before accepting the marker.
+For a cross-repository PR, `evidence_commit` identifies the explicitly selected
+project evidence repository revision and `evidence_blob` identifies the exact
+work file in that revision. The gate must verify both before accepting the marker.
 
 ## Merge and closeout
 

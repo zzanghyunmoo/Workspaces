@@ -114,8 +114,8 @@ comparison does not establish this contract.
 ### GitHub-native Control Plane
 
 The workflow in which GitHub Issues own work identity and lifecycle, GitHub pull
-requests own review and merge delivery, and repository Markdown owns durable
-requirements, plans, implementation evidence, and operational knowledge.
+requests own review and merge delivery, and the repository that owns the work
+also owns any durable requirements, plans, evidence, and operational knowledge.
 
 The control plane keeps an Issue concise. It links to canonical repository
 artifacts instead of duplicating their prose or becoming a second documentation
@@ -123,12 +123,13 @@ source.
 
 ### Canonical Repository Artifact
 
-A versioned Markdown artifact in the designated `docs/` stage directory that is
-the source of truth for that stage of work.
+A versioned artifact owned by the repository where the work happens. A project
+may define staged documentation paths in its local instructions; the workspace
+root does not use `docs/` and keeps agreed public knowledge in `notes/`.
 
-Ideation, requirements, plans, work evidence, merge closeout knowledge, and
-reusable solutions remain reviewable with the code and can be validated by
-repository tooling.
+Project artifacts remain reviewable with their code and can be validated by that
+repository's tooling. Root-level notes are public Markdown and are reviewed in
+the independent notes repository.
 
 ### GitHub Issue Index
 
@@ -172,8 +173,8 @@ the exact canonical work-evidence revision using `head_sha`, `evidence_commit`,
 and `evidence_blob`.
 
 This tuple prevents a review on one repository from being reused after either
-the code head or the root-owned evidence changes. Code and document verdicts are
-published as separate trusted comments.
+the code head or the selected evidence repository changes. Code and document
+verdicts are published as separate trusted comments.
 
 ### Guarded Issue Finalization
 
@@ -184,13 +185,15 @@ closes the Issue with reason `completed`.
 Merge alone never authorizes finalization. Partial mutations are reconciled on a
 retry instead of being hidden by a successful earlier step.
 
-### Private/Public Knowledge Boundary
+### Notes/Blog Publication Boundary
 
-The physical separation between private Markdown notes and a public publishing
-repository, with no submodule, symlink, or build-loader connection between them.
+The content boundary between public-first Markdown notes and a separately built
+public blog. The notes repository may be linked as a workspace submodule, but it
+does not become a blog build input, symlink target, or content loader.
 
-Publication is a deliberate promotion of selected content after privacy checks;
-the private repository never becomes a public build input.
+Publication is a deliberate promotion of selected content after privacy and
+editorial checks. Both repositories are public, but only reviewed candidates are
+copied into the blog's branch and PR workflow.
 
 ## Legacy External Documentation Vocabulary
 
