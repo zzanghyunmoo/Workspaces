@@ -4,9 +4,11 @@
 
 ## 워크스페이스 경계
 
-- 루트 저장소 `zzanghyunmoo/Workspaces`와 현재 연결된 모든 콘텐츠 저장소는 공개
-  저장소다. credential, token, private key, password, 복구 코드, 내부 호스트,
+- 루트 저장소 `zzanghyunmoo/Workspaces`와 아래 비공개 예외를 제외한 콘텐츠 저장소는
+  공개 저장소다. credential, token, private key, password, 복구 코드, 내부 호스트,
   개인 로컬 경로와 공개하면 안 되는 원문을 추적하지 않는다.
+- `projects/astra-distopia/`는 비공개 개인 저장소다. 사용자 승인으로 이름·URL·gitlink를
+  공개 루트에 등록하지만 본문·코드·원화는 공개 루트나 다른 공개 저장소로 복사하지 않는다.
 - 루트 `docs/` 디렉터리는 사용하지 않으며 새로 만들지 않는다.
 - 워크스페이스 공용 장기 지식은 공개 `notes/` 서브모듈에 일반 Markdown으로
   기록한다. 특정 프로젝트의 설계·계획·검증 문서는 해당 프로젝트 저장소가
