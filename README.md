@@ -2,12 +2,11 @@
 
 모든 레포의 최상위 워크스페이스입니다.
 
-## 비공개 프로젝트
+## 서브모듈과 비공개 프로젝트 보관
 
-- `projects/astra-distopia` — 개인 계정의 비공개 저장소 `zzanghyunmoo/astra-distopia` 서브모듈.
-- 공개되는 것은 저장소 이름·URL·commit ID뿐이며, 소스와 리소스 접근에는 권한이 필요합니다.
-- 권한 없는 환경에서 전체 재귀 clone/update는 이 서브모듈에서 실패할 수 있습니다.
-  공개 서브모듈만 필요하면 선택적으로 초기화하세요:
+- `projects/astra-distopia`는 사용자 요청으로 로컬 서브모듈 등록에서 제거했습니다.
+- 비공개 원격 `zzanghyunmoo/astra-distopia`는 유지합니다. 본문·코드·원화와 로컬 보관 자료는 공개 루트에 복사하지 않습니다.
+- 현재 등록된 공개 서브모듈은 다음과 같이 초기화할 수 있습니다:
 
 ```bash
 git submodule update --init --recursive blogs notes projects/my-desk-setup projects/oh-my-harness
