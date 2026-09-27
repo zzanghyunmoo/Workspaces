@@ -22,7 +22,7 @@ is_protected_ref() {
 while IFS=' ' read -r local_ref local_sha remote_ref remote_sha; do
 	: "$local_sha"
 	: "$remote_sha"
-	if [ "$repo_root" = "$workspace_root" ]; then
+	if [ "$repo_root" = "$workspace_root" ] || [ "$repo_root" = "$workspace_root/notes" ]; then
 		continue
 	fi
 	if is_protected_ref "$local_ref" || is_protected_ref "$remote_ref"; then
@@ -31,9 +31,9 @@ while IFS=' ' read -r local_ref local_sha remote_ref remote_sha; do
 
 ⛔ main-guard: protected project branch push blocked.
 
-Repositories other than the root workspace must not push directly to main/master.
+Repositories other than the root workspace and notes must not push directly to main/master.
 Preferred workflow: create/confirm a ticket, work on a branch, and open a PR/MR.
-The root zWorkspaces repository is exempt and may push directly to main.
+The root workspace and its notes repository may push directly to main.
 
 If the user explicitly approved this exact project main-branch push, rerun only
 that command with:
