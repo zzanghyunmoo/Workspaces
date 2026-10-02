@@ -14,3 +14,7 @@
 	path = notes
 	url = https://github.com/zzanghyunmoo/notes-private.git
 	branch = main
+[submodule "projects/TommyBrown"]
+	path = projects/TommyBrown
+	url = https://github.com/zzanghyunmoo/TommyBrown.git
+	branch = main
