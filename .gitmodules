@@ -18,3 +18,7 @@
 	path = projects/TommyBrown
 	url = https://github.com/zzanghyunmoo/TommyBrown.git
 	branch = main
+[submodule "projects/Studies"]
+	path = projects/Studies
+	url = https://github.com/zzanghyunmoo/Studies.git
+	branch = master
