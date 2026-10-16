@@ -27,18 +27,20 @@
 - `runbooks/` — 루트 저장소 운영·검증 절차와 실행 도구.
 - `CONCEPTS.md` — 워크스페이스 공유 도메인 용어집.
 
-## Compound Engineering 활용
+## Agent Skills 활용
 
-- 방향이 열려 있는 작업은 `compound-engineering:ce-ideate` 또는
-  `compound-engineering:ce-brainstorm`으로 범위를 좁힌다.
-- 구체적인 다단계 작업은 `ce-plan` → `ce-doc-review` → `ce-work` →
-  `ce-code-review` 흐름을 기본으로 하되, 산출물 저장 위치는 작업 대상 프로젝트의
-  규약을 따른다.
+- 방향이 열려 있거나 요구사항이 모호한 작업은 `idea-refine`, `interview-me`,
+  `spec-driven-development`로 요구사항과 범위를 먼저 좁힌다.
+- 구체적인 다단계 작업은 `spec-driven-development` →
+  `planning-and-task-breakdown` → `incremental-implementation` +
+  `test-driven-development` → `code-review-and-quality` 흐름을 기본으로 하되,
+  산출물 저장 위치는 작업 대상 프로젝트의 규약을 따른다.
 - 루트 저장소 작업을 위해 `docs/ideation`, `docs/plans`, `docs/works`, `docs/kb`,
   `docs/solutions`를 다시 만들지 않는다. 지속 보존이 필요한 루트 수준 지식은
   `notes/`에 기록할지 사용자와 범위를 확정한다.
-- 오류, 실패, 회귀와 원인 추적에는 `compound-engineering:ce-debug`를 사용한다.
-- 검증된 프로젝트 지식은 해당 프로젝트의 `ce-compound` 규약에 따라 남긴다.
+- 오류, 실패, 회귀와 원인 추적에는 `debugging-and-error-recovery`를 사용한다.
+- 검증된 프로젝트 의사결정은 해당 프로젝트의 규약에 따라 `documentation-and-adrs`로
+  남기고, 워크스페이스 공용 학습·노트 정리는 `notes/inbox/`에 우선 적재한다.
 
 ## 공개 노트 규칙
 
@@ -46,6 +48,9 @@
   전체 diff에 민감정보나 개인 경로가 없는지 확인한다.
 - `.obsidian/workspace*`, `.trash/`, `.env*`, OS 임시 파일과 credential 파일은
   추적하지 않는다.
+- 새 노트와 `/learn` 정리 문서는 우선 `notes/inbox/`에 작성해 두고, 금요일 저녁이나
+  월요일 아침 등 사용자가 노트 정리를 요청할 때 주제에 맞는 `notes/notes/` 하위
+  폴더로 분류·정리한다.
 - 노트는 가능한 한 표준 Markdown 링크를 사용한다. 공개 블로그 글은
   `runbooks/public-notes-publishing.md`를 확인하고, `notes/`를 build input이나
   content loader로 직접 연결하지 않은 채 검토한 글만 `blogs/`의 기존 branch/PR
