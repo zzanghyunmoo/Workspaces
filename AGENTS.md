@@ -10,6 +10,9 @@
 - 비공개 개인 저장소 `zzanghyunmoo/astra-distopia`는 로컬 서브모듈 등록을 해제했다.
   이름·URL·gitlink의 과거 공개 허용은 본문 공개 승인이 아니며, 보관한 본문·코드·원화도
   공개 루트나 다른 공개 저장소로 복사하지 않는다.
+- 비공개 저장소 `zzanghyunmoo/side-projects`(`projects/side-projects/`)는 루트
+  `.gitmodules` 포인터 등록만 허용하며, 내부 원고·제휴 데이터·수익 지표 본문은
+  공개 루트나 공개 `notes/`로 복사하지 않는다.
 - 루트 `docs/` 디렉터리는 사용하지 않으며 새로 만들지 않는다.
 - 워크스페이스 공용 장기 지식은 공개 `notes/` 서브모듈에 일반 Markdown으로
   기록한다. 특정 프로젝트의 설계·계획·검증 문서는 해당 프로젝트 저장소가
@@ -23,9 +26,20 @@
 - `notes/` — 공개 Markdown 노트 `zzanghyunmoo/notes-private` 서브모듈.
 - `projects/my-desk-setup/` — macOS·Windows·Lima·WSL 개발 환경 control plane.
 - `projects/oh-my-harness/` — Claude Code·OpenCode·Codex 환경 관리자.
+- `projects/side-projects/` — 비공개 개인 자동화·콘텐츠 파이프라인 서브모듈.
 - `projects/` — 개별 프로젝트 작업 공간. 각 프로젝트의 하위 가드레일이 우선한다.
 - `runbooks/` — 루트 저장소 운영·검증 절차와 실행 도구.
 - `CONCEPTS.md` — 워크스페이스 공유 도메인 용어집.
+
+## 개인 프로젝트·인프라 설계 기본값
+
+- 단편적인 수작업 실행보다 단계별 마스터플랜과 반자동화·자동화를 통한 작업 시간 단축
+  경로를 먼저 설계한다.
+- 초기 상태·카탈로그·큐 관리는 외부 SaaS(Notion 등)나 별도 DB를 늘리기보다 저장소 내
+  Git/Obsidian 호환 Markdown 파일을 기본 SSOT로 최소화해 구성한다.
+- 로컬 컨테이너·Kubernetes 워크로드는 현재 Windows(WSL2 `linux/amd64`)에서 향후
+  macOS Apple Silicon(`arm64`, Mac mini)으로 재설계 없이 이전할 수 있도록
+  멀티아키 호환성과 OS별 오버레이 분리를 기본 적용한다.
 
 ## Agent Skills 활용
 
